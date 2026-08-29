@@ -1,5 +1,3 @@
-import PDFDocument from "pdfkit";
-
 export interface FormalReportOptions {
   companyName: string;
   departmentName?: string;
@@ -16,61 +14,134 @@ export interface FormalReportOptions {
 }
 
 export async function generateFormalReportPDF(options: FormalReportOptions): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({
-      size: "A4",
-      layout: "landscape",
-      margin: 30,
-      info: {
-        Title: options.reportTitle,
-        Author: options.companyName,
-      },
-    });
+  const pdfMake = await import("pdfmake/build/pdfmake");
 
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+  // Load custom Arabic font
+  const vfsResponse = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL || "https://hr-amr.vercel.app"}/fonts/vfs_fonts.js`
+  );
+  const vfsText = await vfsResponse.text();
+  eval(vfsText);
 
-    // Header
-    doc.fontSize(18).text(options.companyName, { align: "right" });
-    doc.fontSize(10).text(`تاريخ: ${new Date().toLocaleDateString("ar-EG")}`, { align: "left" });
-    doc.moveDown();
+  const pdfMakeInstance = pdfMake.default;
+  pdfMakeInstance.fonts = {
+    Cairo: {
+      normal: "Cairo-Regular.ttf",
+      bold: "Cairo-Bold.ttf",
+      italics: "Cairo-Regular.ttf",
+      bolditalics: "Cairo-Bold.ttf",
+    },
+  };
 
-    // Title
-    doc.fontSize(16).text(options.reportTitle, { align: "center" });
-    doc.moveDown();
+  const statusLabels = options.statusLabels || {
+    active: "نشط",
+    leave: "إجازة",
+    inactive: "غير نشط",
+    present: "حاضر",
+    absent: "غائب",
+    late: "متأخر",
+    new: "جديد",
+    in_progress: "قيد التنفيذ",
+    completed: "مكتمل",
+  };
 
-    // Table
-    const startX = 30;
-    let startY = doc.y;
-    const rowHeight = 25;
-    const colWidths = options.tableColWidths.map((w) => w * 0.6);
-
-    // Table headers
-    doc.fontSize(10).font("Helvetica-Bold");
-    let x = startX;
-    options.tableHeaders.forEach((header, i) => {
-      doc.text(header, x, startY, { width: colWidths[i], align: "center" });
-      x += colWidths[i];
-    });
-    startY += rowHeight;
-
-    // Table rows
-    doc.fontSize(9).font("Helvetica");
-    options.tableData.forEach((row) => {
-      x = startX;
-      row.forEach((cell, i) => {
+  const tableBody = [
+    options.tableHeaders.map((h) => ({
+      text: h,
+      style: "tableHeader",
+      alignment: "center",
+    })),
+    ...options.tableData.map((row) =>
+      row.map((cell, i) => {
         let text = String(cell);
-        if (options.statusColumnIndex === i && options.statusLabels) {
-          text = options.statusLabels[text] || text;
+        if (options.statusColumnIndex === i && statusLabels) {
+          text = statusLabels[text] || text;
         }
-        doc.text(text, x, startY, { width: colWidths[i], align: "center" });
-        x += colWidths[i];
-      });
-      startY += rowHeight;
-    });
+        return { text, alignment: "center", style: "tableCell" };
+      })
+    ),
+  ];
 
-    doc.end();
+  const docDefinition = {
+    pageSize: "A4",
+    pageOrientation: "landscape",
+    pageMargins: [40, 60, 40, 60],
+    content: [
+      {
+        columns: [
+          {
+            width: "auto",
+            stack: [
+              { text: options.companyName, style: "companyName" },
+              options.departmentName ? { text: options.departmentName, style: "departmentName" } : {},
+            ],
+          },
+          {
+            width: "*",
+            text: `تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}\nشهر التقرير: ${options.period}`,
+            style: "dateInfo",
+            alignment: "left",
+          },
+        ],
+        columnGap: 10,
+      },
+      { text: "", style: "spacer" },
+      { text: options.reportTitle, style: "reportTitle" },
+      { text: "", style: "spacer" },
+      {
+        table: {
+          headerRows: 1,
+          widths: options.tableColWidths.map((w) => w * 0.7),
+          body: tableBody,
+        },
+        style: "table",
+        layout: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => "#000",
+          vLineColor: () => "#000",
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 6,
+          paddingBottom: () => 6,
+        },
+      },
+      { text: "", style: "spacer" },
+      {
+        columns: (options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"]).map((sig) => ({
+          width: "*",
+          stack: [
+            { text: sig, style: "signatureName" },
+            { text: "_________________", style: "signatureLine" },
+          ],
+          alignment: "center",
+        })),
+        columnGap: 20,
+      },
+    ],
+    defaultStyle: {
+      font: "Cairo",
+      direction: "rtl",
+      fontSize: 11,
+    },
+    styles: {
+      companyName: { fontSize: 18, bold: true, margin: [0, 0, 0, 5] },
+      departmentName: { fontSize: 13, color: "#666" },
+      dateInfo: { fontSize: 11, color: "#666", lineHeight: 1.5, alignment: "left" },
+      reportTitle: { fontSize: 16, bold: true, margin: [0, 0, 0, 15], alignment: "center" },
+      tableHeader: { bold: true, fontSize: 11, fillColor: "#e8e8e8", color: "#000" },
+      tableCell: { fontSize: 10, color: "#333" },
+      table: { margin: [0, 10, 0, 20] },
+      spacer: { fontSize: 8 },
+      signatureName: { fontSize: 12, bold: true, margin: [0, 0, 0, 5] },
+      signatureLine: { fontSize: 12, color: "#666" },
+    },
+  };
+
+  return new Promise((resolve, reject) => {
+    const pdfDoc = pdfMakeInstance.createPdf(docDefinition);
+    pdfDoc.getBuffer((buffer: Buffer) => {
+      resolve(buffer);
+    });
   });
 }
