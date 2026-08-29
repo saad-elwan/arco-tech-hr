@@ -1,13 +1,5 @@
 {
   "rewrites": [
-    { "source": "/pwa", "destination": "/static.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
-      ]
-    }
+    { "source": "/pwa", "destination": "/pwa.html" }
   ]
 }
