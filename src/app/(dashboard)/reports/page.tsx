@@ -438,5 +438,6 @@ export default function ReportsPage() {
           ) : renderTable()}
         </div>
       </div>
+    </div>
   );
 }
