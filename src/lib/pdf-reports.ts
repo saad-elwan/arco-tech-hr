@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const reshape = require("arabic-reshaper").reshape;
+const reshape = require("arabic-reshaper").convertArabic;
 
 export interface FormalReportOptions {
   companyName: string;
