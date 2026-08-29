@@ -1,7 +1,9 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
-import { reshape } from "arabic-reshaper";
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const reshape = require("arabic-reshaper").reshape;
 
 export interface FormalReportOptions {
   companyName: string;
