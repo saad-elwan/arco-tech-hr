@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Download, FileText, Calendar, Filter, Users, Clock, CheckCircle, Star } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("attendance");
@@ -16,6 +18,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [hasFiltered, setHasFiltered] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/departments").then(r => r.json()).then(d => { if (Array.isArray(d)) setDepartments(d); });
@@ -51,7 +54,7 @@ export default function ReportsPage() {
 
   const handlePrint = () => window.print();
 
-const handleExportCSV = () => {
+  const handleExportCSV = () => {
     if (!reportData.length) return alert("لا توجد بيانات للتصدير");
     let csv = "";
     if (reportType === "attendance") {
@@ -83,53 +86,24 @@ const handleExportCSV = () => {
   };
 
   const handleExportPDF = async () => {
-    if (!reportData.length) return alert("لا توجد بيانات للتصدير");
+    if (!printRef.current) return alert("لا توجد بيانات للتصدير");
     try {
       setLoading(true);
-      let url = "";
-      const params = new URLSearchParams();
-
-      if (reportType === "attendance") {
-        url = "/api/reports/attendance";
-        params.append("month", fromDate.substring(0, 7));
-        if (filterEmp) params.append("employeeId", filterEmp);
-        if (filterDept) params.append("departmentId", filterDept);
-      } else if (reportType === "evaluations") {
-        url = "/api/reports/evaluations";
-        params.append("period", fromDate.substring(0, 7));
-        if (filterEmp) params.append("employeeId", filterEmp);
-        if (filterDept) params.append("departmentId", filterDept);
-      } else if (reportType === "employees") {
-        url = "/api/reports/employees";
-        if (filterDept) params.append("departmentId", filterDept);
-        if (filterEmp) params.append("status", "active"); // filterEmp used as status filter here
-      } else if (reportType === "tasks") {
-        url = "/api/reports/tasks";
-        if (filterEmp) params.append("employeeId", filterEmp);
-      } else {
-        alert("تصدير PDF غير مدعوم لهذا النوع");
-        setLoading(false);
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-
-      const res = await fetch(`${url}?${params.toString()}`, {
-        credentials: 'include',
-        signal: controller.signal,
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
       });
-      clearTimeout(timeoutId);
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("PDF export error:", res.status, errorText);
-        throw new Error(`فشل إنشاء التقرير: ${res.status} ${errorText}`);
-      }
-      const blob = await res.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `تقرير_${reportType}_${new Date().toLocaleDateString("en-CA")}.pdf`;
-      link.click();
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+      const imgWidth = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save(`تقرير_${reportType}_${new Date().toLocaleDateString("en-CA")}.pdf`);
     } catch (err) {
       console.error(err);
       alert("حدث خطأ أثناء إنشاء ملف PDF");
@@ -283,6 +257,16 @@ const handleExportCSV = () => {
     return null;
   };
 
+  const getReportTitle = () => {
+    switch (reportType) {
+      case "attendance": return "تقرير الحضور والانصراف";
+      case "employees": return "بيانات الموظفين";
+      case "evaluations": return "تقرير التقييمات والأداء";
+      case "tasks": return "تقرير المهام المنجزة";
+      default: return "تقرير";
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -374,6 +358,102 @@ const handleExportCSV = () => {
               <p className="empty-state-desc">قم باختيار نوع التقرير والفلاتر ثم اضغط على &quot;عرض التقرير&quot;</p>
             </div>
           ) : renderTable()}
+        </div>
+      </div>
+
+      {/* Hidden printable area for PDF export */}
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+        <div
+          ref={printRef}
+          dir="rtl"
+          style={{
+            width: "1000px",
+            padding: "40px",
+            background: "white",
+            fontFamily: "Arial, sans-serif",
+            direction: "rtl",
+          }}
+        >
+          {/* Header */}
+          <div style={{ background: "#1a365d", padding: "30px", margin: "-40px -40px 30px -40px", textAlign: "center" }}>
+            <h1 style={{ color: "white", fontSize: "28px", margin: "0 0 10px 0" }}>نظام إدارة الموارد البشرية</h1>
+            <p style={{ color: "#c9a227", fontSize: "16px", margin: 0 }}>{getReportTitle()}</p>
+          </div>
+
+          {/* Info */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", fontSize: "14px", color: "#666" }}>
+            <span>تاريخ الإصدار: {new Date().toLocaleDateString("ar-EG")}</span>
+            <span>الفترة: {fromDate} - {toDate}</span>
+          </div>
+
+          {/* Table */}
+          <table style={{ width: "100%", borderCollapse: "collapse", direction: "rtl" }}>
+            <thead>
+              <tr style={{ background: "#1a365d" }}>
+                {reportType === "attendance" && ["الموظف", "القسم", "التاريخ", "وقت الحضور", "وقت الانصراف", "الحالة"].map(h => (
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                ))}
+                {reportType === "employees" && ["الاسم", "القسم", "الوردية", "تاريخ التعيين", "الراتب", "الحالة"].map(h => (
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                ))}
+                {reportType === "evaluations" && ["الموظف", "القسم", "التقييم العام", "الحضور", "المهام"].map(h => (
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                ))}
+                {reportType === "tasks" && ["العنوان", "المكلف", "الأولوية", "الحالة", "تاريخ الإنشاء"].map(h => (
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {reportData.map((row: any, idx: number) => (
+                <tr key={row.id} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "white" }}>
+                  {reportType === "attendance" && (
+                    <>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.employee?.name}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.employee?.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.date}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.checkIn || "---"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.checkOut || "---"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "present" ? "حاضر" : row.status === "late" ? "متأخر" : "غائب"}</td>
+                    </>
+                  )}
+                  {reportType === "employees" && (
+                    <>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.name}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.shift?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.hireDate ? new Date(row.hireDate).toLocaleDateString("ar-EG") : "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.basicSalary?.toLocaleString("ar-EG") || 0} ج.م</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "active" ? "نشط" : row.status === "leave" ? "إجازة" : "موقوف"}</td>
+                    </>
+                  )}
+                  {reportType === "evaluations" && (
+                    <>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.employee?.name}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.employee?.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.totalScore}%</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.attendanceScore}%</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.tasksScore}%</td>
+                    </>
+                  )}
+                  {reportType === "tasks" && (
+                    <>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.title}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.assignee?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.priority === "high" ? "عالية" : row.priority === "medium" ? "متوسطة" : "منخفضة"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "completed" ? "مكتملة" : row.status === "in_progress" ? "قيد التنفيذ" : row.status === "new" ? "جديدة" : "متأخرة"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{new Date(row.createdAt).toLocaleDateString("ar-EG")}</td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Footer */}
+          <div style={{ marginTop: "30px", textAlign: "center", fontSize: "12px", color: "#999", borderTop: "1px solid #ddd", paddingTop: "20px" }}>
+            تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية | {new Date().toLocaleString("ar-EG")}
+          </div>
         </div>
       </div>
     </div>
