@@ -1,3 +1,5 @@
+import PDFDocument from "pdfkit";
+
 export interface FormalReportOptions {
   companyName: string;
   departmentName?: string;
@@ -14,66 +16,61 @@ export interface FormalReportOptions {
 }
 
 export async function generateFormalReportPDF(options: FormalReportOptions): Promise<Buffer> {
-  const pdfMake = (await import("pdfmake/build/pdfmake")).default;
-  const pdfFonts = (await import("pdfmake/build/vfs_fonts")).default;
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({
+      size: "A4",
+      layout: "landscape",
+      margin: 30,
+      info: {
+        Title: options.reportTitle,
+        Author: options.companyName,
+      },
+    });
 
-  pdfMake.vfs = pdfFonts.pdfMake ? pdfMake.vfs : pdfFonts.vfs;
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
 
-  const tableBody = [
-    options.tableHeaders.map((h) => ({
-      text: h,
-      style: "tableHeader",
-      alignment: "center",
-    })),
-    ...options.tableData.map((row) =>
-      row.map((cell, i) => {
+    // Header
+    doc.fontSize(18).text(options.companyName, { align: "right" });
+    doc.fontSize(10).text(`تاريخ: ${new Date().toLocaleDateString("ar-EG")}`, { align: "left" });
+    doc.moveDown();
+
+    // Title
+    doc.fontSize(16).text(options.reportTitle, { align: "center" });
+    doc.moveDown();
+
+    // Table
+    const startX = 30;
+    let startY = doc.y;
+    const rowHeight = 25;
+    const colWidths = options.tableColWidths.map((w) => w * 0.6);
+
+    // Table headers
+    doc.fontSize(10).font("Helvetica-Bold");
+    let x = startX;
+    options.tableHeaders.forEach((header, i) => {
+      doc.text(header, x, startY, { width: colWidths[i], align: "center" });
+      x += colWidths[i];
+    });
+    startY += rowHeight;
+
+    // Table rows
+    doc.fontSize(9).font("Helvetica");
+    options.tableData.forEach((row) => {
+      x = startX;
+      row.forEach((cell, i) => {
         let text = String(cell);
         if (options.statusColumnIndex === i && options.statusLabels) {
           text = options.statusLabels[text] || text;
         }
-        return { text, alignment: "center", style: "tableCell" };
-      })
-    ),
-  ];
-
-  const docDefinition = {
-    pageSize: "A4",
-    pageOrientation: "landscape",
-    pageMargins: [40, 60, 40, 60],
-    content: [
-      {
-        columns: [
-          { text: options.companyName, style: "companyName" },
-          { text: `تاريخ: ${new Date().toLocaleDateString("ar-EG")}`, alignment: "left" },
-        ],
-      },
-      { text: options.reportTitle, style: "reportTitle" },
-      {
-        table: {
-          headerRows: 1,
-          widths: options.tableColWidths.map((w) => w * 0.7),
-          body: tableBody,
-        },
-        style: "table",
-      },
-    ],
-    defaultStyle: {
-      font: "Roboto",
-      direction: "rtl",
-    },
-    styles: {
-      companyName: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-      reportTitle: { fontSize: 16, bold: true, margin: [0, 10, 0, 20], alignment: "center" },
-      tableHeader: { bold: true, fontSize: 11, fillColor: "#f0f0f0" },
-      tableCell: { fontSize: 10 },
-      table: { margin: [0, 10, 0, 20] },
-    },
-  };
-
-  return new Promise((resolve, reject) => {
-    const pdfDoc = pdfMake.createPdf(docDefinition);
-    pdfDoc.getBuffer((buffer: Buffer) => {
-      resolve(buffer);
+        doc.text(text, x, startY, { width: colWidths[i], align: "center" });
+        x += colWidths[i];
+      });
+      startY += rowHeight;
     });
+
+    doc.end();
   });
 }
