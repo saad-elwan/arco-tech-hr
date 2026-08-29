@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id               Int      @id @default(1)
+  name             String   @default("شركتي")
+  logo             String?
+  address          String?
+  phone            String?
+  email            String?
+  workStartTime    String   @default("08:00")
+  workEndTime      String   @default("17:00")
+  lateThresholdMin Int      @default(15)
+  geofenceLat      Float?
+  geofenceLng      Float?
+  geofenceRadius   Int      @default(500)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Department {
+  id           Int        @id @default(autoincrement())
+  name         String
+  supervisorId Int?       @unique
+  supervisor   Employee?  @relation("DepartmentSupervisor", fields: [supervisorId], references: [id])
+  createdAt    DateTime   @default(now())
+  employees    Employee[]
+}
+
+model Shift {
+  id            Int        @id @default(autoincrement())
+  name          String
+  startTime     String
+  endTime       String
+  breakDuration Int        @default(60)
+  createdAt     DateTime   @default(now())
+  employees     Employee[]
+}
+
+model Employee {
+  id              Int              @id @default(autoincrement())
+  name            String
+  nationalId      String?          @unique
+  phone           String?
+  email           String?
+  photo           String?
+  password        String
+  basicSalary     Float            @default(0)
+  role            String           @default("employee")
+  hireDate        DateTime         @default(now())
+  status          String           @default("active")
+  fingerprintId   String?          @unique
+  departmentId    Int?
+  shiftId         Int?
+  maxAdvanceLimit Float            @default(0)
+  permissions     String?          @default("[\"/me\"]")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  department      Department?      @relation(fields: [departmentId], references: [id])
+  shift           Shift?           @relation(fields: [shiftId], references: [id])
+  supervisedDepartment Department? @relation("DepartmentSupervisor")
+  attendance      Attendance[]
+  tasksAssigned   Task[]           @relation("AssignedTo")
+  tasksCreated    Task[]           @relation("AssignedBy")
+  evaluations     Evaluation[]     @relation("EvaluatedEmployee")
+  evaluationsBy   Evaluation[]     @relation("EvaluatorEmployee")
+  taskComments    TaskComment[]
+  payrolls        Payroll[]
+  locationLogs    LocationLog[]
+  advanceRequests AdvanceRequest[]
+  leaveRequests   LeaveRequest[]
+  notifications   Notification[]
+}
+
+model Attendance {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  date         String
+  checkIn      String?
+  checkOut     String?
+  status       String   @default("present")
+  source       String   @default("manual")
+  notes        String?
+  checkInLat   Float?
+  checkInLng   Float?
+  checkOutLat  Float?
+  checkOutLng  Float?
+  isOutOfRange Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+}
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String?
+  assignedTo  Int
+  assignedBy  Int
+  priority    String        @default("medium")
+  status      String        @default("new")
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  assignee    Employee      @relation("AssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assigner    Employee      @relation("AssignedBy", fields: [assignedBy], references: [id], onDelete: Cascade)
+  comments    TaskComment[]
+}
+
+model TaskComment {
+  id         Int      @id @default(autoincrement())
+  taskId     Int
+  employeeId Int
+  comment    String
+  createdAt  DateTime @default(now())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Evaluation {
+  id              Int      @id @default(autoincrement())
+  employeeId      Int
+  evaluatorId     Int
+  period          String
+  attendanceScore Float    @default(0)
+  tasksScore      Float    @default(0)
+  manualScore     Float?
+  totalScore      Float    @default(0)
+  comments        String?
+  type            String   @default("auto")
+  createdAt       DateTime @default(now())
+  employee        Employee @relation("EvaluatedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  evaluator       Employee @relation("EvaluatorEmployee", fields: [evaluatorId], references: [id], onDelete: Cascade)
+}
+
+model Payroll {
+  id              Int      @id @default(autoincrement())
+  employeeId      Int
+  period          String   // e.g. "2026-04"
+  basicSalary     Float    @default(0)
+  workingDays     Int      @default(30)
+  presentDays     Int      @default(0)
+  absentDays      Int      @default(0)
+  lateDays        Int      @default(0)
+  autoDeduction   Float    @default(0)
+  bonus           Float    @default(0)
+  manualDeduction Float    @default(0)
+  netSalary       Float    @default(0)
+  status          String   @default("draft") // "draft" or "paid"
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, period])
+}
+
+model LocationLog {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  latitude     Float
+  longitude    Float
+  isOutOfRange Boolean  @default(false)
+  timestamp    DateTime @default(now())
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model AdvanceRequest {
+  id             Int      @id @default(autoincrement())
+  employeeId     Int
+  amount         Float
+  reason         String
+  status         String   @default("pending") // pending | approved | rejected
+  approvedAmount Float    @default(0)
+  repaidAmount   Float    @default(0)
+  reviewedBy     Int?
+  reviewNote     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model LeaveRequest {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  type         String   // vacation | early_leave | absence
+  date         String
+  duration     Float    @default(1) // days for vacation, hours for early_leave
+  reason       String
+  status       String   @default("pending") // pending | approved | rejected
+  reviewedBy   Int?
+  reviewNote   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  type       String   // info | success | warning | danger
+  category   String   // task | payroll | advance | leave | attendance
+  title      String
+  body       String
+  isRead     Boolean  @default(false)
+  link       String   @default("/me")
+  createdAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
