@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة الموارد البشرية</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px; height: 80px; background: #1a365d; border-radius: 20px;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+      color: #c9a227; font-size: 36px; font-weight: bold;
+    }
+    h1 { color: #1a365d; font-size: 22px; margin-bottom: 10px; }
+    p { color: #666; font-size: 14px; margin-bottom: 30px; }
+    .buttons { display: flex; flex-direction: column; gap: 12px; }
+    .btn {
+      display: block; padding: 15px; border-radius: 10px; text-decoration: none;
+      font-size: 16px; font-weight: bold; transition: transform 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-android { background: #3ddc84; color: #000; }
+    .btn-ios { background: #000; color: #fff; }
+    .btn-web { background: #1a365d; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">HR</div>
+    <h1>نظام إدارة الموارد البشرية</h1>
+    <p>حمّل التطبيق أو استخدم الويب</p>
+    <div class="buttons">
+      <a href="https://expo.dev/artifacts/eas/b8kzkVIm_51o1cSXyXshsJIYz806tkz08Kjg7j2AKD8.apk" class="btn btn-android">تحميل APK للأندرويد</a>
+      <a href="https://hr-amr.vercel.app" class="btn btn-web">فتح تطبيق الويب</a>
+      <button class="btn btn-ios" onclick="showIOS()" style="border:none;cursor:pointer;">تعليمات iOS</button>
+    </div>
+    <div id="iosHint" style="display:none;margin-top:20px;padding:15px;background:#f0f4ff;border-radius:10px;font-size:13px;text-align:right;">
+      <strong>للايفون:</strong><br>
+      1. افتح الرابط في Safari<br>
+      2. اضغط زر مشاركة<br>
+      3. اختر "إضافة إلى الشاشة الرئيسية"
+    </div>
+  </div>
+  <script>
+    function showIOS() {
+      document.getElementById('iosHint').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
