@@ -190,17 +190,17 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div id="androidHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8 }}>
-          <strong>لتحميل التطبيق على Android:</strong><br>
-          1. اضغط على القائمة <strong>(⋮)</strong> في أعلى المتصفح<br>
-          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> أو <strong>"Install app"</strong><br>
+        <div id="androidHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
+          <strong>لتحميل التطبيق على Android:</strong><br />
+          1. اضغط على القائمة <strong>(⋮)</strong> في أعلى المتصفح<br />
+          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> أو <strong>"Install app"</strong><br />
           3. اضغط <strong>"إضافة"</strong>
         </div>
 
-        <div id="iosHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8 }}>
-          <strong>لتحميل التطبيق على iOS:</strong><br>
-          1. اضغط على زر <strong>مشاركة</strong> في أسفل الشاشة<br>
-          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong><br>
+        <div id="iosHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
+          <strong>لتحميل التطبيق على iOS:</strong><br />
+          1. اضغط على زر <strong>مشاركة</strong> في أسفل الشاشة<br />
+          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong><br />
           3. اضغط <strong>"إضافة"</strong>
         </div>
 
