@@ -87,12 +87,16 @@ export default function ReportsPage() {
 
   const handleExportPDF = async () => {
     if (!printRef.current) return alert("لا توجد بيانات للتصدير");
+    if (!reportData.length) return alert("لا توجد بيانات للتصدير");
     try {
       setLoading(true);
+      // Wait for render
+      await new Promise(r => setTimeout(r, 500));
       const canvas = await html2canvas(printRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
+        logging: true,
       });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -362,7 +366,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Hidden printable area for PDF export */}
-      <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+      <div style={{ position: "fixed", top: 0, left: "-10000px", width: "1000px", background: "white", zIndex: -1 }}>
         <div
           ref={printRef}
           dir="rtl"
@@ -372,6 +376,7 @@ export default function ReportsPage() {
             background: "white",
             fontFamily: "Arial, sans-serif",
             direction: "rtl",
+            color: "#000",
           }}
         >
           {/* Header */}
@@ -391,58 +396,58 @@ export default function ReportsPage() {
             <thead>
               <tr style={{ background: "#1a365d" }}>
                 {reportType === "attendance" && ["الموظف", "القسم", "التاريخ", "وقت الحضور", "وقت الانصراف", "الحالة"].map(h => (
-                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px", textAlign: "center" }}>{h}</th>
                 ))}
                 {reportType === "employees" && ["الاسم", "القسم", "الوردية", "تاريخ التعيين", "الراتب", "الحالة"].map(h => (
-                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px", textAlign: "center" }}>{h}</th>
                 ))}
                 {reportType === "evaluations" && ["الموظف", "القسم", "التقييم العام", "الحضور", "المهام"].map(h => (
-                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px", textAlign: "center" }}>{h}</th>
                 ))}
                 {reportType === "tasks" && ["العنوان", "المكلف", "الأولوية", "الحالة", "تاريخ الإنشاء"].map(h => (
-                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px" }}>{h}</th>
+                  <th key={h} style={{ padding: "12px", color: "white", border: "1px solid #333", fontSize: "13px", textAlign: "center" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {reportData.map((row: any, idx: number) => (
+              {(reportData || []).map((row: any, idx: number) => (
                 <tr key={row.id} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "white" }}>
                   {reportType === "attendance" && (
                     <>
-                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.employee?.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.employee?.department?.name || "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.date}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.checkIn || "---"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.checkOut || "---"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "present" ? "حاضر" : row.status === "late" ? "متأخر" : "غائب"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold", textAlign: "center" }}>{row.employee?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.employee?.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.date || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.checkIn || "---"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.checkOut || "---"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.status === "present" ? "حاضر" : row.status === "late" ? "متأخر" : row.status === "absent" ? "غائب" : row.status}</td>
                     </>
                   )}
                   {reportType === "employees" && (
                     <>
-                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.department?.name || "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.shift?.name || "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.hireDate ? new Date(row.hireDate).toLocaleDateString("ar-EG") : "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.basicSalary?.toLocaleString("ar-EG") || 0} ج.م</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "active" ? "نشط" : row.status === "leave" ? "إجازة" : "موقوف"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold", textAlign: "center" }}>{row.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.shift?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.hireDate ? new Date(row.hireDate).toLocaleDateString("ar-EG") : "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{(row.basicSalary || 0).toLocaleString("ar-EG")} ج.م</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.status === "active" ? "نشط" : row.status === "leave" ? "إجازة" : "موقوف"}</td>
                     </>
                   )}
                   {reportType === "evaluations" && (
                     <>
-                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.employee?.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.employee?.department?.name || "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.totalScore}%</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.attendanceScore}%</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.tasksScore}%</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold", textAlign: "center" }}>{row.employee?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.employee?.department?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.totalScore || 0}%</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.attendanceScore || 0}%</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.tasksScore || 0}%</td>
                     </>
                   )}
                   {reportType === "tasks" && (
                     <>
-                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold" }}>{row.title}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.assignee?.name || "-"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.priority === "high" ? "عالية" : row.priority === "medium" ? "متوسطة" : "منخفضة"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{row.status === "completed" ? "مكتملة" : row.status === "in_progress" ? "قيد التنفيذ" : row.status === "new" ? "جديدة" : "متأخرة"}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{new Date(row.createdAt).toLocaleDateString("ar-EG")}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "bold", textAlign: "center" }}>{row.title || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.assignee?.name || "-"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.priority === "high" ? "عالية" : row.priority === "medium" ? "متوسطة" : "منخفضة"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.status === "completed" ? "مكتملة" : row.status === "in_progress" ? "قيد التنفيذ" : row.status === "new" ? "جديدة" : "متأخرة"}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd", textAlign: "center" }}>{row.createdAt ? new Date(row.createdAt).toLocaleDateString("ar-EG") : "-"}</td>
                     </>
                   )}
                 </tr>
