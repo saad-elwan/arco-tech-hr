@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import { reshape } from "arabic-reshaper";
 
 export interface FormalReportOptions {
   companyName: string;
@@ -57,10 +58,8 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     const margin = 40;
     const contentWidth = pageWidth - margin * 2;
 
-    // Helper function for RTL text
-    const rtlText = (text: string, x: number, y: number, width: number, align: string = "right") => {
-      doc.text(text, x, y, { width, align, direction: "rtl" as any });
-    };
+    // Reshape Arabic text
+    const ar = (text: string) => reshape(text) || text;
 
     // Background
     doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
@@ -68,55 +67,54 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     // Header background
     doc.rect(0, 0, pageWidth, 100).fill("#1a365d");
 
-    // Header text - RTL aligned
-    doc.fill("#ffffff");
-    rtlText(options.companyName, margin, 20, contentWidth, "right");
-    doc.font(fontBold).fontSize(22);
-    rtlText("نظام إدارة الموارد البشرية", margin, 50, contentWidth, "right");
-    doc.font(fontRegular).fontSize(12);
+    // Header text
+    doc.fill("#ffffff").font(fontBold).fontSize(22);
+    doc.text(ar(options.companyName), margin, 20, { align: "right", width: contentWidth });
+    doc.font(fontRegular).fontSize(14);
+    doc.text(ar("نظام إدارة الموارد البشرية"), margin, 50, { align: "right", width: contentWidth });
 
-    // Date on left (in RTL this is the start)
-    doc.fontSize(10).text(`تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}`, margin, 20, { align: "left", width: 200 });
-    doc.text(`الفترة: ${options.period}`, margin, 35, { align: "left", width: 200 });
+    // Date on left
+    doc.fontSize(10);
+    doc.text(ar(`تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}`), margin, 20, { align: "left", width: 200 });
+    doc.text(ar(`الفترة: ${options.period}`), margin, 35, { align: "left", width: 200 });
 
     // Decorative line
     doc.rect(0, 100, pageWidth, 4).fill("#c9a227");
 
-    // Report title - centered
+    // Report title
     doc.fill("#1a365d").font(fontBold).fontSize(18);
-    rtlText(options.reportTitle, margin, 130, contentWidth, "center");
+    doc.text(ar(options.reportTitle), margin, 130, { align: "center", width: contentWidth });
     doc.rect(pageWidth / 2 - 100, 155, 200, 2).fill("#c9a227");
 
-    // Summary boxes - RTL order (right to left)
+    // Summary boxes - RTL order
     const boxWidth = (contentWidth - 30) / 4;
     const boxY = 180;
     options.summaryItems.forEach((item, i) => {
-      // Reverse order for RTL: last item first
       const boxX = pageWidth - margin - (i + 1) * (boxWidth + 10) + 10;
       doc.rect(boxX, boxY, boxWidth, 50).fill("#f7fafc").stroke("#e2e8f0");
       doc.fill("#1a365d").font(fontBold).fontSize(16);
-      rtlText(String(item.value), boxX, boxY + 5, boxWidth, "center");
+      doc.text(ar(String(item.value)), boxX, boxY + 5, { align: "center", width: boxWidth });
       doc.font(fontRegular).fontSize(10);
-      rtlText(item.label, boxX, boxY + 28, boxWidth, "center");
+      doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth });
     });
 
-    // Table - RTL layout
+    // Table
     const tableTop = 260;
     const rowHeight = 28;
     const colWidths = options.tableColWidths.map((w) => w * 0.65);
     const tableWidth = colWidths.reduce((a, b) => a + b, 0);
     const tableRight = pageWidth - margin;
 
-    // Table header - RTL (right to left)
+    // Table header
     doc.rect(tableRight - tableWidth, tableTop, tableWidth, rowHeight).fill("#1a365d");
     let x = tableRight - tableWidth;
     doc.fill("#ffffff").font(fontBold).fontSize(10);
     options.tableHeaders.forEach((header, i) => {
-      rtlText(header, x + 5, tableTop + 8, colWidths[i] - 10, "center");
+      doc.text(ar(header), x + 5, tableTop + 8, { width: colWidths[i] - 10, align: "center" });
       x += colWidths[i];
     });
 
-    // Table rows - RTL
+    // Table rows
     const statusLabels = options.statusLabels || {
       active: "نشط", leave: "إجازة", inactive: "غير نشط",
       present: "حاضر", absent: "غائب", late: "متأخر",
@@ -136,7 +134,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
           text = statusLabels[text] || text;
         }
         doc.fill("#2d3748");
-        rtlText(text, x + 5, rowY + 8, colWidths[i] - 10, "center");
+        doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center" });
         x += colWidths[i];
       });
     });
@@ -144,29 +142,28 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     // Table border
     doc.rect(tableRight - tableWidth, tableTop, tableWidth, (options.tableData.length + 1) * rowHeight).stroke("#e2e8f0");
 
-    // Signatures section - RTL
+    // Signatures
     const sigY = pageHeight - 100;
     doc.fill("#1a365d").font(fontBold).fontSize(12);
-    rtlText("التوقيعات", margin, sigY, 100, "right");
+    doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
 
     const sigWidth = 180;
     const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
     signatures.forEach((sig, i) => {
       const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
       doc.font(fontRegular).fontSize(10);
-      rtlText(sig, sigX, sigY + 25, sigWidth, "center");
+      doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
       doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
     });
 
     // Footer
     doc.rect(0, pageHeight - 30, pageWidth, 30).fill("#1a365d");
     doc.fill("#ffffff").font(fontRegular).fontSize(8);
-    rtlText(
-      `تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية - ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`,
+    doc.text(
+      ar(`تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية - ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`),
       margin,
       pageHeight - 22,
-      contentWidth,
-      "center"
+      { align: "center", width: contentWidth }
     );
 
     doc.end();
