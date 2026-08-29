@@ -143,31 +143,67 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {showInstall && (
-          <>
-            <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-              <button
-                onClick={handleInstall}
-                className="btn btn-primary"
-                style={{ 
-                  flex: 1, 
-                  justifyContent: 'center', 
-                  background: '#3ddc84', 
-                  borderColor: '#3ddc84',
-                  color: '#000',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer'
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.953.958c0 .529.427.958.953.958a.96.96 0 0 0 .954-.958.96.96 0 0 0-.954-.958zm-11.046 0a.96.96 0 0 0-.954.958c0 .529.427.958.954.958a.96.96 0 0 0 .953-.958.96.96 0 0 0-.953-.958zm11.4-5.772 1.997-3.466a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.024 3.513A12.26 12.26 0 0 0 12 8.07c-1.862 0-3.618.406-5.132 1.131L4.844 5.688a.416.416 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.466C2.688 11.667.463 15.473.463 19.745h23.074c0-4.272-2.225-8.078-5.66-10.176z"/></svg>
-                إضافة للشاشة الرئيسية
-              </button>
-            </div>
-          </>
-        )}
+        <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
+        
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          <button
+            onClick={async () => {
+              if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') setShowInstall(false);
+                setDeferredPrompt(null);
+              } else {
+                // Fallback: show instructions
+                alert('اضغط على القائمة (⋮) في أعلى المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية"');
+              }
+            }}
+            className="btn btn-primary"
+            style={{ 
+              flex: 1, 
+              justifyContent: 'center', 
+              background: '#3ddc84', 
+              borderColor: '#3ddc84',
+              color: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.953.958c0 .529.427.958.953.958a.96.96 0 0 0 .954-.958.96.96 0 0 0-.954-.958zm-11.046 0a.96.96 0 0 0-.954.958c0 .529.427.958.954.958a.96.96 0 0 0 .953-.958.96.96 0 0 0-.953-.958zm11.4-5.772 1.997-3.466a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.024 3.513A12.26 12.26 0 0 0 12 8.07c-1.862 0-3.618.406-5.132 1.131L4.844 5.688a.416.416 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.466C2.688 11.667.463 15.473.463 19.745h23.074c0-4.272-2.225-8.078-5.66-10.176z"/></svg>
+            Android
+          </button>
+          <button
+            onClick={() => {
+              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+              if (isIOS) {
+                alert('لتثبيت التطبيق على iOS:\n1. اضغط على زر مشاركة في أسفل الشاشة\n2. اختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"');
+              } else {
+                if (deferredPrompt) {
+                  deferredPrompt.prompt();
+                } else {
+                  alert('اضغط على القائمة (⋮) في أعلى المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية"');
+                }
+              }
+            }}
+            className="btn btn-primary"
+            style={{ 
+              flex: 1, 
+              justifyContent: 'center', 
+              background: '#000', 
+              borderColor: '#000',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            iOS
+          </button>
+        </div>
 
         <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
         <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
