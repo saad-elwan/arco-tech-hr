@@ -20,8 +20,21 @@ export default function LoginPage() {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstall(true);
+      
+      // Auto-trigger install prompt after 1 second
+      setTimeout(() => {
+        if (e) {
+          e.prompt();
+        }
+      }, 1000);
     };
     window.addEventListener("beforeinstallprompt", handler);
+    
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstall(false);
+    }
+    
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, [router]);
 
