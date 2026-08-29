@@ -6,7 +6,8 @@ const globalForPrisma = globalThis as unknown as {
   prismaX: PrismaClient | undefined;
 };
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/postgres?pgbouncer=true";
+const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 
 let prisma: PrismaClient;
