@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
-import path from "path";
+import { Pool } from "pg";
 
-const dbPath = path.join(process.cwd(), "prisma", "hr.db");
-const adapter = new PrismaBetterSqlite3({ url: "file:" + dbPath });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 
@@ -61,8 +61,10 @@ async function main() {
   const empPassword = await bcrypt.hash("emp12345", 12);
 
   // Admin
-  const admin = await prisma.employee.create({
-    data: {
+  const admin = await prisma.employee.upsert({
+    where: { fingerprintId: "FP001" },
+    update: {},
+    create: {
       name: "محمد أحمد السيد",
       email: "admin@company.com",
       phone: "0100-111-1111",
@@ -76,8 +78,10 @@ async function main() {
   });
 
   // HR
-  const hr = await prisma.employee.create({
-    data: {
+  const hr = await prisma.employee.upsert({
+    where: { fingerprintId: "FP002" },
+    update: {},
+    create: {
       name: "سارة محمود إبراهيم",
       email: "hr@company.com",
       phone: "0100-222-2222",
@@ -102,30 +106,30 @@ async function main() {
     { name: "أحمد سعيد النجار", email: "ahmed@company.com", dept: 2, shift: 1, fp: "FP010" },
   ];
 
-  const employees = await Promise.all(
-    empData.map((e, i) =>
-      prisma.employee.create({
-        data: {
-          name: e.name,
-          email: e.email,
-          phone: `0100-${(300 + i).toString()}-0000`,
-          password: empPassword,
-          role: "employee",
-          departmentId: depts[e.dept].id,
-          shiftId: shifts[e.shift].id,
-          fingerprintId: e.fp,
-          hireDate: new Date(
-            2021 + Math.floor(i / 3),
-            i % 12,
-            Math.floor(Math.random() * 28) + 1
-          ),
-        },
-      })
-    )
-  );
+  for (const e of empData) {
+    await prisma.employee.upsert({
+      where: { fingerprintId: e.fp },
+      update: {},
+      create: {
+        name: e.name,
+        email: e.email,
+        phone: `0100-${(300 + empData.indexOf(e)).toString()}-0000`,
+        password: empPassword,
+        role: "employee",
+        departmentId: depts[e.dept].id,
+        shiftId: shifts[e.shift].id,
+        fingerprintId: e.fp,
+        hireDate: new Date(
+          2021 + Math.floor(empData.indexOf(e) / 3),
+          empData.indexOf(e) % 12,
+          Math.floor(Math.random() * 28) + 1
+        ),
+      },
+    });
+  }
 
   // Attendance for last 30 days
-  const allEmployees = [admin, hr, ...employees];
+  const allEmployees = await prisma.employee.findMany();
   const today = new Date();
   for (let d = 29; d >= 0; d--) {
     const date = new Date(today);
@@ -162,12 +166,12 @@ async function main() {
 
   // Tasks
   const taskData = [
-    { title: "تطوير واجهة المستخدم للعملاء", desc: "إنشاء لوحة تحكم جديدة للعملاء", priority: "high", status: "in_progress", assignedTo: employees[0].id },
-    { title: "مراجعة عقود الموردين", desc: "مراجعة وتحديث عقود الموردين الحالية", priority: "medium", status: "new", assignedTo: employees[3].id },
+    { title: "تطوير واجهة المستخدم للعملاء", desc: "إنشاء لوحة تحكم جديدة للعملاء", priority: "high", status: "in_progress", assignedTo: 2 },
+    { title: "مراجعة عقود الموردين", desc: "مراجعة وتحديث عقود الموردين الحالية", priority: "medium", status: "new", assignedTo: 5 },
     { title: "تقرير الأداء الشهري", desc: "إعداد تقرير أداء شهر مارس", priority: "high", status: "completed", assignedTo: hr.id },
-    { title: "تحديث قاعدة البيانات", desc: "ترقية وتحديث قاعدة البيانات الرئيسية", priority: "urgent" as unknown as "high", status: "in_progress", assignedTo: employees[6].id },
-    { title: "تدريب الموظفين الجدد", desc: "تنظيم برنامج تدريبي للموظفين الجدد", priority: "medium", status: "new", assignedTo: employees[4].id },
-    { title: "إعداد ميزانية Q2", desc: "إعداد ميزانية الربع الثاني", priority: "high", status: "completed", assignedTo: employees[3].id },
+    { title: "تحديث قاعدة البيانات", desc: "ترقية وتحديث قاعدة البيانات الرئيسية", priority: "high", status: "in_progress", assignedTo: 8 },
+    { title: "تدريب الموظفين الجدد", desc: "تنظيم برنامج تدريبي للموظفين الجدد", priority: "medium", status: "new", assignedTo: 6 },
+    { title: "إعداد ميزانية Q2", desc: "إعداد ميزانية الربع الثاني", priority: "high", status: "completed", assignedTo: 5 },
   ];
 
   for (const t of taskData) {
@@ -186,7 +190,8 @@ async function main() {
   }
 
   // Evaluations
-  for (const emp of employees.slice(0, 5)) {
+  const employeesForEval = await prisma.employee.findMany({ take: 5 });
+  for (const emp of employeesForEval) {
     const attendanceScore = 70 + Math.random() * 30;
     const tasksScore = 60 + Math.random() * 40;
     const manualScore = 50 + Math.random() * 50;
