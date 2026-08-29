@@ -50,10 +50,10 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     cookieStore.set("hr_token", token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      sameSite: "none",
+      sameSite: "lax",
     });
 
     return NextResponse.json({
