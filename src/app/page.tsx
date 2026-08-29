@@ -48,14 +48,25 @@ export default function LoginPage() {
     }
   }
 
-  const handleInstall = async () => {
+  const handleInstallClick = async () => {
+    // Try to trigger the browser install prompt
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
         setShowInstall(false);
       }
-      setDeferredPrompt(null);
+    } else {
+      // For iOS or when prompt not available, show instructions
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        document.getElementById('iosHint')!.style.display = 'block';
+        document.getElementById('androidHint')!.style.display = 'none';
+      } else {
+        document.getElementById('androidHint')!.style.display = 'block';
+        document.getElementById('iosHint')!.style.display = 'none';
+      }
     }
   };
 
@@ -190,14 +201,14 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div id="androidHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
+        <div id="androidHint" style={{ display: 'none', background: '#1a365d', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
           <strong>لتحميل التطبيق على Android:</strong><br />
           1. اضغط على القائمة <strong>(⋮)</strong> في أعلى المتصفح<br />
           2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> أو <strong>"Install app"</strong><br />
           3. اضغط <strong>"إضافة"</strong>
         </div>
 
-        <div id="iosHint" style={{ display: 'none', background: '#f0f4ff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
+        <div id="iosHint" style={{ display: 'none', background: '#1a365d', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
           <strong>لتحميل التطبيق على iOS:</strong><br />
           1. اضغط على زر <strong>مشاركة</strong> في أسفل الشاشة<br />
           2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong><br />
