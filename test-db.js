@@ -7,8 +7,13 @@ async function test() {
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
   try {
-    const result = await prisma.$queryRawUnsafe("SELECT 1 as test");
-    console.log("OK:", result);
+    const tables = await prisma.$queryRawUnsafe(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+    );
+    console.log("Tables:", tables);
+
+    const count = await prisma.$queryRawUnsafe('SELECT COUNT(*) FROM "Employee"');
+    console.log("Employee count:", count);
   } catch (e) {
     console.error("FAIL:", e.message);
   } finally {
