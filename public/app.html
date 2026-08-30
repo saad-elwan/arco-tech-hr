@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a365d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>HR System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #1a365d; height: 100vh; overflow: hidden; }
+    iframe { width: 100%; height: 100%; border: none; }
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-size: 18px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">جاري التحميل...</div>
+  <iframe id="app" src="https://hr-amr.vercel.app/" style="display:none"></iframe>
+  <script>
+    document.getElementById('app').onload = function() {
+      document.getElementById('loading').style.display = 'none';
+      this.style.display = 'block';
+    };
+  </script>
+</body>
+</html>
