@@ -4,13 +4,24 @@ import { verifyPassword, generateToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { status: 204, headers });
+  }
+
   try {
     const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
         { error: "البريد الإلكتروني وكلمة المرور مطلوبان" },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
 
@@ -22,14 +33,14 @@ export async function POST(request: Request) {
     if (!employee) {
       return NextResponse.json(
         { error: "بيانات الدخول غير صحيحة" },
-        { status: 401 }
+        { status: 401, headers }
       );
     }
 
     if (employee.status !== "active") {
       return NextResponse.json(
         { error: "حسابك غير مفعل. تواصل مع المسؤول" },
-        { status: 401 }
+        { status: 401, headers }
       );
     }
 
@@ -37,7 +48,7 @@ export async function POST(request: Request) {
     if (!valid) {
       return NextResponse.json(
         { error: "بيانات الدخول غير صحيحة" },
-        { status: 401 }
+        { status: 401, headers }
       );
     }
 
@@ -67,9 +78,9 @@ export async function POST(request: Request) {
         shift: employee.shift?.name,
       },
       token,
-    });
+    }, { headers });
   } catch (error) {
     console.error("Login error:", error);
-    return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 });
+    return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500, headers });
   }
 }
