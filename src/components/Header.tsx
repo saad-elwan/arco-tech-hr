@@ -67,11 +67,16 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const [permissionsNeeded, setPermissionsNeeded] = useState(false);
   const prevUnreadRef = useRef(0);
 
   useEffect(() => {
-    // Request permission once user interacts
-    requestNotificationPermission();
+    // Check permission status
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission !== "granted") {
+        setPermissionsNeeded(true);
+      }
+    }
 
     const checkNotifs = async () => {
       try {
@@ -102,12 +107,20 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Request all permissions at once (Notifications, GPS, Mic, Audio)
+  const handleActivateAllPermissions = async () => {
+    const res = await import("@/lib/audioNotifications").then(m => m.requestAllSystemPermissions());
+    if (res.notifications) {
+      setPermissionsNeeded(false);
+    }
+  };
+
   // Open notifications
   const handleNotifsClick = async () => {
     const nextState = !showNotifs;
     setShowNotifs(nextState);
-    requestNotificationPermission();
     if (nextState) {
+      handleActivateAllPermissions();
       setUnreadCount(0);
       prevUnreadRef.current = 0;
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -270,6 +283,30 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
         )}
 
+        {/* Permission Request Prompt if not granted */}
+        {permissionsNeeded && (
+          <button
+            onClick={handleActivateAllPermissions}
+            className="btn btn-primary"
+            style={{
+              padding: "7px 14px",
+              fontSize: "12px",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "linear-gradient(135deg, #d4af37, #f59e0b)",
+              color: "#000",
+              borderRadius: "20px",
+              border: "none",
+              boxShadow: "0 0 15px rgba(212, 175, 55, 0.4)",
+              animation: "pulse 2s infinite"
+            }}
+          >
+            <Bell size={14} /> تفعيل الإشعارات والموقع
+          </button>
+        )}
+
         {/* Status Indicator */}
         <div style={{
           display: "flex",
@@ -326,8 +363,23 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               borderRadius: "16px", border: "1px solid var(--border-gold)",
               boxShadow: "var(--shadow-modal)", zIndex: 100, overflow: "hidden"
             }}>
-              <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h4 style={{ margin: 0, fontSize: 16, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>
+                <button 
+                  onClick={handleActivateAllPermissions}
+                  style={{
+                    background: "rgba(212, 175, 55, 0.15)",
+                    border: "1px solid rgba(212, 175, 55, 0.3)",
+                    borderRadius: "6px",
+                    color: "var(--gold-primary)",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    padding: "4px 8px",
+                    cursor: "pointer"
+                  }}
+                >
+                  🔔 تجربة الإشعار
+                </button>
               </div>
               <div style={{ maxHeight: "300px", overflowY: "auto", padding: "8px 0" }}>
                 {notifications.length > 0 ? notifications.map((n) => (
