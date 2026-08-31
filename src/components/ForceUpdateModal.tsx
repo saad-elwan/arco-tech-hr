@@ -20,13 +20,14 @@ export default function ForceUpdateModal() {
     if (typeof window === "undefined") return;
 
     const detectOldApp = () => {
-      // The newest build (Build 5) sets __ARCO_IS_LATEST_BUILD__ = true & __ARCO_VERSION_CODE__ = 5
-      const isLatestBuild = Boolean(
-        (window as any).__ARCO_IS_LATEST_BUILD__ === true &&
-        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 5
+      // Verified updated v1.2.0 app
+      const isNewApp = Boolean(
+        (window as any).__ARCO_APP_VERSION__ === "1.2.0" ||
+        (window as any).__ARCO_IS_LATEST_BUILD__ === true ||
+        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 3
       );
 
-      if (isLatestBuild) {
+      if (isNewApp) {
         setShowModal(false);
         return;
       }
@@ -47,8 +48,8 @@ export default function ForceUpdateModal() {
         typeof window !== "undefined" && (window.location.search.includes("update=true") || window.location.hash.includes("update"))
       );
 
-      // If in mobile WebView or Android app and NOT confirmed as Build 5:
-      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isLatestBuild) {
+      // If in mobile WebView or Android app and NOT running v1.2.0:
+      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isNewApp) {
         setShowModal(true);
       }
     };
@@ -247,7 +248,7 @@ export default function ForceUpdateModal() {
           }}
         >
           <span>الإصدار المطلوب:</span>
-          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 5)</span>
+          <span style={{ color: "#0284c7" }}>v1.2.0</span>
         </div>
 
         {/* In-App Real-time Progress Box */}
