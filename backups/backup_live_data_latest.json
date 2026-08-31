@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-08-31T02:57:30.232Z",
+  "source": "https://hr-amr.vercel.app/ (Supabase Cloud Database)",
+  "supabaseProject": "https://wyshffhilhzhdrgaffrd.supabase.co",
+  "tables": {
+    "Company": [],
+    "Department": [],
+    "Shift": [],
+    "Employee": [],
+    "Attendance": [],
+    "Task": [],
+    "TaskComment": [],
+    "Evaluation": [],
+    "Payroll": [],
+    "LocationLog": [],
+    "AdvanceRequest": [],
+    "LeaveRequest": [],
+    "Notification": []
+  }
+}

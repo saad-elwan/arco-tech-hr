@@ -1,14 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Play, SkipForward, LogIn, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
+  const [showIntro, setShowIntro] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstall, setShowInstall] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "حدث خطأ");
+        setError(data.error || "حدث خطأ في تسجيل الدخول");
         return;
       }
       localStorage.setItem("hr_token", data.token);
@@ -40,7 +41,11 @@ export default function LoginPage() {
         );
       }
       
-      router.replace("/dashboard");
+      if (data.employee?.role === "employee") {
+        router.replace("/me");
+      } else {
+        router.replace("/dashboard");
+      }
     } catch {
       setError("تعذر الاتصال بالخادم");
     } finally {
@@ -48,42 +53,82 @@ export default function LoginPage() {
     }
   }
 
-  const handleInstallClick = async () => {
-    // Try to trigger the browser install prompt
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-        setShowInstall(false);
-      }
-    } else {
-      // For iOS or when prompt not available, show instructions
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        document.getElementById('iosHint')!.style.display = 'block';
-        document.getElementById('androidHint')!.style.display = 'none';
-      } else {
-        document.getElementById('androidHint')!.style.display = 'block';
-        document.getElementById('iosHint')!.style.display = 'none';
-      }
-    }
-  };
+  // If intro video is active, show the fullscreen luxury cinematic intro
+  if (showIntro) {
+    return (
+      <div style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "#000",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        overflow: "hidden"
+      }}>
+        <video
+          ref={videoRef}
+          src="https://www.image2url.com/r2/default/videos/1788143930875-70bf761e-7a96-47ea-8768-5877a898f95f.mp4"
+          autoPlay
+          playsInline
+          muted
+          onEnded={() => setShowIntro(false)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            maxHeight: "100vh",
+            maxWidth: "100vw",
+            backgroundColor: "#000"
+          }}
+        />
+        
+        {/* Skip button floating top-right or bottom-center */}
+        <div style={{
+          position: "absolute",
+          bottom: "32px",
+          display: "flex",
+          gap: "12px",
+          zIndex: 10
+        }}>
+          <button
+            onClick={() => setShowIntro(false)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 24px",
+              background: "rgba(10, 10, 10, 0.75)",
+              border: "1px solid rgba(212, 175, 55, 0.5)",
+              borderRadius: "30px",
+              color: "var(--gold-primary)",
+              fontSize: "14px",
+              fontWeight: 700,
+              cursor: "pointer",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.8), 0 0 15px rgba(212, 175, 55, 0.2)",
+              transition: "all 0.3s ease"
+            }}
+          >
+            <span>دخول النظام / تخطي</span>
+            <SkipForward size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card" style={{ animation: "slideIn 0.4s ease" }}>
         <div className="login-logo">
           <div className="login-logo-icon">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
+            <ShieldCheck size={32} color="#000" />
           </div>
-          <h1 className="login-title">Arco Tech</h1>
-          <p className="login-subtitle">قم بتسجيل الدخول للمتابعة</p>
+          <h1 className="login-title">Arco Tech HR</h1>
+          <p className="login-subtitle">الإدارة الذكية للموارد البشرية</p>
         </div>
 
         {error && (
@@ -97,15 +142,16 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label className="form-label">البريد الإلكتروني</label>
+            <label className="form-label">البريد الإلكتروني أو اسم المستخدم</label>
             <input
-              type="email"
+              type="text"
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@company.com"
+              placeholder="مثال: Arco أو admin@company.com"
               required
               id="login-email"
+              autoComplete="username"
             />
           </div>
           <div className="form-group">
@@ -118,6 +164,7 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
               id="login-password"
+              autoComplete="current-password"
             />
           </div>
           <button
@@ -134,11 +181,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                  <polyline points="10 17 15 12 10 7"/>
-                  <line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
+                <LogIn size={18} />
                 تسجيل الدخول
               </>
             )}
@@ -157,7 +200,6 @@ export default function LoginPage() {
               } else {
                 document.getElementById('androidHint')!.style.display = 'none';
                 document.getElementById('iosHint')!.style.display = 'none';
-                // Try to trigger install
                 const event = new Event('beforeinstallprompt');
                 window.dispatchEvent(event);
               }
@@ -167,7 +209,7 @@ export default function LoginPage() {
               flex: 1, 
               justifyContent: 'center', 
               background: '#3ddc84', 
-              borderColor: '#3ddc84',
+              borderColor: '#3ddc84', 
               color: '#000',
               display: 'flex',
               alignItems: 'center',
@@ -176,7 +218,7 @@ export default function LoginPage() {
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.953.958c0 .529.427.958.953.958a.96.96 0 0 0 .954-.958.96.96 0 0 0-.954-.958zm-11.046 0a.96.96 0 0 0-.954.958c0 .529.427.958.954.958a.96.96 0 0 0 .953-.958.96.96 0 0 0-.953-.958zm11.4-5.772 1.997-3.466a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.024 3.513A12.26 12.26 0 0 0 12 8.07c-1.862 0-3.618.406-5.132 1.131L4.844 5.688a.416.416 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.466C2.688 11.667.463 15.473.463 19.745h23.074c0-4.272-2.225-8.078-5.66-10.176z"/></svg>
-            Android
+            تطبيق Android
           </button>
           <button
             onClick={() => {
@@ -188,7 +230,7 @@ export default function LoginPage() {
               flex: 1, 
               justifyContent: 'center', 
               background: '#000', 
-              borderColor: '#000',
+              borderColor: 'rgba(255,255,255,0.2)', 
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
@@ -197,28 +239,36 @@ export default function LoginPage() {
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-            iOS
+            تطبيق iOS
           </button>
         </div>
 
-        <div id="androidHint" style={{ display: 'none', background: '#1a365d', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>لتحميل التطبيق على Android:</strong><br />
+        <div id="androidHint" style={{ display: 'none', background: 'rgba(61, 220, 132, 0.1)', border: '1px solid rgba(61, 220, 132, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
+          <strong>📱 لتثبيت التطبيق على أجهزة Android:</strong><br />
           1. اضغط على القائمة <strong>(⋮)</strong> في أعلى المتصفح<br />
           2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> أو <strong>"Install app"</strong><br />
           3. اضغط <strong>"إضافة"</strong>
         </div>
 
-        <div id="iosHint" style={{ display: 'none', background: '#1a365d', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 14, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>لتحميل التطبيق على iOS:</strong><br />
-          1. اضغط على زر <strong>مشاركة</strong> في أسفل الشاشة<br />
-          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong><br />
-          3. اضغط <strong>"إضافة"</strong>
+        <div id="iosHint" style={{ display: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
+          <strong>🍎 لتثبيت التطبيق على iPhone / iPad:</strong><br />
+          1. اضغط على زر <strong>مشاركة (Share)</strong> في أسفل متصفح Safari<br />
+          2. مرر واختر <strong>"إضافة إلى الشاشة الرئيسية (Add to Home Screen)"</strong><br />
+          3. اضغط <strong>"إضافة (Add)"</strong>
         </div>
 
         <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
-        <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
-          Arco Tech
-        </p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+            نظام آركو تك لإدارة المؤسسات
+          </p>
+          <button 
+            onClick={() => setShowIntro(true)} 
+            style={{ background: "none", border: "none", color: "var(--gold-primary)", fontSize: "11px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <Play size={12} /> إعادة تشغيل المقدمة
+          </button>
+        </div>
       </div>
     </div>
   );

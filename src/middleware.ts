@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET || "hr-system-secret-key-2024";
 
 // Pages that require authentication
-const protectedPaths = ["/dashboard", "/employees", "/attendance", "/tasks", "/evaluations", "/finance", "/tracking", "/shifts", "/departments", "/reports", "/settings", "/me", "/requests", "/profile"];
+const protectedPaths = ["/dashboard", "/employees", "/attendance", "/tasks", "/evaluations", "/finance", "/tracking", "/shifts", "/departments", "/reports", "/settings", "/me", "/requests", "/profile", "/super-admin"];
 
 // Pages for guests only (redirect to dashboard if already logged in)
 const guestOnlyPaths = ["/"];

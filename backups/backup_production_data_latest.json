@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-08-31T02:58:11.023Z",
+  "sourceUrl": "https://hr-amr.vercel.app",
+  "authenticated": false,
+  "data": {
+    "CompanySettings": {
+      "id": 1,
+      "name": "شركة عمرو الالفي",
+      "logo": null,
+      "address": "Cairo, Egypt",
+      "phone": "0100-000-0000",
+      "email": "info@arcotech.com",
+      "workStartTime": "08:00",
+      "workEndTime": "18:00",
+      "lateThresholdMin": 15,
+      "geofenceLat": 30.98018844225533,
+      "geofenceLng": 31.15204205636107,
+      "geofenceRadius": 600,
+      "createdAt": "2026-08-29T17:26:48.615Z",
+      "updatedAt": "2026-08-30T13:07:09.552Z"
+    },
+    "Departments": {
+      "error": "غير مصرح"
+    },
+    "Shifts": {
+      "error": "غير مصرح"
+    },
+    "Employees": {
+      "error": "غير مصرح لك بعرض هذه البيانات"
+    },
+    "Attendance": {
+      "error": "غير مصرح"
+    },
+    "Tasks": {
+      "error": "غير مصرح"
+    },
+    "Evaluations": {
+      "error": "غير مصرح"
+    },
+    "Payroll": {
+      "error": "غير مصرح"
+    },
+    "Advances": {
+      "error": "غير مصرح"
+    },
+    "Leaves": {
+      "error": "غير مصرح"
+    },
+    "Notifications": {
+      "error": "غير مصرح"
+    }
+  }
+}

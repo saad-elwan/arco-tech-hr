@@ -17,6 +17,7 @@ export default function EmployeePortal() {
   const [leaveReason, setLeaveReason] = useState("");
   const [submitMsg, setSubmitMsg] = useState("");
   const [company, setCompany] = useState<any>(null);
+  const [myRoutes, setMyRoutes] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -35,8 +36,58 @@ export default function EmployeePortal() {
     }
     loadInitialData();
     fetch("/api/settings").then(r => r.json()).then(d => { if (mounted) setCompany(d); }).catch(() => {});
-    return () => { mounted = false; };
+    
+    // Fetch today's assigned field route if any
+    const today = new Date().toISOString().split("T")[0];
+    fetch(`/api/routes?date=${today}`)
+      .then(r => r.json())
+      .then(d => { if (mounted && Array.isArray(d)) setMyRoutes(d); })
+      .catch(() => {});
+
+    // Continuous Location Tracking Service (Every 5 minutes)
+    const sendPeriodicLocation = () => {
+      if (typeof navigator !== "undefined" && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          try {
+            await fetch("/api/location", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+              })
+            });
+          } catch {}
+        }, () => {}, { enableHighAccuracy: true });
+      }
+    };
+
+    sendPeriodicLocation();
+    const locInterval = setInterval(sendPeriodicLocation, 5 * 60 * 1000); // 5 minutes
+
+    return () => { 
+      mounted = false; 
+      clearInterval(locInterval);
+    };
   }, []);
+
+  const handleVisitCheckpoint = async (checkpointId: number) => {
+    try {
+      const res = await fetch(`/api/routes/checkpoints/${checkpointId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "visited" })
+      });
+      if (res.ok) {
+        const today = new Date().toISOString().split("T")[0];
+        const rRes = await fetch(`/api/routes?date=${today}`);
+        const rData = await rRes.json();
+        if (Array.isArray(rData)) setMyRoutes(rData);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   async function refreshData() {
     const res = await fetch("/api/me");
@@ -207,6 +258,70 @@ export default function EmployeePortal() {
           </div>
         )}
       </div>
+
+      {/* Field Route Card (For delegates / assigned routes) */}
+      {myRoutes.length > 0 && (
+        <div className="card" style={{ padding: "20px", marginBottom: "20px", border: "1px solid var(--border-gold)" }}>
+          <h3 style={{ margin: "0 0 12px", fontSize: 16, color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+            <MapPin size={20} /> خط السير اليومي والمحطات المطلوبة
+          </h3>
+          
+          {myRoutes.map((rt: any) => {
+            const total = rt.checkpoints?.length || 0;
+            const visited = rt.checkpoints?.filter((c: any) => c.status === "visited").length || 0;
+            const pct = total > 0 ? Math.round((visited / total) * 100) : 0;
+
+            return (
+              <div key={rt.id} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <strong style={{ fontSize: "15px" }}>{rt.title}</strong>
+                  <span className={`badge ${pct === 100 ? "badge-success" : "badge-gold"}`}>{pct}% مكتمل</span>
+                </div>
+
+                <div className="progress-bar" style={{ height: "8px" }}>
+                  <div className="progress-fill" style={{ width: `${pct}%`, background: pct === 100 ? "var(--success)" : undefined }} />
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
+                  {rt.checkpoints?.map((cp: any) => (
+                    <div 
+                      key={cp.id}
+                      style={{ 
+                        padding: "12px 14px", borderRadius: "8px", 
+                        background: cp.status === "visited" ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.02)",
+                        border: `1px solid ${cp.status === "visited" ? "rgba(16,185,129,0.3)" : "var(--border)"}`,
+                        display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "14px", color: cp.status === "visited" ? "var(--success)" : "var(--text-primary)" }}>
+                          #{cp.order} {cp.clientName}
+                        </div>
+                        {cp.address && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: 2 }}>{cp.address}</div>}
+                        {cp.phone && <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>هاتف: {cp.phone}</div>}
+                      </div>
+
+                      {cp.status === "visited" ? (
+                        <span className="badge badge-success" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <CheckCircle size={14} /> تمت الزيارة بنجاح
+                        </span>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleVisitCheckpoint(cp.id)}
+                          style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        >
+                          <CheckCircle size={14} /> تأكيد زيارة العميل
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Stats Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>

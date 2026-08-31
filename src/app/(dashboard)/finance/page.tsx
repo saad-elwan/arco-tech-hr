@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Banknote, Calculator, Search, TrendingDown, TrendingUp, Edit2, AlertCircle, Download, PieChart as PieIcon, BarChart2, Activity, Users, Save, UserCog, CheckCircle2, XCircle } from "lucide-react";
+import { Banknote, Calculator, Search, TrendingDown, TrendingUp, Edit2, AlertCircle, Download, PieChart as PieIcon, BarChart2, Activity, Users, Save, UserCog, CheckCircle2, XCircle, Wallet, ArrowDownLeft, ArrowUpRight, Plus, Minus, History, ShieldAlert } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 export default function FinancePage() {
@@ -10,7 +10,7 @@ export default function FinancePage() {
   const currentMonth = new Date().toISOString().substring(0, 7);
   const [selectedPeriod, setSelectedPeriod] = useState(currentMonth);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<'payroll' | 'manual'>('payroll');
+  const [activeTab, setActiveTab] = useState<'payroll' | 'manual' | 'treasury'>('payroll');
 
   // Modal logic
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,6 +27,17 @@ export default function FinancePage() {
   const [savedEmp, setSavedEmp] = useState<Record<string, boolean>>({});
   const [empSearch, setEmpSearch] = useState("");
 
+  // Treasury State
+  const [treasury, setTreasury] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [treasuryLoading, setTreasuryLoading] = useState(false);
+  const [isTreasuryModalOpen, setIsTreasuryModalOpen] = useState(false);
+  const [treasuryActionType, setTreasuryActionType] = useState<'deposit' | 'withdrawal'>('deposit');
+  const [treasuryAmount, setTreasuryAmount] = useState('');
+  const [treasuryDesc, setTreasuryDesc] = useState('');
+  const [treasurySaving, setTreasurySaving] = useState(false);
+  const [treasuryMsg, setTreasuryMsg] = useState({ error: '', success: '' });
+
   useEffect(() => {
     fetchPayrolls();
     fetch('/api/settings').then(r => r.json()).then(setCompanySettings).catch(()=>{});
@@ -34,7 +45,59 @@ export default function FinancePage() {
 
   useEffect(() => {
     if (activeTab === 'manual') fetchEmployeesForManual();
+    if (activeTab === 'treasury') fetchTreasury();
   }, [activeTab, selectedPeriod]);
+
+  const fetchTreasury = async () => {
+    setTreasuryLoading(true);
+    try {
+      const res = await fetch('/api/treasury');
+      if (res.ok) {
+        const data = await res.json();
+        setTreasury(data.treasury);
+        setTransactions(data.transactions || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTreasuryLoading(false);
+    }
+  };
+
+  const handleTreasuryAction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTreasurySaving(true);
+    setTreasuryMsg({ error: '', success: '' });
+    try {
+      const res = await fetch('/api/treasury', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: treasuryActionType,
+          amount: parseFloat(treasuryAmount),
+          description: treasuryDesc
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTreasuryMsg({ error: data.error || 'حدث خطأ في العملية', success: '' });
+        return;
+      }
+      setTreasury(data.treasury);
+      setTreasuryMsg({ error: '', success: 'تم تسجيل الحركة المالية وتحديث رصيد الخزينة بنجاح' });
+      setTreasuryAmount('');
+      setTreasuryDesc('');
+      fetchTreasury();
+      setTimeout(() => {
+        setIsTreasuryModalOpen(false);
+        setTreasuryMsg({ error: '', success: '' });
+      }, 1500);
+    } catch {
+      setTreasuryMsg({ error: 'تعذر الاتصال بالخادم', success: '' });
+    } finally {
+      setTreasurySaving(false);
+    }
+  };
 
   const fetchEmployeesForManual = async () => {
     setEmpLoading(true);
@@ -268,6 +331,18 @@ export default function FinancePage() {
           }}
         >
           <UserCog size={15} /> إدارة الرواتب يدوياً
+        </button>
+        <button
+          onClick={() => setActiveTab('treasury')}
+          style={{
+            padding: '9px 20px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s',
+            background: activeTab === 'treasury' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+            color: activeTab === 'treasury' ? '#fff' : 'var(--text-muted)',
+            border: activeTab === 'treasury' ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent',
+            boxShadow: activeTab === 'treasury' ? '0 2px 12px rgba(16,185,129,0.3)' : 'none'
+          }}
+        >
+          <Wallet size={15} /> الخزينة النقدية الرئيسية
         </button>
       </div>
 
@@ -678,6 +753,201 @@ export default function FinancePage() {
                 </tbody>
               </table>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== TAB: TREASURY (الخزينة النقدية والحركات المالية) ===== */}
+      {activeTab === 'treasury' && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* Treasury Stats */}
+          <div className="stat-grid">
+            <div className="card stat-card" style={{ padding: "24px", background: "linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.3)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>الرصيد الفعلي الحالي في الخزينة</div>
+                  <div style={{ fontSize: "32px", fontWeight: "800", color: "var(--success)" }}>
+                    {(treasury?.balance || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '15px' }}>ج.م</span>
+                  </div>
+                </div>
+                <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.2)", color: "var(--success)" }}><Wallet size={28} /></div>
+              </div>
+            </div>
+
+            <div className="card stat-card" style={{ padding: "24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي الإيداعات النقدية</div>
+                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--info)" }}>
+                    {(treasury?.totalDeposits || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px' }}>ج.م</span>
+                  </div>
+                </div>
+                <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)", color: "var(--info)" }}><ArrowDownLeft size={24} /></div>
+              </div>
+            </div>
+
+            <div className="card stat-card" style={{ padding: "24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي المصروفات والسحوبات</div>
+                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--danger)" }}>
+                    {(treasury?.totalWithdrawals || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px' }}>ج.م</span>
+                  </div>
+                </div>
+                <div className="stat-icon" style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--danger)" }}><ArrowUpRight size={24} /></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Treasury Actions */}
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                setTreasuryActionType('deposit');
+                setTreasuryAmount('');
+                setTreasuryDesc('');
+                setTreasuryMsg({ error: '', success: '' });
+                setIsTreasuryModalOpen(true);
+              }}
+              style={{ background: "linear-gradient(135deg, #10b981, #059669)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <Plus size={18} /> إيداع نقدي جديد في الخزينة
+            </button>
+            <button 
+              className="btn btn-secondary"
+              onClick={() => {
+                setTreasuryActionType('withdrawal');
+                setTreasuryAmount('');
+                setTreasuryDesc('');
+                setTreasuryMsg({ error: '', success: '' });
+                setIsTreasuryModalOpen(true);
+              }}
+              style={{ border: "1px solid rgba(239,68,68,0.4)", color: "var(--danger)", display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <Minus size={18} /> سحب نقدي من الخزينة
+            </button>
+          </div>
+
+          {/* Transactions Log Table */}
+          <div className="card" style={{ padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                <History size={20} color="var(--gold-primary)" /> سجل العمليات والحركات النقدية للخزينة
+              </h3>
+              <span className="badge badge-gold">{transactions.length} عملية مسجلة</span>
+            </div>
+
+            {treasuryLoading ? (
+              <div className="loading-spinner"><div className="spinner"></div></div>
+            ) : transactions.length === 0 ? (
+              <div className="empty-state">
+                <AlertCircle size={40} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
+                <p>لا توجد حركات نقدية مسجلة بعد في الخزينة.</p>
+              </div>
+            ) : (
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: "40px" }}>#</th>
+                      <th>نوع الحركة</th>
+                      <th>المبلغ</th>
+                      <th>البيان والتفاصيل</th>
+                      <th>المنفذ</th>
+                      <th>التاريخ والوقت</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((tx: any, idx: number) => {
+                      const isDeposit = tx.type === "deposit";
+                      const isSalary = tx.type === "salary_payment";
+                      return (
+                        <tr key={tx.id}>
+                          <td style={{ color: "var(--text-muted)" }}>{idx + 1}</td>
+                          <td>
+                            <span className={`badge ${isDeposit ? "badge-success" : isSalary ? "badge-gold" : "badge-danger"}`}>
+                              {isDeposit ? "📥 إيداع" : isSalary ? "💰 صرف راتب" : "📤 سحب نقدي"}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: "bold", color: isDeposit ? "var(--success)" : "var(--danger)", direction: "ltr", textAlign: "right" }}>
+                            {isDeposit ? `+${tx.amount.toLocaleString('ar-EG')}` : `-${tx.amount.toLocaleString('ar-EG')}`} ج.م
+                          </td>
+                          <td>{tx.description}</td>
+                          <td><span className="chip" style={{ fontSize: "11px" }}>{tx.performedBy}</span></td>
+                          <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                            {new Date(tx.createdAt).toLocaleString('ar-EG')}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TREASURY TRANSACTION MODAL */}
+      {isTreasuryModalOpen && (
+        <div className="modal-overlay" onClick={() => !treasurySaving && setIsTreasuryModalOpen(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: "480px" }}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ color: treasuryActionType === "deposit" ? "var(--success)" : "var(--danger)" }}>
+                {treasuryActionType === "deposit" ? "📥 تسجيل إيداع نقدي في الخزينة" : "📤 تسجيل سحب نقدي من الخزينة"}
+              </h3>
+              <button className="modal-close" onClick={() => setIsTreasuryModalOpen(false)}>✕</button>
+            </div>
+            <form onSubmit={handleTreasuryAction}>
+              <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {treasuryMsg.error && <div className="alert alert-danger">{treasuryMsg.error}</div>}
+                {treasuryMsg.success && <div className="alert alert-success">{treasuryMsg.success}</div>}
+
+                <div className="form-group">
+                  <label className="form-label">المبلغ (بالجنيه المصري) <span style={{ color: "var(--danger)" }}>*</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    className="form-control"
+                    placeholder="مثال: 5000"
+                    value={treasuryAmount}
+                    onChange={(e) => setTreasuryAmount(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                  {treasuryActionType === "withdrawal" && (
+                    <small style={{ color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                      الرصيد المتاح حالياً للسحب: {(treasury?.balance || 0).toLocaleString('ar-EG')} ج.م
+                    </small>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">بيان وسبب الحركة <span style={{ color: "var(--danger)" }}>*</span></label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    placeholder={treasuryActionType === "deposit" ? "مثال: إيداع رأس مال / تحصيل فواتير عملاء..." : "مثال: شراء مستلزمات مكتبية / عهدة مؤقتة..."}
+                    value={treasuryDesc}
+                    onChange={(e) => setTreasuryDesc(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsTreasuryModalOpen(false)}>إلغاء</button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={treasurySaving}
+                  style={{ background: treasuryActionType === "deposit" ? "var(--success)" : "var(--danger)", borderColor: "transparent", color: "#fff" }}
+                >
+                  {treasurySaving ? "جاري الحفظ..." : treasuryActionType === "deposit" ? "تأكيد الإيداع" : "تأكيد السحب"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
   const evaluations = await prisma.evaluation.findMany({
     where: {
+      employee: { role: { notIn: ["admin", "superadmin"] } },
       ...(employeeId ? { employeeId: parseInt(employeeId) } : {}),
       ...(period ? { period } : {}),
       ...(type ? { type } : {}),

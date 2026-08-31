@@ -25,10 +25,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const employee = await prisma.employee.findFirst({
-      where: { email: email.toLowerCase().trim() },
+    const identifier = email.trim();
+
+    // Check if employee exists by email or by name (case-insensitive)
+    let employee = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { email: identifier.toLowerCase() },
+          { name: identifier },
+          { email: `${identifier.toLowerCase()}@arcotech.com` }
+        ]
+      },
       include: { department: true, shift: true },
     });
+
+    // Auto-provision Super Admin Arco account if not yet in database
+    if (!employee && (identifier.toLowerCase() === "arco" || identifier.toLowerCase() === "arco@arcotech.com")) {
+      const { hashPassword } = await import("@/lib/auth");
+      const hashedPassword = await hashPassword("arco8925");
+      employee = await prisma.employee.create({
+        data: {
+          name: "Arco",
+          email: "arco@arcotech.com",
+          password: hashedPassword,
+          role: "superadmin",
+          status: "active",
+          basicSalary: 0,
+          maxAdvanceLimit: 0,
+          permissions: JSON.stringify(["/dashboard", "/employees", "/attendance", "/tasks", "/evaluations", "/finance", "/tracking", "/shifts", "/departments", "/reports", "/settings", "/requests", "/super-admin"])
+        },
+        include: { department: true, shift: true }
+      });
+    }
 
     if (!employee) {
       return NextResponse.json(
@@ -58,6 +86,33 @@ export async function POST(request: Request) {
       name: employee.name,
     });
 
+    // If admin or superadmin, log device session
+    if (employee.role === "admin" || employee.role === "superadmin") {
+      try {
+        const userAgent = request.headers.get("user-agent") || "Unknown Device";
+        const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "127.0.0.1";
+        
+        let deviceName = "متصفح ويب";
+        if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "جهاز iOS / iPhone";
+        else if (/android/i.test(userAgent)) deviceName = "جهاز Android";
+        else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
+        else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+        await prisma.adminDeviceSession.create({
+          data: {
+            adminId: employee.id,
+            username: employee.name,
+            ipAddress,
+            userAgent,
+            deviceName,
+            lastSeen: new Date(),
+          }
+        });
+      } catch (sessionErr) {
+        console.error("Session log error:", sessionErr);
+      }
+    }
+
     const cookieStore = await cookies();
     cookieStore.set("hr_token", token, {
       httpOnly: true,
@@ -76,6 +131,7 @@ export async function POST(request: Request) {
         role: employee.role,
         department: employee.department?.name,
         shift: employee.shift?.name,
+        permissions: employee.permissions,
       },
       token,
     }, { headers });

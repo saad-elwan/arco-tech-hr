@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   const department = searchParams.get("department") || "";
   const status = searchParams.get("status") || "";
   const role = searchParams.get("role") || "";
+  const includeAdmins = searchParams.get("includeAdmins") === "true";
 
   const employees = await prisma.employee.findMany({
     where: {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
         search ? { name: { contains: search } } : {},
         department ? { departmentId: parseInt(department) } : {},
         status ? { status } : {},
-        role ? { role } : {},
+        role ? { role } : (!includeAdmins ? { role: { notIn: ["admin", "superadmin"] } } : {}),
       ],
     },
     include: {

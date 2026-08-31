@@ -69,6 +69,16 @@ export async function POST(request: NextRequest) {
         source: "app",
       }
     });
+
+    // Log location for tracking map
+    await prisma.locationLog.create({
+      data: {
+        employeeId: auth.id,
+        latitude,
+        longitude,
+        isOutOfRange: false,
+      }
+    });
     
     // Notify admins about check-in
     const emp = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true, department: { select: { name: true } } } });
@@ -94,6 +104,16 @@ export async function POST(request: NextRequest) {
         checkOut: timeStr,
         checkOutLat: latitude,
         checkOutLng: longitude,
+      }
+    });
+
+    // Log location for tracking map
+    await prisma.locationLog.create({
+      data: {
+        employeeId: auth.id,
+        latitude,
+        longitude,
+        isOutOfRange: false,
       }
     });
 

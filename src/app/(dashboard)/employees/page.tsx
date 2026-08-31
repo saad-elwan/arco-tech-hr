@@ -126,6 +126,8 @@ export default function EmployeesPage() {
     { id: "/me", label: "حسابي (أساسي)" },
     { id: "/tasks", label: "مهامي والمشاريع" },
     { id: "/attendance", label: "سجل الحضور" },
+    { id: "/finance", label: "الماليات والرواتب والخزينة (إدارة مالية)" },
+    { id: "/tracking", label: "تتبع المواقع وخطوط السير" },
     { id: "/evaluations", label: "التقييمات" },
     { id: "/requests", label: "سجل الطلبات والسلف" }
   ];

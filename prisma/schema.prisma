@@ -78,6 +78,7 @@ model Employee {
   advanceRequests AdvanceRequest[]
   leaveRequests   LeaveRequest[]
   notifications   Notification[]
+  dailyRoutes     DailyRoute[]
 }
 
 model Attendance {
@@ -217,3 +218,73 @@ model Notification {
   createdAt  DateTime @default(now())
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
+
+model Treasury {
+  id               Int      @id @default(1)
+  balance          Float    @default(0)
+  totalDeposits    Float    @default(0)
+  totalWithdrawals Float    @default(0)
+  updatedAt        DateTime @updatedAt
+}
+
+model TreasuryTransaction {
+  id          Int      @id @default(autoincrement())
+  type        String   // deposit | withdrawal | salary_payment | advance_payment
+  amount      Float
+  description String
+  referenceId String?
+  performedBy String   @default("الإدارة")
+  createdAt   DateTime @default(now())
+}
+
+model DailyRoute {
+  id          Int               @id @default(autoincrement())
+  delegateId  Int
+  date        String            // YYYY-MM-DD
+  title       String
+  status      String            @default("in_progress") // planned | in_progress | completed
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  delegate    Employee          @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+  checkpoints RouteCheckpoint[]
+}
+
+model RouteCheckpoint {
+  id         Int        @id @default(autoincrement())
+  routeId    Int
+  clientName String
+  address    String?
+  phone      String?
+  lat        Float
+  lng        Float
+  order      Int        @default(1)
+  status     String     @default("pending") // pending | visited | skipped
+  visitedAt  DateTime?
+  notes      String?
+  route      DailyRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+}
+
+model AdminDeviceSession {
+  id               Int      @id @default(autoincrement())
+  adminId          Int
+  username         String
+  ipAddress        String?
+  userAgent        String?
+  deviceName       String?
+  lat              Float?
+  lng              Float?
+  lastSeen         DateTime @default(now())
+  isLiveAudioActive Boolean @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model VoiceMessage {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  senderName String
+  audioData  String   // Base64 audio blob or audio URL
+  duration   Float    @default(0)
+  createdAt  DateTime @default(now())
+}
+

@@ -236,8 +236,77 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+export interface Treasury {
+  id: number;
+  balance: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
+  updatedAt: Date | string;
+}
+
+export interface TreasuryTransaction {
+  id: number;
+  type: string;
+  amount: number;
+  description: string;
+  referenceId?: string | null;
+  performedBy: string;
+  createdAt: Date | string;
+}
+
+export interface DailyRoute {
+  id: number;
+  delegateId: number;
+  date: string;
+  title: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  delegate?: Employee;
+  checkpoints?: RouteCheckpoint[];
+}
+
+export interface RouteCheckpoint {
+  id: number;
+  routeId: number;
+  clientName: string;
+  address?: string | null;
+  phone?: string | null;
+  lat: number;
+  lng: number;
+  order: number;
+  status: string;
+  visitedAt?: Date | string | null;
+  notes?: string | null;
+}
+
+export interface AdminDeviceSession {
+  id: number;
+  adminId: number;
+  username: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  deviceName?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  lastSeen: Date | string;
+  isLiveAudioActive: boolean;
+  createdAt: Date | string;
+}
+
+export interface VoiceMessage {
+  id: number;
+  senderId: number;
+  senderName: string;
+  audioData: string;
+  duration: number;
+  createdAt: Date | string;
+}
+
 // Component prop types
 export interface MapComponentProps {
   employees: (Employee & { lastLocation?: LocationLog & { timestamp: string }; attendance?: Attendance })[];
   geofence: { lat: number; lng: number; radius: number } | null;
+  routes?: DailyRoute[];
 }

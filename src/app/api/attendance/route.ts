@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
   const month = searchParams.get("month");
   const status = searchParams.get("status");
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = {
+    employee: { role: { notIn: ["admin", "superadmin"] } }
+  };
   if (month) {
     where.date = { startsWith: month };
   } else {

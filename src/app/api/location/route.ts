@@ -169,6 +169,15 @@ export async function GET(request: NextRequest) {
       todayAttendance.map((a) => [a.employeeId, a])
     );
 
+    // Get daily routes for this date
+    const dailyRoutes = await prisma.dailyRoute.findMany({
+      where: { date },
+      include: {
+        delegate: { select: { id: true, name: true, phone: true } },
+        checkpoints: { orderBy: { order: "asc" } }
+      }
+    });
+
     // Count alerts
     const outOfRangeCount = uniqueLocations.filter((l) => l.isOutOfRange).length;
 
@@ -189,6 +198,7 @@ export async function GET(request: NextRequest) {
           attendance: att || null,
         };
       }),
+      routes: dailyRoutes,
       geofence: company
         ? {
             lat: company.geofenceLat,
@@ -201,6 +211,7 @@ export async function GET(request: NextRequest) {
         inRange: uniqueLocations.length - outOfRangeCount,
         outOfRange: outOfRangeCount,
         totalEmployees: employees.length,
+        totalRoutes: dailyRoutes.length,
       },
     });
   } catch (error) {

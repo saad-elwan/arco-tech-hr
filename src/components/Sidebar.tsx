@@ -72,8 +72,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
               const perms = typeof d.employee.permissions === 'string' ? JSON.parse(d.employee.permissions) : d.employee.permissions;
               const allPossibleItems = [
                 { href: "/me", label: "حسابي", icon: LayoutGrid },
+                { href: "/finance", label: "الماليات والرواتب", icon: Banknote },
                 { href: "/tasks", label: "المهام", icon: CheckSquare },
                 { href: "/attendance", label: "الحضور", icon: Clock },
+                { href: "/tracking", label: "تتبع المواقع", icon: MapPin },
                 { href: "/evaluations", label: "التقييمات", icon: Star },
                 { href: "/requests", label: "الطلبات", icon: ClipboardList }
               ];
@@ -106,10 +108,25 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
   }
 
   const roleLabels: Record<string, string> = {
+    superadmin: "المشرف العام (Super Admin)",
     admin: "المدير التنفيذي",
     hr: "إدارة الموارد البشرية",
     employee: "موظف",
   };
+
+  // If superadmin, add Super Admin panel to admin navigation
+  const navSections = user?.role === "employee" ? empNav : adminNavItems.map(sec => {
+    if (sec.section === "النظام" && user?.role === "superadmin") {
+      const hasSuper = sec.items.some(i => i.href === "/super-admin");
+      if (!hasSuper) {
+        return {
+          ...sec,
+          items: [{ href: "/super-admin", label: "مراقبة الإشراف والأجهزة", icon: MapPin }, ...sec.items]
+        };
+      }
+    }
+    return sec;
+  });
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{
@@ -152,7 +169,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
       </div>
 
       <nav className="sidebar-nav" style={{ padding: "20px 16px" }}>
-        {(user?.role === "employee" ? empNav : adminNavItems).map((section) => (
+        {navSections.map((section) => (
           <div key={section.section} style={{ marginBottom: "16px" }}>
             <div className="nav-section-label" style={{ 
               fontSize: "11px", letterSpacing: "1.5px", color: "var(--gold-dark)",

@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
   const today = new Date().toISOString().split("T")[0];
   const thisMonth = today.substring(0, 7);
 
+  const employeeFilter = { status: "active", role: { notIn: ["admin", "superadmin"] } };
+
   const [
     totalEmployees,
     activeEmployees,
@@ -24,15 +26,28 @@ export async function GET(request: NextRequest) {
     topEmployees,
     recentActivity,
   ] = await Promise.all([
-    prisma.employee.count({ where: { status: "active" } }),
-    prisma.employee.count({ where: { status: "active" } }),
+    prisma.employee.count({ where: employeeFilter }),
+    prisma.employee.count({ where: employeeFilter }),
     prisma.attendance.count({
-      where: { date: today, status: { in: ["present", "late"] } },
+      where: { 
+        date: today, 
+        status: { in: ["present", "late"] },
+        employee: { role: { notIn: ["admin", "superadmin"] } }
+      },
     }),
-    prisma.attendance.count({ where: { date: today, status: "late" } }),
+    prisma.attendance.count({ 
+      where: { 
+        date: today, 
+        status: "late",
+        employee: { role: { notIn: ["admin", "superadmin"] } }
+      } 
+    }),
     prisma.attendance.groupBy({
       by: ["date"],
-      where: { date: { startsWith: thisMonth } },
+      where: { 
+        date: { startsWith: thisMonth },
+        employee: { role: { notIn: ["admin", "superadmin"] } }
+      },
       _count: { id: true },
     }),
     prisma.task.groupBy({
@@ -40,12 +55,16 @@ export async function GET(request: NextRequest) {
       _count: { id: true },
     }),
     prisma.evaluation.findMany({
+      where: { employee: { role: { notIn: ["admin", "superadmin"] } } },
       orderBy: { totalScore: "desc" },
       take: 5,
       include: { employee: { select: { name: true, department: { select: { name: true } } } } },
     }),
     prisma.attendance.findMany({
-      where: { date: today },
+      where: { 
+        date: today,
+        employee: { role: { notIn: ["admin", "superadmin"] } }
+      },
       take: 10,
       orderBy: { createdAt: "desc" },
       include: { employee: { select: { name: true } } },

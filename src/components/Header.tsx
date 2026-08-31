@@ -2,6 +2,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, Search, Loader2, Info, AlertTriangle, CheckCircle, Menu } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { playNotificationSound, requestNotificationPermission, showBrowserNotification } from "@/lib/audioNotifications";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "لوحة التحكم",
@@ -66,23 +67,52 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const prevUnreadRef = useRef(0);
+
   useEffect(() => {
-    // Fetch unread count on load
-    fetch("/api/notifications")
-      .then(r => r.json())
-      .then(d => setUnreadCount(d.unreadCount || 0))
-      .catch(() => {});
+    // Request permission once user interacts
+    requestNotificationPermission();
+
+    const checkNotifs = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        const d = await res.json();
+        const count = d.unreadCount || 0;
+        
+        if (count > prevUnreadRef.current && count > 0) {
+          // Play audio sound chime
+          playNotificationSound();
+          
+          // Show OS Popup Notification
+          const latest = d.notifications?.[0];
+          if (latest) {
+            showBrowserNotification(latest.title, {
+              body: latest.body,
+              link: latest.link || "/me"
+            });
+          }
+        }
+        prevUnreadRef.current = count;
+        setUnreadCount(count);
+      } catch {}
+    };
+
+    checkNotifs();
+    const interval = setInterval(checkNotifs, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   // Open notifications
   const handleNotifsClick = async () => {
     setShowNotifs(!showNotifs);
+    requestNotificationPermission();
     if (!showNotifs) {
       try {
         const res = await fetch("/api/notifications");
         const data = await res.json();
         setNotifications(data.notifications || []);
         setUnreadCount(0);
+        prevUnreadRef.current = 0;
         // Mark all as read
         fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
       } catch {}
