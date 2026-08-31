@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Play, SkipForward, LogIn, ShieldCheck, Sparkles } from "lucide-react";
+import { Play, SkipForward, LogIn, ShieldCheck, Sparkles, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [showIntro, setShowIntro] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -85,7 +86,7 @@ export default function LoginPage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          maxWidth: "480px",
+          maxWidth: "520px",
           width: "90%",
           animation: "arcoLogoPulse 2.4s ease-in-out infinite"
         }}>
@@ -124,8 +125,6 @@ export default function LoginPage() {
       </div>
     );
   }
-
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="login-page" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", background: "radial-gradient(ellipse at center, rgba(15, 30, 55, 0.6) 0%, rgba(5, 5, 5, 0.98) 100%)" }}>
