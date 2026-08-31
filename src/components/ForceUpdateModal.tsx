@@ -19,17 +19,14 @@ export default function ForceUpdateModal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Clear any previous false suppression flags
-    try {
-      sessionStorage.removeItem("arco_app_version");
-    } catch {}
-
-    // Continuous detector for Old Mobile App / WebView
     const detectOldApp = () => {
-      // Only the genuine new v1.2.0 build has this injected variable
-      const isNewApp = Boolean((window as any).__ARCO_APP_VERSION__ === "1.2.0");
+      // The newest build (Build 5) sets __ARCO_IS_LATEST_BUILD__ = true & __ARCO_VERSION_CODE__ = 5
+      const isLatestBuild = Boolean(
+        (window as any).__ARCO_IS_LATEST_BUILD__ === true &&
+        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 5
+      );
 
-      if (isNewApp) {
+      if (isLatestBuild) {
         setShowModal(false);
         return;
       }
@@ -50,7 +47,8 @@ export default function ForceUpdateModal() {
         typeof window !== "undefined" && (window.location.search.includes("update=true") || window.location.hash.includes("update"))
       );
 
-      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isNewApp) {
+      // If in mobile WebView or Android app and NOT confirmed as Build 5:
+      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isLatestBuild) {
         setShowModal(true);
       }
     };
