@@ -166,21 +166,49 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Open notifications
-  const handleNotifsClick = async () => {
-    const nextState = !showNotifs;
-    setShowNotifs(nextState);
-    if (nextState) {
-      setUnreadCount(0);
-      prevUnreadRef.current = 0;
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      try {
-        fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
-        const res = await fetch("/api/notifications");
-        const data = await res.json();
-        setNotifications((data.notifications || []).map((n: any) => ({ ...n, isRead: true })));
-      } catch {}
+  // Send background poll starter to service worker
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.active?.postMessage({ type: "START_BG_POLL" });
+      }).catch(() => {});
     }
+  }, []);
+
+  // Toggle notifications dropdown
+  const handleNotifsClick = () => {
+    setShowNotifs((prev) => !prev);
+  };
+
+  // Handle individual notification click (marks as read immediately)
+  const handleNotificationItemClick = (n: any) => {
+    setShowNotifs(false);
+    setNotifications((prev) => prev.map((item) => item.id === n.id ? { ...item, isRead: true } : item));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+    fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: n.id }),
+    }).catch(() => {});
+    if (n.link) router.push(n.link);
+  };
+
+  // Handle toast notification click
+  const handleToastClick = () => {
+    if (!toastNotif) return;
+    const link = toastNotif.link || "/dashboard";
+    const id = toastNotif.id;
+    setToastNotif(null);
+    if (id) {
+      setNotifications((prev) => prev.map((item) => item.id === id ? { ...item, isRead: true } : item));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      }).catch(() => {});
+    }
+    router.push(link);
   };
 
   // Handle Search using debounce
@@ -396,7 +424,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                 {notifications.length > 0 ? notifications.map((n) => (
                   <div 
                     key={n.id} 
-                    onClick={() => { setShowNotifs(false); router.push(n.link); }}
+                    onClick={() => handleNotificationItemClick(n)}
                     style={{
                       padding: "16px 20px", borderBottom: "1px solid var(--border)",
                       display: "flex", gap: "12px", alignItems: "flex-start", cursor: "pointer",
@@ -430,10 +458,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       {/* Live In-App Toast Popup Notification (Desktop & Mobile) */}
       {toastNotif && (
         <div 
-          onClick={() => {
-            if (toastNotif.link) router.push(toastNotif.link);
-            setToastNotif(null);
-          }}
+          onClick={handleToastClick}
           style={{
             position: "fixed",
             top: "20px",

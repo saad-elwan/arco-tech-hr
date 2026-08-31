@@ -117,16 +117,32 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH /api/notifications → mark all as read
+// PATCH /api/notifications → mark specific or all as read
 export async function PATCH(request: NextRequest) {
   const auth = getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   try {
-    await prisma.notification.updateMany({
-      where: { employeeId: auth.id, isRead: false },
-      data: { isRead: true }
-    });
+    let body: any = null;
+    try {
+      body = await request.json();
+    } catch {}
+
+    if (body?.id) {
+      const rawId = String(body.id).replace("notif-", "").replace("task-", "").replace("att-", "");
+      const numId = parseInt(rawId);
+      if (!isNaN(numId)) {
+        await prisma.notification.updateMany({
+          where: { id: numId, employeeId: auth.id },
+          data: { isRead: true }
+        });
+      }
+    } else {
+      await prisma.notification.updateMany({
+        where: { employeeId: auth.id, isRead: false },
+        data: { isRead: true }
+      });
+    }
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Error marking notifications read:", err);

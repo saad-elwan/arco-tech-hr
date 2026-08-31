@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromRequest, isSuperAdmin, isAdmin } from "@/lib/middleware";
+import { ensureDatabaseSchema } from "@/lib/ensureSchema";
 
 export async function GET(request: NextRequest) {
+  await ensureDatabaseSchema();
   const auth = getAuthFromRequest(request);
   if (!auth || !isAdmin(request)) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
 
 // Heartbeat & location update for admin device
 export async function POST(request: NextRequest) {
+  await ensureDatabaseSchema();
   const auth = getAuthFromRequest(request);
   if (!auth || !isAdmin(request)) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });

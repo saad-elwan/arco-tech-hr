@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromRequest, canAccessFinance } from "@/lib/middleware";
+import { ensureDatabaseSchema } from "@/lib/ensureSchema";
 
 export async function GET(request: NextRequest) {
+  await ensureDatabaseSchema();
   const auth = getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   if (!(await canAccessFinance(request))) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
@@ -35,6 +37,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  await ensureDatabaseSchema();
   const auth = getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   if (!(await canAccessFinance(request))) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
