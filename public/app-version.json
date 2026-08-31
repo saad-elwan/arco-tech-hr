@@ -1,9 +1,9 @@
 {
   "latestVersion": "1.2.0",
-  "versionCode": 4,
+  "versionCode": 5,
   "minRequiredVersion": "1.2.0",
   "apkUrl": "https://hr-amr.vercel.app/api/download",
-  "directDownloadUrl": "https://hr-amr.vercel.app/api/download",
+  "directDownloadUrl": "https://expo.dev/artifacts/eas/Wqla_1fO33BqUTXJn9MxVF--eSc3LCXf_jj-Wqac5V4.apk",
   "releaseDate": "2026-08-31",
   "forceUpdate": true,
   "title": "تحديث إجباري للنظام",
