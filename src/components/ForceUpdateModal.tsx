@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from "react";
 
 const DOWNLOAD_ENDPOINT = "/api/download";
-const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
@@ -20,12 +19,15 @@ export default function ForceUpdateModal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // Clear any previous false suppression flags
+    try {
+      sessionStorage.removeItem("arco_app_version");
+    } catch {}
+
     // Continuous detector for Old Mobile App / WebView
     const detectOldApp = () => {
-      const isNewApp = Boolean(
-        (window as any).__ARCO_APP_VERSION__ === "1.2.0" ||
-        sessionStorage.getItem("arco_app_version") === "1.2.0"
-      );
+      // Only the genuine new v1.2.0 build has this injected variable
+      const isNewApp = Boolean((window as any).__ARCO_APP_VERSION__ === "1.2.0");
 
       if (isNewApp) {
         setShowModal(false);
@@ -33,22 +35,29 @@ export default function ForceUpdateModal() {
       }
 
       const userAgent = navigator.userAgent || "";
-      const isReactNativeWebView = Boolean((window as any).ReactNativeWebView || (window as any).__REACT_WEB_VIEW__);
+      const isReactNativeWebView = Boolean(
+        (window as any).ReactNativeWebView || 
+        (window as any).__REACT_WEB_VIEW__ ||
+        typeof (window as any).ReactNativeWebView !== "undefined"
+      );
       const isAndroidWebView = Boolean(
         /;\s*wv|Android.*Version\/[0-9.]+|WebView/i.test(userAgent)
       );
+      const isAndroidApp = Boolean(
+        /Android/i.test(userAgent) && (isReactNativeWebView || isAndroidWebView || /Version\/[0-9.]+/i.test(userAgent))
+      );
       const isTestParam = Boolean(
-        typeof window !== "undefined" && window.location.search.includes("update=true")
+        typeof window !== "undefined" && (window.location.search.includes("update=true") || window.location.hash.includes("update"))
       );
 
-      if ((isReactNativeWebView || isAndroidWebView || isTestParam) && !isNewApp) {
+      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isNewApp) {
         setShowModal(true);
       }
     };
 
     detectOldApp();
     const interval = setInterval(detectOldApp, 100);
-    const timeout = setTimeout(() => clearInterval(interval), 6000);
+    const timeout = setTimeout(() => clearInterval(interval), 10000);
 
     return () => {
       clearInterval(interval);
@@ -240,7 +249,7 @@ export default function ForceUpdateModal() {
           }}
         >
           <span>الإصدار المطلوب:</span>
-          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 4)</span>
+          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 5)</span>
         </div>
 
         {/* In-App Real-time Progress Box */}
