@@ -175,6 +175,13 @@ export async function showBrowserNotification(title: string, options?: { body?: 
     const notifBody = options?.body || "لديك إشعار جديد في نظام الموارد البشرية";
     const notifLink = options?.link || "/dashboard";
 
+    if (Notification.permission === "default") {
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") return;
+      } catch {}
+    }
+
     if (Notification.permission === "granted") {
       // 1. Try Service Worker showNotification (for Android/iOS PWA Notification Shade & Lockscreen)
       if ("serviceWorker" in navigator) {
@@ -183,8 +190,8 @@ export async function showBrowserNotification(title: string, options?: { body?: 
           if (reg && reg.showNotification) {
             await reg.showNotification(title, {
               body: notifBody,
-              icon: "/arco-logo.svg",
-              badge: "/favicon.ico",
+              icon: "/arco-logo.png",
+              badge: "/arco-logo.png",
               dir: "rtl",
               lang: "ar",
               tag: "arco-hr-" + Date.now(),
@@ -203,8 +210,8 @@ export async function showBrowserNotification(title: string, options?: { body?: 
       // 2. Fallback to Window Notification API
       const notif = new Notification(title, {
         body: notifBody,
-        icon: "/arco-logo.svg",
-        badge: "/favicon.ico",
+        icon: "/arco-logo.png",
+        badge: "/arco-logo.png",
         dir: "rtl",
         lang: "ar",
         tag: "arco-hr-" + Date.now(),

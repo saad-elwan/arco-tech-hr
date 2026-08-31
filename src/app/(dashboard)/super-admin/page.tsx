@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { 
-  ShieldAlert, Radio, Mic, MicOff, Volume2, Laptop, Smartphone, Globe, 
-  Clock, MapPin, Play, Pause, RefreshCw, Send, CheckCircle2, AlertTriangle, 
-  Users, Key, Edit, Trash2, Plus, Search, Filter, ShieldCheck, Lock, UserCheck, UserX
+  ShieldAlert, Radio, Laptop, Smartphone, Globe, 
+  MapPin, RefreshCw, AlertTriangle, 
+  Users, Key, Edit, Trash2, Plus, Search, ShieldCheck, Lock, UserCheck, UserX
 } from "lucide-react";
 
 // Dynamic import for Leaflet map to avoid SSR issues
@@ -17,7 +17,6 @@ export default function SuperAdminPage() {
   // Telemetry & Sessions State
   const [sessions, setSessions] = useState<any[]>([]);
   const [adminAccounts, setAdminAccounts] = useState<any[]>([]);
-  const [voiceMessages, setVoiceMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Users Control State
@@ -45,15 +44,6 @@ export default function SuperAdminPage() {
   const [userActionMsg, setUserActionMsg] = useState({ error: "", success: "" });
   const [actionSaving, setActionSaving] = useState(false);
 
-  // Voice Recording state
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [sendingAudio, setSendingAudio] = useState(false);
-  const [playingId, setPlayingId] = useState<number | null>(null);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const timerRef = useRef<any>(null);
-
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
     if (userData) {
@@ -63,14 +53,12 @@ export default function SuperAdminPage() {
       } catch {}
     }
     fetchSessions();
-    fetchVoiceMessages();
     fetchUsers();
 
     const interval = setInterval(() => {
       fetchSessions();
-      fetchVoiceMessages();
       if (activeTab === "users") fetchUsers();
-    }, 15000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [activeTab]);
@@ -90,18 +78,6 @@ export default function SuperAdminPage() {
     }
   };
 
-  const fetchVoiceMessages = async () => {
-    try {
-      const res = await fetch("/api/superadmin/voice");
-      if (res.ok) {
-        const data = await res.json();
-        setVoiceMessages(data || []);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
@@ -114,85 +90,6 @@ export default function SuperAdminPage() {
       console.error(err);
     } finally {
       setUsersLoading(false);
-    }
-  };
-
-  // Start Voice Recording
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: "audio/webm" });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result as string;
-          await sendVoiceMessage(base64Audio, recordingTime);
-        };
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-    } catch (err) {
-      alert("يرجى إعطاء صلاحية الميكروفون في المتصفح لبدء التسجيل الصوتي المباشر");
-    }
-  };
-
-  // Stop Voice Recording
-  const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      setIsRecording(false);
-      clearInterval(timerRef.current);
-    }
-  };
-
-  const sendVoiceMessage = async (base64Audio: string, durationSec: number) => {
-    setSendingAudio(true);
-    try {
-      const res = await fetch("/api/superadmin/voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audioData: base64Audio,
-          duration: durationSec
-        })
-      });
-      if (res.ok) {
-        fetchVoiceMessages();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSendingAudio(false);
-    }
-  };
-
-  const playVoice = (id: number, audioSrc: string) => {
-    if (playingId === id) {
-      audioPlayerRef.current?.pause();
-      setPlayingId(null);
-    } else {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.src = audioSrc;
-        audioPlayerRef.current.play();
-        setPlayingId(id);
-        audioPlayerRef.current.onended = () => setPlayingId(null);
-      }
     }
   };
 
@@ -352,21 +249,19 @@ export default function SuperAdminPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <audio ref={audioPlayerRef} style={{ display: "none" }} />
-
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 0 }}>
         <div>
           <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--gold-primary)" }}>
             <Radio size={26} color="var(--gold-primary)" /> لوحة الإشراف المتقدم والتحكم الشامل
           </h1>
-          <p className="page-subtitle">مركز تحكم المشرف العام لمراقبة الأجهزة والجلسات، البث الصوتي المباشر، وإدارة جميع الحسابات</p>
+          <p className="page-subtitle">مركز تحكم المشرف العام لمراقبة الأجهزة والجلسات وإدارة جميع حسابات النظام</p>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <span className="badge badge-gold" style={{ padding: "8px 14px", fontSize: "13px" }}>
             👑 المشرف: {user?.name || "Arco"}
           </span>
-          <button className="btn btn-secondary btn-sm" onClick={() => { fetchSessions(); fetchVoiceMessages(); fetchUsers(); }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => { fetchSessions(); fetchUsers(); }}>
             <RefreshCw size={14} /> تحديث البيانات
           </button>
         </div>
@@ -383,7 +278,7 @@ export default function SuperAdminPage() {
             boxShadow: activeTab === "telemetry" ? "0 2px 12px rgba(212,175,55,0.4)" : "none"
           }}
         >
-          <Radio size={16} /> مراقبة الأجهزة والبث الصوتي
+          <Radio size={16} /> مراقبة الأجهزة والجلسات المتصلة
         </button>
         <button
           onClick={() => setActiveTab("users")}
@@ -419,11 +314,11 @@ export default function SuperAdminPage() {
             <div className="card stat-card" style={{ padding: "20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>إجمالي جلسات تسجيل الدخول المسجلة</div>
-                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--gold-primary)" }}>{sessions.length}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>حسابات الإدارة المسجلة (الأدمن)</div>
+                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--gold-primary)" }}>{adminAccounts.length}</div>
                 </div>
                 <div className="stat-icon" style={{ background: "rgba(212,175,55,0.1)", color: "var(--gold-primary)" }}>
-                  <Globe size={24} />
+                  <ShieldCheck size={24} />
                 </div>
               </div>
             </div>
@@ -431,99 +326,13 @@ export default function SuperAdminPage() {
             <div className="card stat-card" style={{ padding: "20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>التسجيلات الصوتية المباشرة</div>
-                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--info)" }}>{voiceMessages.length}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>إجمالي جلسات الدخول المسجلة</div>
+                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--info)" }}>{sessions.length}</div>
                 </div>
                 <div className="stat-icon" style={{ background: "rgba(59,130,246,0.15)", color: "var(--info)" }}>
-                  <Volume2 size={24} />
+                  <Globe size={24} />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Voice Dispatch Center */}
-          <div className="card" style={{ padding: "24px", background: "linear-gradient(135deg, rgba(212,175,55,0.08), rgba(0,0,0,0.6))", border: "1px solid rgba(212,175,55,0.3)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: 12 }}>
-              <div>
-                <h3 style={{ margin: 0, color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Radio size={20} /> وحدة البث الصوتي المباشر والاتصال الإداري
-                </h3>
-                <p style={{ margin: "4px 0 0", fontSize: "13px", color: "var(--text-secondary)" }}>
-                  تسجيل وإرسال رسائل صوتية فورية ليتم تشغيلها والاستماع إليها عبر أجهزة الإدارة المصرح لها.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {isRecording ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span className="badge badge-danger" style={{ animation: "pulse 1s infinite", padding: "8px 14px", fontSize: "13px" }}>
-                      🔴 جاري التسجيل المباشر: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                    </span>
-                    <button 
-                      className="btn btn-danger"
-                      onClick={stopRecording}
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <MicOff size={16} /> إنهاء وبث التسجيل
-                    </button>
-                  </div>
-                ) : (
-                  <button 
-                    className="btn btn-primary"
-                    onClick={startRecording}
-                    disabled={sendingAudio}
-                    style={{ display: "flex", alignItems: "center", gap: 8, background: "linear-gradient(135deg, var(--gold-dark), var(--gold-primary))", color: "#000", fontWeight: 700 }}
-                  >
-                    <Mic size={16} /> {sendingAudio ? "جاري البث..." : "بدء تسجيل صوتي مباشر"}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Voice Messages List */}
-            <div style={{ marginTop: "20px" }}>
-              <h4 style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "12px" }}>سجل البث الصوتي الأخير:</h4>
-              {voiceMessages.length === 0 ? (
-                <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>
-                  لا توجد تسجيلات صوتية مسجلة حتى الآن.
-                </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
-                  {voiceMessages.map((vm: any) => (
-                    <div 
-                      key={vm.id}
-                      className="card"
-                      style={{ 
-                        padding: "14px 16px", 
-                        background: "rgba(255,255,255,0.03)", 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "space-between",
-                        gap: 12
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <button
-                          onClick={() => playVoice(vm.id, vm.audioData)}
-                          style={{
-                            width: 36, height: 36, borderRadius: "50%",
-                            background: playingId === vm.id ? "var(--danger)" : "var(--gold-primary)",
-                            border: "none", color: "#000", cursor: "pointer",
-                            display: "flex", alignItems: "center", justifyContent: "center"
-                          }}
-                        >
-                          {playingId === vm.id ? <Pause size={16} color="#fff" /> : <Play size={16} color="#000" />}
-                        </button>
-                        <div>
-                          <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>{vm.senderName}</div>
-                          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{new Date(vm.createdAt).toLocaleTimeString("ar-EG")} ({vm.duration} ثانية)</div>
-                        </div>
-                      </div>
-                      <span className="badge badge-gold" style={{ fontSize: "10px" }}>بث صوتي</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -627,7 +436,7 @@ export default function SuperAdminPage() {
                           <td style={{ fontWeight: 700, color: "var(--gold-primary)" }}>{s.username}</td>
                           <td>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              {s.deviceName?.includes("iPhone") || s.deviceName?.includes("Android") ? <Smartphone size={15} /> : <Laptop size={15} />}
+                              {s.deviceName?.includes("iPhone") || s.deviceName?.includes("Android") || s.deviceName?.includes("Mobile") ? <Smartphone size={15} /> : <Laptop size={15} />}
                               {s.deviceName || "جهاز غير محدد"}
                             </span>
                           </td>

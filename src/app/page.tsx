@@ -91,7 +91,7 @@ export default function LoginPage() {
           animation: "arcoLogoPulse 2.4s ease-in-out infinite"
         }}>
           <img 
-            src="/arco-logo.svg" 
+            src="/arco-logo.png" 
             alt="Arco Tech For Management Sys" 
             style={{ 
               width: "100%", 
@@ -140,12 +140,12 @@ export default function LoginPage() {
         WebkitBackdropFilter: "blur(20px)",
         animation: "slideIn 0.4s ease" 
       }}>
-        {/* Transparent Official Logo */}
+        {/* Official Original Logo */}
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <img 
-            src="/arco-logo-dark.svg" 
+            src="/arco-logo.png" 
             alt="Arco Tech For Management Sys" 
-            style={{ width: "100%", height: "auto", maxHeight: "85px", objectFit: "contain", display: "block", margin: "0 auto", filter: "drop-shadow(0 4px 15px rgba(56, 189, 248, 0.2))" }} 
+            style={{ width: "100%", maxWidth: "300px", height: "auto", maxHeight: "90px", objectFit: "contain", display: "block", margin: "0 auto" }} 
           />
           <p style={{ margin: "14px 0 0", fontSize: "13px", color: "var(--gold-primary)", fontWeight: 600, letterSpacing: "0.5px" }}>
             نظام إدارة الموارد البشرية والعمليات المتكامل

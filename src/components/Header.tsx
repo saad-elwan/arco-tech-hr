@@ -68,39 +68,101 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   }, []);
 
   const [toastNotif, setToastNotif] = useState<any>(null);
-  const prevUnreadRef = useRef(0);
+
+  // Auto-request Notification permission on user interaction
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        const reqPerm = () => {
+          Notification.requestPermission().catch(() => {});
+          window.removeEventListener("click", reqPerm);
+          window.removeEventListener("touchstart", reqPerm);
+        };
+        window.addEventListener("click", reqPerm, { once: true });
+        window.addEventListener("touchstart", reqPerm, { once: true });
+      }
+    }
+  }, []);
+
+  // Admin / HR Presence & Heartbeat to Super Admin
+  useEffect(() => {
+    if (!user || !["admin", "superadmin", "hr"].includes(user.role?.toLowerCase() || "")) return;
+
+    const reportPresence = () => {
+      const sendData = (lat: number | null, lng: number | null) => {
+        const isMobile = typeof navigator !== "undefined" && (/android|iphone|ipad|mobile/i.test(navigator.userAgent));
+        fetch("/api/superadmin/devices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat,
+            lng,
+            deviceName: isMobile ? "هاتف ذكي (Mobile)" : "كمبيوتر مكتبي (Desktop)"
+          })
+        }).catch(() => {});
+      };
+
+      if (typeof navigator !== "undefined" && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => sendData(pos.coords.latitude, pos.coords.longitude),
+          () => sendData(null, null),
+          { timeout: 6000 }
+        );
+      } else {
+        sendData(null, null);
+      }
+    };
+
+    reportPresence();
+    const presenceInterval = setInterval(reportPresence, 30000);
+    return () => clearInterval(presenceInterval);
+  }, [user]);
+
+  // Real-time Notifications Polling (every 4 seconds)
+  const seenNotifIdsRef = useRef<Set<string>>(new Set());
+  const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
     const checkNotifs = async () => {
       try {
         const res = await fetch("/api/notifications");
+        if (!res.ok) return;
         const d = await res.json();
+        const notifs: any[] = d.notifications || [];
         const count = d.unreadCount || 0;
-        
-        if (count > prevUnreadRef.current && count > 0) {
-          // Play audio sound chime
-          playNotificationSound();
-          
-          const latest = d.notifications?.[0];
-          if (latest) {
-            // Trigger in-app Toast Notification Popup
-            setToastNotif(latest);
-            setTimeout(() => setToastNotif(null), 6500);
 
-            // Show Native OS / Mobile Push Notification with full description
+        if (isFirstLoadRef.current) {
+          notifs.forEach((n) => seenNotifIdsRef.current.add(String(n.id)));
+          isFirstLoadRef.current = false;
+        } else {
+          // Detect any newly arrived unread notification
+          const brandNew = notifs.filter((n) => !seenNotifIdsRef.current.has(String(n.id)) && !n.isRead);
+          if (brandNew.length > 0) {
+            const latest = brandNew[0];
+            brandNew.forEach((n) => seenNotifIdsRef.current.add(String(n.id)));
+
+            // 1. Play audio chime
+            playNotificationSound();
+
+            // 2. In-App Floating Toast Notification Popup
+            setToastNotif(latest);
+            setTimeout(() => setToastNotif(null), 8000);
+
+            // 3. Native Browser / Lockscreen Notification
             showBrowserNotification(latest.title, {
               body: latest.desc || latest.body || latest.message || "لديك إشعار جديد في النظام",
               link: latest.link || "/dashboard"
             });
           }
         }
-        prevUnreadRef.current = count;
+
+        setNotifications(notifs);
         setUnreadCount(count);
       } catch {}
     };
 
     checkNotifs();
-    const interval = setInterval(checkNotifs, 12000);
+    const interval = setInterval(checkNotifs, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -329,29 +391,6 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>
-                <button 
-                  onClick={() => {
-                    playNotificationSound();
-                    setToastNotif({
-                      title: "🔔 تجربة الإشعار الصوتي والمنبثق",
-                      desc: "نظام إشعارات Arco Tech يعمل بنجاح على هذا الجهاز.",
-                      link: "/dashboard"
-                    });
-                    setTimeout(() => setToastNotif(null), 5000);
-                  }}
-                  style={{
-                    background: "rgba(212, 175, 55, 0.15)",
-                    border: "1px solid rgba(212, 175, 55, 0.3)",
-                    borderRadius: "6px",
-                    color: "var(--gold-primary)",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "4px 8px",
-                    cursor: "pointer"
-                  }}
-                >
-                  🔔 تجربة الإشعار
-                </button>
               </div>
               <div style={{ maxHeight: "300px", overflowY: "auto", padding: "8px 0" }}>
                 {notifications.length > 0 ? notifications.map((n) => (
