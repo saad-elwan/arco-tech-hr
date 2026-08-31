@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 
@@ -9,6 +10,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const userData = localStorage.getItem("hr_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.role === "delegate" && pathname !== "/me") {
+          router.replace("/me");
+        }
+      }
+    } catch {}
+  }, [pathname, router]);
 
   return (
     <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''}`}>

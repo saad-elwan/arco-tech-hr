@@ -115,7 +115,7 @@ export default function EmployeesPage() {
       hireDate: new Date().toISOString().split("T")[0], 
       basicSalary: "", 
       maxAdvanceLimit: "", 
-      permissions: ["/me", "/tracking", "/tasks"] 
+      permissions: ["/me"] 
     });
     setIsFormModalOpen(true);
   };

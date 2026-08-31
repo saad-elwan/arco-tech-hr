@@ -42,7 +42,7 @@ export default function LoginPage() {
         );
       }
       
-      if (data.employee?.role === "employee") {
+      if (data.employee?.role === "employee" || data.employee?.role === "delegate") {
         router.replace("/me");
       } else {
         router.replace("/dashboard");

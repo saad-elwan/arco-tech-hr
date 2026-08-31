@@ -112,21 +112,38 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     admin: "المدير التنفيذي",
     hr: "إدارة الموارد البشرية",
     employee: "موظف",
+    delegate: "🚗 مندوب ميداني",
   };
 
-  // If superadmin, add Super Admin panel to admin navigation
-  const navSections = user?.role === "employee" ? empNav : adminNavItems.map(sec => {
-    if (sec.section === "النظام" && user?.role === "superadmin") {
-      const hasSuper = sec.items.some(i => i.href === "/super-admin");
-      if (!hasSuper) {
-        return {
-          ...sec,
-          items: [{ href: "/super-admin", label: "مراقبة الإشراف والأجهزة", icon: MapPin }, ...sec.items]
-        };
-      }
+  const isDelegate = user?.role === "delegate";
+  const isEmployee = user?.role === "employee";
+
+  const delegateNavSections = [
+    {
+      section: "بوابة المندوب الميداني",
+      items: [
+        { href: "/me", label: "حسابي", icon: LayoutGrid }
+      ]
     }
-    return sec;
-  });
+  ];
+
+  // If delegate -> strictly only /me. If employee -> permissions. If admin/superadmin -> adminNav
+  const navSections = isDelegate
+    ? delegateNavSections
+    : isEmployee
+    ? empNav
+    : adminNavItems.map(sec => {
+        if (sec.section === "النظام" && user?.role === "superadmin") {
+          const hasSuper = sec.items.some(i => i.href === "/super-admin");
+          if (!hasSuper) {
+            return {
+              ...sec,
+              items: [{ href: "/super-admin", label: "مراقبة الإشراف والأجهزة", icon: MapPin }, ...sec.items]
+            };
+          }
+        }
+        return sec;
+      });
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{
