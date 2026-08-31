@@ -163,6 +163,26 @@ export async function showBrowserNotification(title: string, options?: { body?: 
   try {
     if (typeof window === "undefined") return;
 
+    const notifBody = options?.body || "لديك إشعار جديد في نظام الموارد البشرية";
+    const notifLink = options?.link || "/dashboard";
+
+    // 0. Trigger Native React Native System Notification for Home Screen & Lock Screen Banner
+    if (typeof (window as any).sendMobileNotification === "function") {
+      try {
+        (window as any).sendMobileNotification(title, notifBody);
+      } catch {}
+    } else if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {
+      try {
+        (window as any).ReactNativeWebView.postMessage(
+          JSON.stringify({
+            type: "SHOW_NOTIFICATION",
+            title: title || "إشعار جديد من ARCO HR",
+            message: notifBody,
+          })
+        );
+      } catch {}
+    }
+
     // Trigger device vibration on mobile
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try {
@@ -171,9 +191,6 @@ export async function showBrowserNotification(title: string, options?: { body?: 
     }
 
     if (!("Notification" in window)) return;
-
-    const notifBody = options?.body || "لديك إشعار جديد في نظام الموارد البشرية";
-    const notifLink = options?.link || "/dashboard";
 
     if (Notification.permission === "default") {
       try {
