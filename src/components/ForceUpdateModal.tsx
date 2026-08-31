@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const DEFAULT_APK_URL = "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/940ec600-de05-4dfa-88fd-709f83832b87";
+const DEFAULT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
@@ -72,7 +72,15 @@ export default function ForceUpdateModal() {
       }
     } catch {}
     
-    // Open APK download link
+    // Direct APK file download link
+    const link = document.createElement("a");
+    link.href = targetUrl;
+    link.download = "ARCO-HR-v1.2.0.apk";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
     try {
       window.location.assign(targetUrl);
     } catch {

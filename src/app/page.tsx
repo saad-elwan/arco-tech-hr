@@ -257,14 +257,13 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={async () => {
-              let apkUrl = "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/940ec600-de05-4dfa-88fd-709f83832b87";
+              let apkUrl = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
               try {
                 const res = await fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" });
                 const data = await res.json();
                 if (data.apkUrl) apkUrl = data.apkUrl;
               } catch {}
               
-              const isAndroid = /Android/.test(navigator.userAgent);
               if (document.getElementById('androidHint')) {
                 document.getElementById('androidHint')!.style.display = 'block';
               }
@@ -272,8 +271,18 @@ export default function LoginPage() {
                 document.getElementById('iosHint')!.style.display = 'none';
               }
               
-              // Open APK download page
-              window.open(apkUrl, "_blank", "noopener,noreferrer");
+              // Direct download trigger
+              const link = document.createElement("a");
+              link.href = apkUrl;
+              link.download = "ARCO-HR-v1.2.0.apk";
+              link.target = "_blank";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              try {
+                window.location.href = apkUrl;
+              } catch {}
             }}
             className="btn btn-primary"
             style={{ 
@@ -318,10 +327,9 @@ export default function LoginPage() {
         </div>
 
         <div id="androidHint" style={{ display: 'none', background: 'rgba(61, 220, 132, 0.1)', border: '1px solid rgba(61, 220, 132, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>📱 جاري فتح صفحة تحميل أحدث تطبيق (APK v1.2.0):</strong><br />
-          1. اضغط على <strong>"Download"</strong> أو <strong>"Install"</strong> في صفحة Expo<br />
-          2. بعد اكتمال التحميل، افتح الملف واضغط <strong>"تثبيت" (Install)</strong><br />
-          3. امنح التطبيق صلاحيات <strong>الموقع والإشعارات</strong> ليعمل بكفاءة في الخلفية.
+          <strong>📱 جاري تحميل تطبيق ARCO HR (APK v1.2.0):</strong><br />
+          1. سيبدأ تحميل ملف التثبيت المباشر <strong>(ARCO-HR-v1.2.0.apk)</strong> على هاتفك الآن.<br />
+          2. بعد اكتمال التحميل، افتح الملف من الإشعارات أو مدير الملفات واضغط <strong>"تثبيت" (Install)</strong>.
         </div>
 
         <div id="iosHint" style={{ display: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
