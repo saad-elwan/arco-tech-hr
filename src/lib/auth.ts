@@ -19,7 +19,7 @@ export function generateToken(payload: {
   role: string;
   name: string;
 }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "365d" });
 }
 
 export function verifyToken(token: string): {

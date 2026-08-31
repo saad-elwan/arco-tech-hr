@@ -274,8 +274,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
       borderBottom: "1px solid rgba(212, 175, 55, 0.15)",
-      boxShadow: "0 4px 30px rgba(0, 0, 0, 0.5)",
-      padding: "0 32px"
+      boxShadow: "0 4px 30px rgba(0, 0, 0, 0.5)"
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {onMenuClick && (
@@ -397,21 +396,21 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
         )}
 
-        {/* Status Indicator */}
-        <div style={{
+        {/* Status Indicator - hidden on mobile via CSS */}
+        <div className="header-status-indicator" style={{
           display: "flex",
           alignItems: "center",
           gap: 8,
-          padding: "8px 16px",
+          padding: "6px 14px",
           background: "linear-gradient(90deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0))",
           border: "1px solid rgba(212, 175, 55, 0.2)",
           borderRadius: "20px",
-          fontSize: 13,
+          fontSize: 12,
           color: "var(--gold-primary)",
           fontWeight: 700,
         }}>
           <span style={{ 
-            width: 8, height: 8, borderRadius: "50%", 
+            width: 7, height: 7, borderRadius: "50%", 
             background: "var(--success)", 
             display: "inline-block",
             boxShadow: "0 0 8px var(--success)"
@@ -449,9 +448,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           {showNotifs && (
             <div style={{
               position: "absolute", top: "100%", left: 0, marginTop: "12px",
-              width: "320px", background: "var(--bg-modal)",
+              width: "min(320px, calc(100vw - 24px))", background: "var(--bg-modal)",
               borderRadius: "16px", border: "1px solid var(--border-gold)",
-              boxShadow: "var(--shadow-modal)", zIndex: 100, overflow: "hidden"
+              boxShadow: "var(--shadow-modal)", zIndex: 100, overflow: "hidden",
+              maxHeight: "70vh", overflowY: "auto"
             }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>

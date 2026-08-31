@@ -89,29 +89,26 @@ export default function DashboardLayout({
             zIndex: 9999,
             background: "rgba(18, 18, 18, 0.95)",
             border: "1px solid var(--gold-primary)",
-            borderRadius: "50px",
-            padding: "8px 18px",
+            borderRadius: "50%",
+            width: "36px",
+            height: "36px",
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            color: "var(--gold-primary)",
-            fontSize: "13px",
-            fontWeight: "bold",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(212,175,55,0.3)",
+            justifyContent: "center",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.8), 0 0 12px rgba(212,175,55,0.3)",
             transition: isRefreshing ? "all 0.3s ease" : "none",
           }}
         >
           <div
             style={{
-              width: "16px",
-              height: "16px",
+              width: "18px",
+              height: "18px",
               border: "2px solid rgba(212,175,55,0.2)",
               borderTopColor: "var(--gold-primary)",
               borderRadius: "50%",
               animation: "spin 0.8s linear infinite",
             }}
           />
-          {isRefreshing ? "جاري التحديث..." : "اسحب للإفلات والتحديث"}
         </div>
       )}
 
