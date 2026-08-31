@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { pushToEmployee, pushToAdmins } from "./pushService";
 
 // Central function to create a notification for an employee
 export async function createNotification({
@@ -17,9 +18,13 @@ export async function createNotification({
   link?: string;
 }) {
   try {
+    // 1. Save to DB
     await prisma.notification.create({
       data: { employeeId, type, category, title, body, link },
     });
+
+    // 2. Send Cloud Push Notification to device (works even when app is closed)
+    await pushToEmployee(employeeId, title, body, { link, category, type });
   } catch (e) {
     console.error("Failed to create notification:", e);
   }
@@ -46,6 +51,8 @@ export async function createAdminNotification({
       where: { role: { in: ["superadmin", "admin", "hr"] }, status: "active" },
       select: { id: true, role: true },
     });
+
+    // 1. Save to DB
     await Promise.all(
       admins.map(a => {
         const isSuper = a.role === "superadmin";
@@ -55,6 +62,9 @@ export async function createAdminNotification({
         });
       })
     );
+
+    // 2. Send Cloud Push to all admin devices (works even when app is closed)
+    await pushToAdmins(title, body, { link, category, type });
   } catch (e) {
     console.error("Failed to create admin notification:", e);
   }

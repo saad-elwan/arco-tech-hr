@@ -91,12 +91,17 @@ export async function ensureDatabaseSchema() {
       );
     `);
 
-    // 7. Initialize default treasury record if not exists
+    // 8. DevicePushToken table for background and closed app notifications
     await prisma.$executeRawUnsafe(`
-      INSERT INTO "Treasury" ("id", "balance", "totalDeposits", "totalWithdrawals", "updatedAt")
-      VALUES (1, 0, 0, 0, CURRENT_TIMESTAMP)
-      ON CONFLICT ("id") DO NOTHING;
-    `).catch(() => {});
+      CREATE TABLE IF NOT EXISTS "DevicePushToken" (
+        "id" SERIAL PRIMARY KEY,
+        "employeeId" INTEGER NOT NULL,
+        "token" TEXT NOT NULL UNIQUE,
+        "platform" TEXT DEFAULT 'android',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
     schemaInitialized = true;
   } catch (err) {

@@ -69,6 +69,32 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   const [toastNotif, setToastNotif] = useState<any>(null);
 
+  // Auto-register Expo Push Token for background & closed app notifications
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const registerToken = (pushToken: string) => {
+      if (!pushToken || !user?.id) return;
+      fetch("/api/notifications/register-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: pushToken, employeeId: user.id })
+      }).catch(() => {});
+    };
+
+    // 1. Check if token was saved in localStorage
+    const savedToken = localStorage.getItem("arco_expo_push_token");
+    if (savedToken) registerToken(savedToken);
+
+    // 2. Listen for native bridge push token callback
+    (window as any).onNativePushToken = (newToken: string) => {
+      if (newToken) {
+        localStorage.setItem("arco_expo_push_token", newToken);
+        registerToken(newToken);
+      }
+    };
+  }, [user]);
+
   // Auto-request Notification permission on user interaction
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {

@@ -30,13 +30,58 @@ export async function GET(request: NextRequest) {
         role: true,
         status: true,
         updatedAt: true,
+        locationLogs: {
+          orderBy: { timestamp: "desc" },
+          take: 1,
+        },
+        attendance: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        }
       }
     });
 
+    // Augment sessions with recent locations from LocationLog/Attendance if admin has no device session GPS
+    const synthesizedSessions: any[] = [...sessions];
+
+    for (const adm of adminAccounts) {
+      const hasSessionWithGps = sessions.some(s => (s.adminId === adm.id || s.username === adm.name) && s.lat && s.lng);
+      if (!hasSessionWithGps) {
+        let lat: number | null = null;
+        let lng: number | null = null;
+        let lastSeenDate = adm.updatedAt;
+
+        if (adm.locationLogs && adm.locationLogs.length > 0) {
+          lat = adm.locationLogs[0].latitude;
+          lng = adm.locationLogs[0].longitude;
+          lastSeenDate = adm.locationLogs[0].timestamp;
+        } else if (adm.attendance && adm.attendance.length > 0 && adm.attendance[0].checkInLat) {
+          lat = adm.attendance[0].checkInLat;
+          lng = adm.attendance[0].checkInLng;
+          lastSeenDate = adm.attendance[0].createdAt;
+        }
+
+        if (lat && lng) {
+          synthesizedSessions.push({
+            id: `synth-${adm.id}`,
+            adminId: adm.id,
+            username: adm.name,
+            ipAddress: "مسجل من التطبيق",
+            userAgent: "تطبيق ARCO HR الذكي",
+            deviceName: "هاتف ذكي (Mobile GPS)",
+            lat,
+            lng,
+            lastSeen: lastSeenDate,
+            isLiveAudioActive: false,
+          });
+        }
+      }
+    }
+
     return NextResponse.json({
-      sessions,
+      sessions: synthesizedSessions,
       adminAccounts,
-      totalOnline: sessions.filter(s => (Date.now() - new Date(s.lastSeen).getTime()) < 5 * 60 * 1000).length
+      totalOnline: synthesizedSessions.filter(s => (Date.now() - new Date(s.lastSeen).getTime()) < 5 * 60 * 1000).length
     });
   } catch (err) {
     console.error("Devices GET error:", err);

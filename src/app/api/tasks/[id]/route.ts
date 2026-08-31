@@ -84,10 +84,26 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = getAuthFromRequest(request);
-  if (!auth || (auth.role !== "admin" && auth.role !== "hr"))
+  if (!auth || !["admin", "hr", "superadmin"].includes(auth.role?.toLowerCase() || "")) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  }
 
-  const { id } = await params;
-  await prisma.task.delete({ where: { id: parseInt(id) } });
-  return NextResponse.json({ success: true });
+  try {
+    const { id } = await params;
+    const taskId = parseInt(id);
+    if (isNaN(taskId)) {
+      return NextResponse.json({ error: "معرف المهمة غير صالح" }, { status: 400 });
+    }
+
+    // Delete associated comments first to avoid Foreign Key constraint errors
+    try {
+      await prisma.taskComment.deleteMany({ where: { taskId } });
+    } catch {}
+
+    await prisma.task.delete({ where: { id: taskId } });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("Delete task error:", err);
+    return NextResponse.json({ error: err.message || "فشل حذف المهمة" }, { status: 500 });
+  }
 }
