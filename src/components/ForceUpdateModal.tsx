@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from "react";
 
 const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
-const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
@@ -91,7 +90,7 @@ export default function ForceUpdateModal() {
   const triggerInstallation = () => {
     const targetUrl = apkUrl || DIRECT_APK_URL;
 
-    // 1. Tell WebView native layer to open URL
+    // 1. Tell React Native WebView to open URL externally via Linking.openURL
     try {
       if ((window as any).ReactNativeWebView?.postMessage) {
         (window as any).ReactNativeWebView.postMessage(
@@ -100,28 +99,26 @@ export default function ForceUpdateModal() {
       }
     } catch {}
 
-    // 2. Direct APK download trigger
-    const link = document.createElement("a");
-    link.href = targetUrl;
-    link.download = "ARCO-HR-v1.2.0.apk";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 2. Standard direct APK download link for browser/WebView
+    try {
+      const link = document.createElement("a");
+      link.href = targetUrl;
+      link.download = "ARCO-HR-v1.2.0.apk";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {}
 
-    // 3. Android Intent Launch
-    setTimeout(() => {
+    // 3. Fallback direct navigation with valid https scheme
+    try {
+      window.location.assign(targetUrl);
+    } catch {
       try {
-        window.location.href = INTENT_APK_URL;
-      } catch {
-        try {
-          window.location.assign(targetUrl);
-        } catch {
-          window.location.href = targetUrl;
-        }
-      }
-    }, 400);
+        window.location.href = targetUrl;
+      } catch {}
+    }
   };
 
   if (!showModal) return null;
@@ -317,7 +314,7 @@ export default function ForceUpdateModal() {
             <span>تحديث مباشر متوافق مع نسختك:</span>
           </div>
           <div>
-            اضغط على <strong>"تثبيت التحديث الآن"</strong> وسيتم ترقية التطبيق مباشرةً فوق نسختك الحالية دون أي تعارض وبدون حذف التطبيق.
+            اضغط على <strong>"تثبيت التحديث الآن"</strong> وسيبدأ تثبيت ملف الـ APK المباشر على هاتفك.
           </div>
         </div>
 

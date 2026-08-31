@@ -281,17 +281,13 @@ export default function LoginPage() {
               link.click();
               document.body.removeChild(link);
 
-              setTimeout(() => {
+              try {
+                window.location.assign(apkUrl);
+              } catch {
                 try {
-                  window.location.href = "intent://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
-                } catch {
-                  try {
-                    window.location.assign(apkUrl);
-                  } catch {
-                    window.location.href = apkUrl;
-                  }
-                }
-              }, 400);
+                  window.location.href = apkUrl;
+                } catch {}
+              }
             }}
             className="btn btn-primary"
             style={{ 
