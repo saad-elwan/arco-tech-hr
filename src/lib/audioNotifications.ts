@@ -60,17 +60,48 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return false;
 }
 
-export function showBrowserNotification(title: string, options?: { body?: string; icon?: string; link?: string }) {
+export async function showBrowserNotification(title: string, options?: { body?: string; icon?: string; link?: string }) {
   try {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (typeof window === "undefined") return;
+
+    // Trigger device vibration on mobile
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate([250, 100, 250]);
+      } catch {}
+    }
+
+    if (!("Notification" in window)) return;
     
     if (Notification.permission === "granted") {
+      // If service worker registration is available, use it for persistent mobile drawer notifications
+      if ("serviceWorker" in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            await reg.showNotification(title, {
+              body: options?.body || "",
+              icon: options?.icon || "/favicon.ico",
+              badge: "/favicon.ico",
+              dir: "rtl",
+              lang: "ar",
+              tag: "hr-notif-" + Date.now(),
+              renotify: true,
+              data: { link: options?.link || "/dashboard" }
+            } as any);
+            return;
+          }
+        } catch {}
+      }
+
+      // Standard desktop / browser notification
       const notif = new Notification(title, {
         body: options?.body || "",
         icon: options?.icon || "/favicon.ico",
         badge: "/favicon.ico",
         dir: "rtl",
         lang: "ar",
+        tag: "hr-notif-" + Date.now(),
       });
 
       notif.onclick = function () {

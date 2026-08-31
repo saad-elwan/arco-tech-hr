@@ -8,16 +8,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   }
 
-  // Get active admin device sessions in the last 24 hours
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const sessions = await prisma.adminDeviceSession.findMany({
-    where: { lastSeen: { gte: since } },
-    orderBy: { lastSeen: "desc" },
-    take: 50,
-  });
+  // Get active admin device sessions in the last 7 days
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [sessions, adminAccounts] = await Promise.all([
+    prisma.adminDeviceSession.findMany({
+      where: { lastSeen: { gte: since } },
+      orderBy: { lastSeen: "desc" },
+      take: 100,
+    }),
+    prisma.employee.findMany({
+      where: { role: { in: ["admin", "superadmin"] } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        updatedAt: true,
+      }
+    })
+  ]);
 
   return NextResponse.json({
     sessions,
+    adminAccounts,
     totalOnline: sessions.filter(s => (Date.now() - new Date(s.lastSeen).getTime()) < 5 * 60 * 1000).length
   });
 }

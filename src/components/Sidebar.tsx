@@ -184,6 +184,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => onClose?.()}
                   className={`nav-item ${isActive ? "active" : ""}`}
                   style={{
                     padding: "12px 16px",

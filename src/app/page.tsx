@@ -59,7 +59,7 @@ export default function LoginPage() {
       <div style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "#000",
+        backgroundColor: "#ffffff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -80,11 +80,11 @@ export default function LoginPage() {
             objectFit: "contain",
             maxHeight: "100vh",
             maxWidth: "100vw",
-            backgroundColor: "#000"
+            backgroundColor: "#ffffff"
           }}
         />
         
-        {/* Skip button floating top-right or bottom-center */}
+        {/* Skip button floating bottom-center */}
         <div style={{
           position: "absolute",
           bottom: "32px",
@@ -98,22 +98,22 @@ export default function LoginPage() {
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              padding: "10px 24px",
-              background: "rgba(10, 10, 10, 0.75)",
-              border: "1px solid rgba(212, 175, 55, 0.5)",
+              padding: "12px 28px",
+              background: "rgba(255, 255, 255, 0.95)",
+              border: "1.5px solid var(--gold-primary)",
               borderRadius: "30px",
-              color: "var(--gold-primary)",
+              color: "#1a1a1a",
               fontSize: "14px",
-              fontWeight: 700,
+              fontWeight: 800,
               cursor: "pointer",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.8), 0 0 15px rgba(212, 175, 55, 0.2)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15), 0 0 20px rgba(212, 175, 55, 0.25)",
               transition: "all 0.3s ease"
             }}
           >
             <span>دخول النظام / تخطي</span>
-            <SkipForward size={16} />
+            <SkipForward size={16} color="var(--gold-primary)" />
           </button>
         </div>
       </div>

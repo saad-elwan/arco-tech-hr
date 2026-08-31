@@ -111,6 +111,28 @@ export async function POST(request: Request) {
       } catch (sessionErr) {
         console.error("Session log error:", sessionErr);
       }
+    } else {
+      // Notify admins of employee login
+      try {
+        const userAgent = request.headers.get("user-agent") || "Unknown Device";
+        let deviceName = "متصفح ويب";
+        if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "هاتف iPhone";
+        else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
+        else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "جهاز Mac";
+        else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+        await prisma.notification.create({
+          data: {
+            userId: null,
+            title: "🔐 تسجيل دخول موظف",
+            message: `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام (${deviceName})`,
+            type: "login",
+            isRead: false,
+          }
+        });
+      } catch (notifErr) {
+        console.error("Notification create error:", notifErr);
+      }
     }
 
     const cookieStore = await cookies();

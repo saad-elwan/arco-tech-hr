@@ -9,6 +9,7 @@ const SuperAdminMap = dynamic(() => import("./SuperAdminMap"), { ssr: false });
 export default function SuperAdminPage() {
   const [user, setUser] = useState<any>(null);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [adminAccounts, setAdminAccounts] = useState<any[]>([]);
   const [voiceMessages, setVoiceMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -48,6 +49,7 @@ export default function SuperAdminPage() {
       if (res.ok) {
         const data = await res.json();
         setSessions(data.sessions || []);
+        setAdminAccounts(data.adminAccounts || []);
       }
     } catch (err) {
       console.error(err);
@@ -314,11 +316,66 @@ export default function SuperAdminPage() {
         <SuperAdminMap sessions={sessions} />
       </div>
 
+      {/* Registered Admin Accounts Overview */}
+      <div className="card" style={{ padding: "20px", border: "1px solid var(--border-gold)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <h3 style={{ margin: 0, color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+            <ShieldAlert size={20} /> حسابات الإدارة المسجلة في النظام (جميع الأدمن)
+          </h3>
+          <span className="badge badge-gold">{adminAccounts.length} حساب إدارة</span>
+        </div>
+
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "40px" }}>#</th>
+                <th>اسم حساب الأدمن</th>
+                <th>البريد الإلكتروني / اسم الدخول</th>
+                <th>نوع الصلاحية</th>
+                <th>حالة الحساب</th>
+                <th>الجلسات المسجلة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adminAccounts.map((adm: any, idx: number) => {
+                const admSessions = sessions.filter(s => s.adminId === adm.id || s.username === adm.name);
+                const hasOnline = admSessions.some(s => (Date.now() - new Date(s.lastSeen).getTime()) < 5 * 60 * 1000);
+                return (
+                  <tr key={adm.id}>
+                    <td style={{ color: "var(--text-muted)" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: 700, color: "var(--gold-primary)" }}>
+                      👑 {adm.name} {hasOnline && <span className="badge badge-success" style={{ fontSize: "10px", marginRight: "6px" }}>متصل الآن</span>}
+                    </td>
+                    <td style={{ direction: "ltr", textAlign: "right", fontFamily: "monospace" }}>{adm.email}</td>
+                    <td>
+                      <span className={`badge ${adm.role === "superadmin" ? "badge-gold" : "badge-info"}`}>
+                        {adm.role === "superadmin" ? "مشرف عام (Super Admin)" : "مدير نظام (Admin)"}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="badge badge-success">{adm.status === "active" ? "نشط ومفعل" : adm.status}</span>
+                    </td>
+                    <td style={{ color: "var(--text-secondary)" }}>
+                      {admSessions.length > 0 ? (
+                        <span>{admSessions.length} أجهزة ({admSessions[0].deviceName})</span>
+                      ) : (
+                        <span style={{ color: "var(--text-muted)" }}>لا توجد جلسات مسجلة</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Devices Sessions Table */}
       <div className="card" style={{ padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h3 style={{ margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-            <Laptop size={20} color="var(--gold-primary)" /> سجل الأجهزة والجلسات المسجلة لحساب الأدمن
+            <Laptop size={20} color="var(--gold-primary)" /> سجل الأجهزة والجلسات المسجلة لأي حساب أدمن
           </h3>
           <span className="badge badge-gold">{sessions.length} جلسة مسجلة</span>
         </div>
