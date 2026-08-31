@@ -1,16 +1,16 @@
 {
-  "latestVersion": "1.3.0",
-  "versionCode": 6,
-  "minRequiredVersion": "1.3.0",
+  "latestVersion": "1.3.1",
+  "versionCode": 7,
+  "minRequiredVersion": "1.3.1",
   "apkUrl": "https://hr-amr.vercel.app/api/download",
-  "directDownloadUrl": "https://hr-amr.vercel.app/api/download",
+  "directDownloadUrl": "https://expo.dev/artifacts/eas/RcLwdgnfvSrDofQmEnxk7VSTNYqk2pWfScbrE2eGX8c.apk",
   "releaseDate": "2026-08-31",
   "forceUpdate": false,
-  "title": "تحديث رسمي جديد للنظام (v1.3.0)",
-  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.3.0). يرجى تحديث التطبيق للاستمتاع بأحدث التحسينات والأداء السلس.",
+  "title": "تحديث رسمي للنظام (v1.3.1)",
+  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.3.1) مع تحسينات في العرض بملء الشاشة وشاشة البداية.",
   "features": [
-    "إلغاء شاشة التحميل القديمة والدخول السريع",
-    "تتبع الموقع وتسجيل الحضور بالخلفية بشكل صامت 100%",
-    "تحسينات عامة في الأداء وتناسق الشاشات"
+    "بقاء شاشة اللوجو الأنيقة حتى اكتمال تحميل الصفحة بالكامل",
+    "إلغاء أي وميض أبيض وجعل العرض بملء الشاشة مع التكيف التام",
+    "تتبع الموقع وتسجيل الحضور بالخلفية بشكل صامت 100%"
   ]
 }
