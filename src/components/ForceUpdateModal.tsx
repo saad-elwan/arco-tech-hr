@@ -5,152 +5,83 @@ const DOWNLOAD_ENDPOINT = "/api/download";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [downloadedMb, setDownloadedMb] = useState("0.0");
-  const [totalMb, setTotalMb] = useState("68.7");
-  const [downloadSpeed, setDownloadSpeed] = useState("");
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [targetVersion, setTargetVersion] = useState("1.3.2");
+  const [targetBuild, setTargetBuild] = useState(8);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState(false);
-  const xhrRef = useRef<XMLHttpRequest | null>(null);
-  const lastLoadedRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(Date.now());
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const detectOldApp = () => {
-      // The newest build (v1.3.0 Build 6)
-      const isLatest = Boolean(
-        (window as any).__ARCO_APP_VERSION__ === "1.3.0" ||
-        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 6
-      );
+    const checkServerVersion = async () => {
+      try {
+        const res = await fetch("/app-version.json?t=" + Date.now(), {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
 
-      if (isLatest) {
-        setShowModal(false);
-        return;
-      }
+        const serverVersionCode = Number(data.versionCode || 8);
+        const serverVersionName = String(data.latestVersion || "1.3.2");
+        setTargetVersion(serverVersionName);
+        setTargetBuild(serverVersionCode);
 
-      const userAgent = navigator.userAgent || "";
-      const isReactNativeWebView = Boolean(
-        (window as any).ReactNativeWebView || 
-        (window as any).__REACT_WEB_VIEW__ ||
-        typeof (window as any).ReactNativeWebView !== "undefined"
-      );
-      const isAndroidWebView = Boolean(
-        /;\s*wv|Android.*Version\/[0-9.]+|WebView/i.test(userAgent)
-      );
-      const isAndroidApp = Boolean(
-        /Android/i.test(userAgent) && (isReactNativeWebView || isAndroidWebView || /Version\/[0-9.]+/i.test(userAgent))
-      );
-      const isTestParam = Boolean(
-        typeof window !== "undefined" && (window.location.search.includes("update=true") || window.location.hash.includes("update"))
-      );
+        // Check mobile app environment
+        const userAgent = navigator.userAgent || "";
+        const isReactNativeWebView = Boolean(
+          (window as any).ReactNativeWebView || 
+          (window as any).__REACT_WEB_VIEW__ ||
+          typeof (window as any).ReactNativeWebView !== "undefined"
+        );
+        const isAndroidWebView = Boolean(
+          /;\s*wv|Android.*Version\/[0-9.]+|WebView/i.test(userAgent)
+        );
+        const isAndroidApp = Boolean(
+          /Android/i.test(userAgent) && (isReactNativeWebView || isAndroidWebView || /Version\/[0-9.]+/i.test(userAgent))
+        );
 
-      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isLatest) {
-        setShowModal(true);
+        // Check if installed build is older
+        const installedBuild = Number((window as any).__ARCO_VERSION_CODE__ || 0);
+        const isUpToDate = installedBuild >= serverVersionCode;
+
+        if ((isReactNativeWebView || isAndroidWebView || isAndroidApp) && !isUpToDate) {
+          setShowModal(true);
+        } else {
+          setShowModal(false);
+        }
+      } catch (err) {
+        console.warn("Version check error:", err);
       }
     };
 
-    detectOldApp();
-    const interval = setInterval(detectOldApp, 100);
-    const timeout = setTimeout(() => clearInterval(interval), 10000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
+    checkServerVersion();
   }, []);
 
-  // Auto-start real in-app download when modal appears
-  useEffect(() => {
-    if (showModal && !isDownloading && !isCompleted) {
-      startRealDownload();
-    }
-  }, [showModal]);
-
-  const startRealDownload = () => {
+  const handle1ClickUpdate = () => {
     setIsDownloading(true);
-    setDownloadError(false);
-    setProgress(0);
-    setDownloadedMb("0.0");
-    lastLoadedRef.current = 0;
-    lastTimeRef.current = Date.now();
+    setProgress(30);
 
-    const xhr = new XMLHttpRequest();
-    xhrRef.current = xhr;
-    xhr.open("GET", DOWNLOAD_ENDPOINT, true);
-    xhr.responseType = "blob";
+    setTimeout(() => {
+      setProgress(75);
+    }, 400);
 
-    xhr.onprogress = (e) => {
-      if (e.lengthComputable && e.total > 0) {
-        const percent = Math.min(99, Math.floor((e.loaded / e.total) * 100));
-        setProgress(percent);
-        setDownloadedMb((e.loaded / (1024 * 1024)).toFixed(1));
-        setTotalMb((e.total / (1024 * 1024)).toFixed(1));
-
-        // Speed calculation
-        const now = Date.now();
-        const timeDiff = (now - lastTimeRef.current) / 1000;
-        if (timeDiff >= 0.5) {
-          const bytesDiff = e.loaded - lastLoadedRef.current;
-          const speedMb = (bytesDiff / (1024 * 1024) / timeDiff).toFixed(1);
-          setDownloadSpeed(`${speedMb} MB/s`);
-          lastLoadedRef.current = e.loaded;
-          lastTimeRef.current = now;
-        }
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        setProgress(100);
-        setIsCompleted(true);
-        setIsDownloading(false);
-        setDownloadSpeed("");
-        
-        // Auto-trigger package download/install prompt
-        triggerInstallAction();
-      } else {
-        handleDownloadFallback();
-      }
-    };
-
-    xhr.onerror = () => {
-      handleDownloadFallback();
-    };
-
-    xhr.send();
-  };
-
-  const handleDownloadFallback = () => {
-    setIsDownloading(false);
-    setDownloadError(true);
-  };
-
-  const triggerInstallAction = () => {
-    // 1. Direct standard navigation to /api/download
-    try {
-      window.location.href = DOWNLOAD_ENDPOINT;
-    } catch {
+    setTimeout(() => {
+      setProgress(100);
+      setIsDownloading(false);
+      // Trigger download immediately
       try {
-        window.location.assign(DOWNLOAD_ENDPOINT);
-      } catch {}
-    }
-
-    // 2. Direct Anchor trigger
-    try {
-      const a = document.createElement("a");
-      a.href = DOWNLOAD_ENDPOINT;
-      a.download = "ARCO-HR-v1.3.0.apk";
-      a.target = "_self";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch {}
+        window.location.href = DOWNLOAD_ENDPOINT;
+      } catch {
+        try {
+          window.location.assign(DOWNLOAD_ENDPOINT);
+        } catch {}
+      }
+    }, 900);
   };
 
-  if (!showModal) return null;
+  if (!showModal || isDismissed) return null;
 
   return (
     <div
@@ -158,7 +89,9 @@ export default function ForceUpdateModal() {
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "#ffffff",
+        backgroundColor: "rgba(5, 5, 5, 0.96)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         zIndex: 999999999,
         display: "flex",
         flexDirection: "column",
@@ -168,29 +101,34 @@ export default function ForceUpdateModal() {
         fontFamily: "'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif",
         textAlign: "center",
         direction: "rtl",
-        color: "#1e293b",
+        color: "#f5f5f5",
         userSelect: "none",
         overflowY: "auto",
       }}
     >
       <div
         style={{
-          maxWidth: "420px",
+          maxWidth: "400px",
           width: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          backgroundColor: "#0d0d0d",
+          border: "1.5px solid rgba(212, 175, 55, 0.35)",
+          borderRadius: "24px",
+          padding: "28px 22px",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(212, 175, 55, 0.2)",
         }}
       >
-        {/* Company Logo */}
-        <div style={{ marginBottom: "20px" }}>
+        {/* Logo */}
+        <div style={{ marginBottom: "18px" }}>
           <img
             src="/arco-logo.png"
             alt="ARCO Tech"
             style={{
-              width: "200px",
+              width: "180px",
               height: "auto",
-              maxHeight: "75px",
+              maxHeight: "70px",
               objectFit: "contain",
               display: "block",
               margin: "0 auto",
@@ -198,214 +136,120 @@ export default function ForceUpdateModal() {
           />
         </div>
 
-        {/* Status Icon */}
-        <div
-          style={{
-            width: "64px",
-            height: "64px",
-            borderRadius: "50%",
-            backgroundColor: isCompleted ? "#dcfce7" : "#e0f2fe",
-            color: isCompleted ? "#16a34a" : "#0284c7",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "30px",
-            marginBottom: "14px",
-            boxShadow: isCompleted ? "0 8px 20px rgba(22, 163, 74, 0.2)" : "0 8px 20px rgba(2, 132, 199, 0.2)",
-          }}
-        >
-          {isCompleted ? "✅" : "📲"}
-        </div>
-
-        {/* Title */}
-        <h1
-          style={{
-            fontSize: "21px",
-            fontWeight: 800,
-            color: "#0f172a",
-            marginBottom: "8px",
-            lineHeight: 1.4,
-          }}
-        >
-          {isCompleted ? "اكتمل تنزيل التحديث!" : "جاري تنزيل التحديث v1.3.0..."}
-        </h1>
-
-        {/* Version Badge */}
+        {/* Badge */}
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            backgroundColor: "#f1f5f9",
-            color: "#475569",
-            padding: "4px 12px",
+            backgroundColor: "rgba(212, 175, 55, 0.12)",
+            border: "1px solid rgba(212, 175, 55, 0.3)",
+            color: "#D4AF37",
+            padding: "4px 14px",
             borderRadius: "20px",
             fontSize: "12px",
-            fontWeight: 700,
+            fontWeight: 800,
+            marginBottom: "14px",
+          }}
+        >
+          <span>تحديث جديد متاح</span>
+          <span style={{ color: "#F0C84A" }}>v{targetVersion}</span>
+        </div>
+
+        {/* Title */}
+        <h2
+          style={{
+            fontSize: "19px",
+            fontWeight: 800,
+            color: "#ffffff",
+            marginBottom: "10px",
+            lineHeight: 1.4,
+          }}
+        >
+          تحديث تطبيق ARCO HR
+        </h2>
+
+        <p
+          style={{
+            fontSize: "13px",
+            color: "#cbd5e1",
+            lineHeight: 1.6,
             marginBottom: "20px",
           }}
         >
-          <span>الإصدار الرسمي:</span>
-          <span style={{ color: "#0284c7" }}>v1.3.0 (Build 6)</span>
-        </div>
+          يتوفر إصدار محسن يدعم ظهور الإشعارات على شاشة القفل ومسافة الأمان العلوية.
+        </p>
 
-        {/* In-App Real-time Progress Box */}
-        <div
+        {/* 1-Click Golden Action Button */}
+        <button
+          onClick={handle1ClickUpdate}
+          disabled={isDownloading}
           style={{
             width: "100%",
-            backgroundColor: "#f8fafc",
-            border: "1.5px solid #e2e8f0",
+            padding: "16px 20px",
+            background: isDownloading
+              ? "linear-gradient(135deg, #16a34a, #22c55e)"
+              : "linear-gradient(135deg, #D4AF37 0%, #b8860b 50%, #D4AF37 100%)",
+            color: "#050505",
+            fontWeight: 900,
+            fontSize: "16px",
+            border: "none",
             borderRadius: "16px",
-            padding: "16px 18px",
-            marginBottom: "16px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            boxShadow: "0 10px 30px rgba(212, 175, 55, 0.4)",
+            transition: "all 0.2s ease",
+            marginBottom: "12px",
+            fontFamily: "inherit",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 700, marginBottom: "8px", color: "#334155" }}>
-            <span>{isCompleted ? "جاهز للتثبيت الفوري" : "جاري تنزيل ملف التثبيت المباشر..."}</span>
-            <span style={{ color: "#0284c7", direction: "ltr" }}>{progress}%</span>
-          </div>
+          <span style={{ fontSize: "20px" }}>{isDownloading ? "⏳" : "⚡"}</span>
+          <span>{isDownloading ? "جاري بدء التحميل..." : "تحديث التطبيق الآن (ضغطة واحدة)"}</span>
+        </button>
 
-          {/* Progress Bar Container */}
+        {/* Super simple progress bar if clicked */}
+        {isDownloading && (
           <div
             style={{
               width: "100%",
-              height: "12px",
-              backgroundColor: "#e2e8f0",
-              borderRadius: "10px",
+              height: "6px",
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              borderRadius: "6px",
               overflow: "hidden",
-              marginBottom: "8px",
+              marginBottom: "14px",
             }}
           >
             <div
               style={{
                 width: `${progress}%`,
                 height: "100%",
-                background: isCompleted ? "linear-gradient(90deg, #10b981, #059669)" : "linear-gradient(90deg, #0284c7, #38bdf8)",
-                borderRadius: "10px",
-                transition: "width 0.2s ease-out",
+                background: "linear-gradient(90deg, #D4AF37, #22c55e)",
+                transition: "width 0.3s ease",
               }}
             />
           </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#94a3b8" }}>
-            <span>{downloadSpeed ? `السرعة: ${downloadSpeed}` : "حجم التحديث"}</span>
-            <span style={{ direction: "ltr" }}>{downloadedMb} MB / {totalMb} MB</span>
-          </div>
-        </div>
-
-        {/* Action Button */}
-        {isCompleted ? (
-          <a
-            href={DOWNLOAD_ENDPOINT}
-            download="ARCO-HR-v1.3.0.apk"
-            onClick={(e) => {
-              triggerInstallAction();
-            }}
-            id="force-update-action-btn"
-            style={{
-              width: "100%",
-              padding: "15px 20px",
-              backgroundColor: "#16a34a",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "14px",
-              fontSize: "16px",
-              fontWeight: 800,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              boxShadow: "0 8px 24px rgba(22, 163, 74, 0.35)",
-              transition: "all 0.2s ease",
-              marginBottom: "14px",
-              fontFamily: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            <span style={{ fontSize: "18px" }}>🚀</span>
-            <span>تثبيت التحديث الآن (Install)</span>
-          </a>
-        ) : downloadError ? (
-          <button
-            onClick={startRealDownload}
-            style={{
-              width: "100%",
-              padding: "15px 20px",
-              backgroundColor: "#ef4444",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "14px",
-              fontSize: "16px",
-              fontWeight: 800,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              marginBottom: "14px",
-              fontFamily: "inherit",
-            }}
-          >
-            <span>🔄</span>
-            <span>إعادة محاولة التنزيل</span>
-          </button>
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              padding: "15px 20px",
-              backgroundColor: "#f1f5f9",
-              color: "#64748b",
-              borderRadius: "14px",
-              fontSize: "14px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              marginBottom: "14px",
-            }}
-          >
-            <span style={{ animation: "spin 1s linear infinite" }}>⏳</span>
-            <span>جاري التنزيل المباشر إلى هاتفك...</span>
-          </div>
         )}
 
-        {/* Guidance Card */}
-        <div
+        {/* Secondary: Skip / Continue to work */}
+        <button
+          onClick={() => setIsDismissed(true)}
           style={{
-            width: "100%",
-            backgroundColor: "#f0fdf4",
-            border: "1.5px solid #86efac",
-            borderRadius: "14px",
-            padding: "12px 14px",
-            marginBottom: "12px",
-            textAlign: "right",
-            fontSize: "12px",
-            lineHeight: 1.7,
-            color: "#166534",
-          }}
-        >
-          <div style={{ fontWeight: 800, marginBottom: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
-            <span>✨</span>
-            <span>تحديث رسمي v1.3.0:</span>
-          </div>
-          <div>
-            اضغط على زر <strong>"تثبيت التحديث الآن"</strong> وسيتم تحديث التطبيق إلى الإصدار النهائي v1.3.0 بسلاسة.
-          </div>
-        </div>
-
-        {/* Security Note */}
-        <p
-          style={{
-            fontSize: "11px",
+            background: "transparent",
+            border: "none",
             color: "#94a3b8",
-            margin: "0",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+            padding: "8px 16px",
+            fontFamily: "inherit",
+            textDecoration: "underline",
           }}
         >
-          🔒 تحديث رسمي وموثق من شركة ARCO Tech
-        </p>
+          متابعة استخدام التطبيق مؤقتاً ➔
+        </button>
       </div>
     </div>
   );

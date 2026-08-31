@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
     const dailyWorkHours = 8;
     const minuteWage = dayWage / (dailyWorkHours * 60);
 
-    // Standard work start 08:30 (510 min) + 30 min grace = 09:00 (540 min)
+    // Standard work start 08:30 (510 min) + 15 min grace = 08:45 (525 min)
     const WORK_START_MINUTES = 510;
-    const GRACE_END_MINUTES = 540;
+    const GRACE_END_MINUTES = 525;
 
     // Fetch attendance records for this month
     const records = await prisma.attendance.findMany({

@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
 
   // Work schedule rules:
   // Work starts: 08:30 AM (510 minutes)
-  // Grace period: 30 minutes until 09:00 AM (540 minutes)
+  // Grace period: 15 minutes until 08:45 AM (525 minutes)
   const WORK_START_MINUTES = 8 * 60 + 30; // 510
-  const GRACE_END_MINUTES = 9 * 60 + 0;   // 540
+  const GRACE_END_MINUTES = 8 * 60 + 45;   // 525 (08:45 AM)
 
   if (type === "in") {
     // 1. Prevent check-in before 08:30 AM
@@ -89,12 +89,12 @@ export async function POST(request: NextRequest) {
   if (type === "in") {
     if (cairo.totalMinutes <= GRACE_END_MINUTES) {
       status = "present";
-      attendanceNote = "حضور في الموعد (فترة السماح)";
+      attendanceNote = "حضور في الموعد (فترة السماح حتى 08:45)";
     } else {
       status = "late";
       const delayMinutes = cairo.totalMinutes - GRACE_END_MINUTES;
-      const penalizedMinutes = delayMinutes * 2; // الدقيقة بدقيقتين
-      attendanceNote = `تأخير ${delayMinutes} دقيقة بعد فترة السماح (يُخصم ${penalizedMinutes} دقيقة)`;
+      const penalizedMinutes = delayMinutes * 2; // خصم الدقيقة بدقيقتين بعد 08:45
+      attendanceNote = `تأخير ${delayMinutes} دقيقة بعد 08:45 (يُخصم ${penalizedMinutes} دقيقة)`;
     }
   }
 
