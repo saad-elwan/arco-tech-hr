@@ -309,40 +309,40 @@ export default function FinancePage() {
       </div>
 
       {/* --- Tab Toggle --- */}
-      <div style={{ display: 'flex', gap: '4px', padding: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border)', alignSelf: 'flex-start' }} className="hide-on-print">
+      <div style={{ display: 'flex', gap: '4px', padding: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border)', width: '100%', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', scrollbarWidth: 'none' }} className="tabs hide-on-print">
         <button
           onClick={() => setActiveTab('payroll')}
           style={{
-            padding: '9px 20px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s',
+            padding: '9px 16px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '6px', display: 'flex', alignItems: 'center', transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
             background: activeTab === 'payroll' ? 'linear-gradient(135deg, #d4af37, #b38b22)' : 'transparent',
             color: activeTab === 'payroll' ? '#000' : 'var(--text-muted)',
             boxShadow: activeTab === 'payroll' ? '0 2px 12px rgba(212,175,55,0.4)' : 'none'
           }}
         >
-          <Calculator size={15} /> مسيّر الرواتب والتحليلات
+          <Calculator size={15} /> مسيّر الرواتب
         </button>
         <button
           onClick={() => setActiveTab('manual')}
           style={{
-            padding: '9px 20px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s',
+            padding: '9px 16px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '6px', display: 'flex', alignItems: 'center', transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
             background: activeTab === 'manual' ? 'rgba(96,165,250,0.15)' : 'transparent',
             color: activeTab === 'manual' ? '#60a5fa' : 'var(--text-muted)',
             border: activeTab === 'manual' ? '1px solid rgba(96,165,250,0.3)' : '1px solid transparent'
           }}
         >
-          <UserCog size={15} /> إدارة الرواتب يدوياً
+          <UserCog size={15} /> رواتب يدوياً
         </button>
         <button
           onClick={() => setActiveTab('treasury')}
           style={{
-            padding: '9px 20px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '8px', display: 'flex', alignItems: 'center', transition: 'all 0.2s',
+            padding: '9px 16px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, gap: '6px', display: 'flex', alignItems: 'center', transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
             background: activeTab === 'treasury' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
             color: activeTab === 'treasury' ? '#fff' : 'var(--text-muted)',
             border: activeTab === 'treasury' ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent',
             boxShadow: activeTab === 'treasury' ? '0 2px 12px rgba(16,185,129,0.3)' : 'none'
           }}
         >
-          <Wallet size={15} /> الخزينة النقدية الرئيسية
+          <Wallet size={15} /> الخزينة
         </button>
       </div>
 
