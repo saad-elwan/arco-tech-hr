@@ -174,9 +174,17 @@ export default function TrackingPage() {
   const routes: any[] = data?.routes || [];
 
   const filteredEmployees = employees.filter((emp: any) => {
-    if (search && !emp.name.includes(search)) return false;
+    if (search && !emp.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter === "delegate" && emp.role !== "delegate") return false;
-    if (filter === "outOfRange" && !emp.lastLocation?.isOutOfRange) return false;
+    if (filter === "inRange") {
+      if (!emp.lastLocation || emp.lastLocation.isOutOfRange) return false;
+    }
+    if (filter === "outOfRange") {
+      if (!emp.lastLocation || !emp.lastLocation.isOutOfRange) return false;
+    }
+    if (filter === "offline") {
+      if (emp.lastLocation) return false;
+    }
     return true;
   });
 
@@ -331,15 +339,21 @@ export default function TrackingPage() {
               style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", width: "100%", paddingRight: "10px", fontSize: "14px" }}
             />
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button className={`btn ${filter === "all" ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter("all")}>
-              الكل
+              الكل ({employees.length})
             </button>
             <button className={`btn ${filter === "delegate" ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter("delegate")}>
-              المناديب فقط
+              🚗 المناديب ({employees.filter((e: any) => e.role === "delegate").length})
+            </button>
+            <button className={`btn ${filter === "inRange" ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter("inRange")}>
+              🟢 داخل النطاق ({employees.filter((e: any) => e.lastLocation && !e.lastLocation.isOutOfRange).length})
             </button>
             <button className={`btn ${filter === "outOfRange" ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter("outOfRange")}>
-              خارج النطاق
+              🔴 خارج النطاق ({employees.filter((e: any) => e.lastLocation && e.lastLocation.isOutOfRange).length})
+            </button>
+            <button className={`btn ${filter === "offline" ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter("offline")}>
+              ⚪ غير متصل ({employees.filter((e: any) => !e.lastLocation).length})
             </button>
           </div>
         </div>

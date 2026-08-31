@@ -156,44 +156,57 @@ export default function EmployeePortal() {
     setLocationError("");
 
     if (!navigator.geolocation) {
-      setLocationError("جهازك لا يدعم تحديد الموقع");
+      setLocationError("جهازك لا يدعم تحديد الموقع GPS");
       setCheckingIn(false);
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
 
-      // Check if within 5 meters of company
-      if (company?.geofenceLat && company?.geofenceLng) {
-        const dist = getDistance(latitude, longitude, company.geofenceLat, company.geofenceLng);
-        if (dist > 5) {
-          setLocationError(`أنت على بُعد ${Math.round(dist)} متر من الشركة. يجب أن تكون داخل نطاق 5 أمتار لتسجيل الحضور.`);
-          setCheckingIn(false);
-          return;
+        // Check if within allowed distance of company
+        if (company?.geofenceLat && company?.geofenceLng) {
+          const dist = getDistance(latitude, longitude, company.geofenceLat, company.geofenceLng);
+          const baseRadius = Math.max(company.geofenceRadius || 20, 20);
+          const accuracyBonus = Math.min(accuracy || 0, 15);
+          const allowedDist = baseRadius + accuracyBonus;
+
+          if (dist > allowedDist) {
+            setLocationError(`أنت على بُعد ${Math.round(dist)} متر من مقر الشركة. يجب أن تكون داخل نطاق المقر لتسجيل الحضور/الانصراف.`);
+            setCheckingIn(false);
+            return;
+          }
         }
-      }
 
-      const today = data?.todayAttendance;
-      const isCheckIn = !today?.checkIn;
+        const today = data?.todayAttendance;
+        const isCheckIn = !today?.checkIn;
 
-      const res = await fetch("/api/attendance/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude, longitude, type: isCheckIn ? "in" : "out" })
-      });
+        const res = await fetch("/api/attendance/checkin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            latitude, 
+            longitude, 
+            accuracy, 
+            type: isCheckIn ? "in" : "out" 
+          })
+        });
 
-      if (res.ok) {
-        await refreshData();
-      } else {
-        const d = await res.json();
-        setLocationError(d.error || "حدث خطأ");
-      }
-      setCheckingIn(false);
-    }, (err) => {
-      setLocationError("تعذّر الحصول على موقعك. يرجى السماح بالوصول للموقع.");
-      setCheckingIn(false);
-    }, { enableHighAccuracy: true, timeout: 10000 });
+        if (res.ok) {
+          await refreshData();
+        } else {
+          const d = await res.json();
+          setLocationError(d.error || "حدث خطأ أثناء تسجيل الحضور/الانصراف");
+        }
+        setCheckingIn(false);
+      },
+      (err) => {
+        setLocationError("تعذّر الحصول على إحداثيات موقعك بدقة. يرجى تفعيل الـ GPS والسماح بالوصول للموقع.");
+        setCheckingIn(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
   }
 
   async function submitAdvance() {

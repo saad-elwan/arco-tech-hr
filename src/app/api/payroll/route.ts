@@ -53,15 +53,12 @@ export async function POST(request: NextRequest) {
   for (const emp of employees) {
     const basicSalary = emp.basicSalary || 0;
     const dayWage = basicSalary / 30; // standard 30 day divisor
+    const dailyWorkHours = 8;
+    const minuteWage = dayWage / (dailyWorkHours * 60);
 
-    // Determine shift hours and start time
-    const startTime = emp.shift?.startTime || defaultStartTime;
-    const endTime = emp.shift?.endTime || defaultEndTime;
-    const [sh, sm] = startTime.split(":").map(Number);
-    const [eh, em] = endTime.split(":").map(Number);
-    const shiftMinutes = Math.max(60, (eh * 60 + em) - (sh * 60 + sm));
-    const shiftHours = shiftMinutes / 60;
-    const hourlyWage = dayWage / (shiftHours || 8);
+    // Standard work start 08:30 (510 min) + 30 min grace = 09:00 (540 min)
+    const WORK_START_MINUTES = 510;
+    const GRACE_END_MINUTES = 540;
 
     // Fetch attendance records for this month
     const records = await prisma.attendance.findMany({
@@ -69,26 +66,30 @@ export async function POST(request: NextRequest) {
     });
 
     const presentDays = records.filter(r => r.status === "present" || r.checkIn).length;
-    const lateRecords = records.filter(r => r.status === "late" || (r.checkIn && r.checkIn > startTime));
-    const lateDays = lateRecords.length;
     const absentDays = records.filter(r => r.status === "absent").length;
 
-    // Calculate total late minutes
+    // Calculate total late minutes and 2x penalty after grace period
     let totalLateMinutes = 0;
-    for (const r of lateRecords) {
+    let totalPenalizedMinutes = 0;
+    let lateDays = 0;
+
+    for (const r of records) {
       if (r.checkIn) {
         const [ch, cm] = r.checkIn.split(":").map(Number);
         const checkInMin = ch * 60 + cm;
-        const startMin = sh * 60 + sm + lateThreshold;
-        if (checkInMin > startMin) {
-          totalLateMinutes += (checkInMin - (sh * 60 + sm));
+        if (checkInMin > GRACE_END_MINUTES) {
+          lateDays++;
+          const delay = checkInMin - GRACE_END_MINUTES;
+          const penalized = delay * 2; // خصم الدقيقة بـ 2 دقيقة
+          totalLateMinutes += delay;
+          totalPenalizedMinutes += penalized;
         }
       }
     }
 
-    // Deduction: Absent days + late hours deduction
+    // Deduction: Absent days + 2x late penalty
     const absentDeduction = absentDays * dayWage;
-    const lateDeduction = (totalLateMinutes / 60) * hourlyWage;
+    const lateDeduction = totalPenalizedMinutes * minuteWage;
     const autoDeduction = parseFloat((absentDeduction + lateDeduction).toFixed(2));
     
     // Default manual values
