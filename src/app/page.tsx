@@ -4,13 +4,11 @@ import { useRouter } from "next/navigation";
 import { Play, SkipForward, LogIn, ShieldCheck, Sparkles, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const [showIntro, setShowIntro] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
 
   async function handleLogin(e: React.FormEvent) {
@@ -49,14 +47,6 @@ export default function LoginPage() {
     }
   }
 
-  // Auto-finish intro splash after 2.6s
-  useEffect(() => {
-    if (showIntro) {
-      const timer = setTimeout(() => setShowIntro(false), 2600);
-      return () => clearTimeout(timer);
-    }
-  }, [showIntro]);
-
   return (
     <div
       style={{
@@ -76,73 +66,6 @@ export default function LoginPage() {
         boxSizing: "border-box",
       }}
     >
-      {/* Intro Splash Screen */}
-      {showIntro && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: "#000000",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              position: "relative",
-              width: "100%",
-              maxWidth: "680px",
-              borderRadius: "20px",
-              overflow: "hidden",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
-              boxShadow: "0 0 50px rgba(212, 175, 55, 0.2)",
-              backgroundColor: "#050505",
-            }}
-          >
-            <video
-              ref={videoRef}
-              src="/arco-intro.mp4"
-              autoPlay
-              muted
-              playsInline
-              onEnded={() => setShowIntro(false)}
-              style={{
-                width: "100%",
-                height: "auto",
-                maxHeight: "75vh",
-                display: "block",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-
-          <button
-            onClick={() => setShowIntro(false)}
-            style={{
-              marginTop: "24px",
-              padding: "10px 24px",
-              backgroundColor: "rgba(212, 175, 55, 0.15)",
-              border: "1px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: "30px",
-              color: "#D4AF37",
-              fontSize: "14px",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <span>تخطي العرض</span>
-            <SkipForward size={16} />
-          </button>
-        </div>
-      )}
 
       {/* Main Login Card */}
       <div
