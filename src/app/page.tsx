@@ -13,11 +13,6 @@ export default function LoginPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const token = localStorage.getItem("hr_token");
-    if (token) router.replace("/dashboard");
-  }, [router]);
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -62,140 +57,227 @@ export default function LoginPage() {
     }
   }, [showIntro]);
 
-  // If intro is active, show the clean pure white pulsing logo splash
-  if (showIntro) {
-    return (
-      <div 
-        onClick={() => setShowIntro(false)}
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#050505",
+        backgroundImage:
+          "radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%)",
+        padding: "16px",
+        direction: "rtl",
+        fontFamily: "'Tajawal', 'Cairo', sans-serif",
+        position: "relative",
+        overflowX: "hidden",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Intro Splash Screen */}
+      {showIntro && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "#000000",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "680px",
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              boxShadow: "0 0 50px rgba(212, 175, 55, 0.2)",
+              backgroundColor: "#050505",
+            }}
+          >
+            <video
+              ref={videoRef}
+              src="/arco-intro.mp4"
+              autoPlay
+              muted
+              playsInline
+              onEnded={() => setShowIntro(false)}
+              style={{
+                width: "100%",
+                height: "auto",
+                maxHeight: "75vh",
+                display: "block",
+                objectFit: "contain",
+              }}
+            />
+          </div>
+
+          <button
+            onClick={() => setShowIntro(false)}
+            style={{
+              marginTop: "24px",
+              padding: "10px 24px",
+              backgroundColor: "rgba(212, 175, 55, 0.15)",
+              border: "1px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: "30px",
+              color: "#D4AF37",
+              fontSize: "14px",
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span>تخطي العرض</span>
+            <SkipForward size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Main Login Card */}
+      <div
+        className="login-card"
         style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "#ffffff",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999,
-          cursor: "pointer",
-          userSelect: "none",
-          padding: "20px"
+          width: "100%",
+          maxWidth: "430px",
+          backgroundColor: "rgba(18, 18, 18, 0.85)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(212, 175, 55, 0.25)",
+          borderRadius: "24px",
+          padding: "32px 24px",
+          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.1)",
+          boxSizing: "border-box",
         }}
       >
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          maxWidth: "520px",
-          width: "90%",
-          animation: "arcoLogoPulse 2.4s ease-in-out infinite"
-        }}>
-          <img 
-            src="/arco-logo.png" 
-            alt="Arco Tech For Management Sys" 
-            style={{ 
-              width: "100%", 
-              height: "auto", 
-              maxHeight: "180px",
-              objectFit: "contain",
-              filter: "drop-shadow(0 10px 25px rgba(2, 132, 199, 0.15))"
-            }} 
-          />
-        </div>
-
-        {/* Subtle pulsing indicator */}
-        <div style={{
-          marginTop: "32px",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px"
-        }}>
-          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#0284c7", animation: "pulse 1.2s infinite" }}></div>
-          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", animation: "pulse 1.2s infinite 0.2s" }}></div>
-          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#0f2b48", animation: "pulse 1.2s infinite 0.4s" }}></div>
-        </div>
-
-        <style jsx>{`
-          @keyframes arcoLogoPulse {
-            0% { transform: scale(0.96); filter: drop-shadow(0 8px 18px rgba(2,132,199,0.12)); }
-            50% { transform: scale(1.02); filter: drop-shadow(0 16px 36px rgba(2,132,199,0.22)); }
-            100% { transform: scale(0.96); filter: drop-shadow(0 8px 18px rgba(2,132,199,0.12)); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  return (
-    <div className="login-page" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", background: "radial-gradient(ellipse at center, rgba(15, 30, 55, 0.6) 0%, rgba(5, 5, 5, 0.98) 100%)" }}>
-      <div className="login-card" style={{ 
-        maxWidth: "440px", 
-        width: "100%", 
-        padding: "36px 32px", 
-        background: "rgba(14, 18, 26, 0.85)", 
-        border: "1px solid rgba(212, 175, 55, 0.35)", 
-        borderRadius: "24px", 
-        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(2, 132, 199, 0.15)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        animation: "slideIn 0.4s ease" 
-      }}>
-        {/* Official Original Logo */}
+        {/* Logo and Header */}
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <img 
-            src="/arco-logo.png" 
-            alt="Arco Tech For Management Sys" 
-            style={{ width: "100%", maxWidth: "300px", height: "auto", maxHeight: "90px", objectFit: "contain", display: "block", margin: "0 auto" }} 
-          />
-          <p style={{ margin: "14px 0 0", fontSize: "13px", color: "var(--gold-primary)", fontWeight: 600, letterSpacing: "0.5px" }}>
-            نظام إدارة الموارد البشرية والعمليات المتكامل
+          <div style={{ marginBottom: "16px" }}>
+            <img
+              src="/arco-logo.png"
+              alt="ARCO Tech"
+              style={{
+                width: "100%",
+                maxWidth: "210px",
+                height: "auto",
+                maxHeight: "70px",
+                objectFit: "contain",
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+          </div>
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 800,
+              color: "#F5F5F5",
+              margin: "0 0 6px",
+            }}
+          >
+            نظام إدارة الموارد البشرية
+          </h1>
+          <p style={{ fontSize: "13px", color: "#A3A3A3", margin: 0 }}>
+            سجّل دخولك للوصول إلى لوحة التحكم والمهام
           </p>
         </div>
 
+        {/* Error Alert */}
         {error && (
-          <div className="alert alert-danger" style={{ marginBottom: "20px", borderRadius: "12px", fontSize: "13px" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
+          <div
+            style={{
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              color: "#EF4444",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              fontSize: "13px",
+              marginBottom: "20px",
+              textAlign: "center",
+              fontWeight: 600,
+            }}
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>
-              البريد الإلكتروني أو اسم المستخدم
+        {/* Login Form */}
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: "18px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#D4AF37",
+                marginBottom: "8px",
+              }}
+            >
+              البريد الإلكتروني
             </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="text"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="مثال: Arco أو admin@company.com"
-                required
-                id="login-email"
-                autoComplete="username"
-                style={{ height: "48px", borderRadius: "12px", paddingRight: "16px", paddingLeft: "16px", fontSize: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}
-              />
-            </div>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@arco.com"
+              className="form-control"
+              style={{
+                width: "100%",
+                padding: "13px 16px",
+                backgroundColor: "rgba(10, 10, 10, 0.8)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                borderRadius: "12px",
+                color: "#F5F5F5",
+                fontSize: "14px",
+                outline: "none",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
 
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>
+          <div style={{ marginBottom: "22px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#D4AF37",
+                marginBottom: "8px",
+              }}
+            >
               كلمة المرور
             </label>
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
-                className="form-control"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                required
-                id="login-password"
-                autoComplete="current-password"
-                style={{ height: "48px", borderRadius: "12px", paddingRight: "16px", paddingLeft: "42px", fontSize: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}
+                className="form-control"
+                style={{
+                  width: "100%",
+                  padding: "13px 44px 13px 16px",
+                  backgroundColor: "rgba(10, 10, 10, 0.8)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: "12px",
+                  color: "#F5F5F5",
+                  fontSize: "14px",
+                  outline: "none",
+                  transition: "all 0.2s ease",
+                  boxSizing: "border-box",
+                }}
               />
               <button
                 type="button"
@@ -205,13 +287,13 @@ export default function LoginPage() {
                   left: "12px",
                   top: "50%",
                   transform: "translateY(-50%)",
-                  background: "transparent",
+                  background: "none",
                   border: "none",
-                  color: "var(--text-muted)",
+                  color: "#666666",
                   cursor: "pointer",
                   padding: "4px",
                   display: "flex",
-                  alignItems: "center"
+                  alignItems: "center",
                 }}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -221,31 +303,33 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="btn btn-primary"
             disabled={loading}
-            id="login-btn"
-            style={{ 
-              width: "100%", 
-              height: "48px",
-              justifyContent: "center", 
-              marginTop: "10px", 
-              borderRadius: "14px", 
-              fontSize: "15px", 
+            className="btn btn-primary"
+            style={{
+              width: "100%",
+              padding: "14px",
+              background: "linear-gradient(135deg, #D4AF37, #F0C84A)",
+              color: "#000000",
+              border: "none",
+              borderRadius: "12px",
+              fontSize: "15px",
               fontWeight: 800,
-              background: "linear-gradient(135deg, #d4af37, #b38b22)",
-              boxShadow: "0 4px 20px rgba(212, 175, 55, 0.4)",
-              color: "#000"
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              boxShadow: "0 8px 24px rgba(212, 175, 55, 0.3)",
+              transition: "all 0.2s ease",
+              opacity: loading ? 0.7 : 1,
             }}
           >
             {loading ? (
-              <>
-                <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2, borderTopColor: "#000" }} />
-                جاري تسجيل الدخول...
-              </>
+              <span>جاري تسجيل الدخول...</span>
             ) : (
               <>
+                <span>تسجيل الدخول</span>
                 <LogIn size={18} />
-                تسجيل الدخول للنظام
               </>
             )}
           </button>
@@ -253,45 +337,22 @@ export default function LoginPage() {
 
         <div className="gold-divider" style={{ margin: "24px 0 18px" }} />
         
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-          <button
-            type="button"
-            onClick={async () => {
-              let apkUrl = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
-              try {
-                const res = await fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" });
-                const data = await res.json();
-                if (data.apkUrl) apkUrl = data.apkUrl;
-              } catch {}
-              
+        {/* App Download Buttons */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <a
+            href="/api/download"
+            download="ARCO-HR-v1.2.0.apk"
+            onClick={() => {
               if (document.getElementById('androidHint')) {
                 document.getElementById('androidHint')!.style.display = 'block';
               }
               if (document.getElementById('iosHint')) {
                 document.getElementById('iosHint')!.style.display = 'none';
               }
-              
-              // Direct download trigger
-              const link = document.createElement("a");
-              link.href = apkUrl;
-              link.download = "ARCO-HR-v1.2.0.apk";
-              link.target = "_blank";
-              link.rel = "noopener noreferrer";
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-
-              try {
-                window.location.assign(apkUrl);
-              } catch {
-                try {
-                  window.location.href = apkUrl;
-                } catch {}
-              }
             }}
             className="btn btn-primary"
             style={{ 
-              flex: 1, 
+              flex: '1 1 180px', 
               justifyContent: 'center', 
               background: '#3ddc84', 
               borderColor: '#3ddc84', 
@@ -300,21 +361,29 @@ export default function LoginPage() {
               alignItems: 'center',
               gap: '8px',
               cursor: 'pointer',
-              fontWeight: 700
+              fontWeight: 700,
+              textDecoration: 'none',
+              padding: '12px',
+              borderRadius: '12px',
+              fontSize: '13px'
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.953.958c0 .529.427.958.953.958a.96.96 0 0 0 .954-.958.96.96 0 0 0-.954-.958zm-11.046 0a.96.96 0 0 0-.954.958c0 .529.427.958.954.958a.96.96 0 0 0 .953-.958.96.96 0 0 0-.953-.958zm11.4-5.772 1.997-3.466a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.024 3.513A12.26 12.26 0 0 0 12 8.07c-1.862 0-3.618.406-5.132 1.131L4.844 5.688a.416.416 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.466C2.688 11.667.463 15.473.463 19.745h23.074c0-4.272-2.225-8.078-5.66-10.176z"/></svg>
             تحميل تطبيق Android (APK)
-          </button>
+          </a>
           <button
             type="button"
             onClick={() => {
-              document.getElementById('iosHint')!.style.display = 'block';
-              document.getElementById('androidHint')!.style.display = 'none';
+              if (document.getElementById('iosHint')) {
+                document.getElementById('iosHint')!.style.display = 'block';
+              }
+              if (document.getElementById('androidHint')) {
+                document.getElementById('androidHint')!.style.display = 'none';
+              }
             }}
             className="btn btn-primary"
             style={{ 
-              flex: 1, 
+              flex: '1 1 120px', 
               justifyContent: 'center', 
               background: '#000', 
               borderColor: 'rgba(255,255,255,0.2)', 
@@ -323,38 +392,36 @@ export default function LoginPage() {
               alignItems: 'center',
               gap: '8px',
               cursor: 'pointer',
-              fontWeight: 700
+              fontWeight: 700,
+              padding: '12px',
+              borderRadius: '12px',
+              fontSize: '13px'
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.63-.78 1.06-1.87.94-2.97-1 .04-2.19.67-2.88 1.48-.59.69-1.12 1.8-1 2.89 1.12.09 2.31-.62 2.94-1.4z"/></svg>
             تطبيق iOS
           </button>
         </div>
 
-        <div id="androidHint" style={{ display: 'none', background: 'rgba(61, 220, 132, 0.1)', border: '1px solid rgba(61, 220, 132, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>📱 تثبيت تطبيق ARCO HR الجديد (APK v1.2.0):</strong><br />
-          1. ⚠️ <strong>الخطوة الأولى:</strong> احذف التطبيق القديم من هاتفك (إلغاء التثبيت).<br />
-          2. 📥 <strong>الخطوة الثانية:</strong> افتح ملف <strong>(ARCO-HR-v1.2.0.apk)</strong> واضغط <strong>"تثبيت" (Install)</strong>.
+        {/* Hints */}
+        <div id="androidHint" style={{ display: 'none', background: 'rgba(61,220,132,0.1)', border: '1px solid rgba(61,220,132,0.3)', padding: '12px', borderRadius: '12px', fontSize: '12px', color: '#3ddc84', marginBottom: '14px', lineHeight: 1.6 }}>
+          <strong>🚀 خطوات التثبيت:</strong><br/>
+          1. افتح الملف المحمل <strong>ARCO-HR-v1.2.0.apk</strong> واضغط تثبيت.<br/>
+          2. اسمح بتثبيت التطبيقات إذا طلب هاتفك ذلك.
         </div>
 
-        <div id="iosHint" style={{ display: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>🍎 لتثبيت التطبيق على iPhone / iPad:</strong><br />
-          1. اضغط على زر <strong>مشاركة (Share)</strong> في أسفل متصفح Safari<br />
-          2. مرر واختر <strong>"إضافة إلى الشاشة الرئيسية (Add to Home Screen)"</strong><br />
-          3. اضغط <strong>"إضافة (Add)"</strong>
+        <div id="iosHint" style={{ display: 'none', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '12px', fontSize: '12px', color: '#ccc', marginBottom: '14px', lineHeight: 1.6 }}>
+          <strong>📱 لمستخدمي iPhone (PWA):</strong><br/>
+          1. افتح الرابط في متصفح <strong>Safari</strong>.<br/>
+          2. اضغط على زر <strong>مشاركة (Share)</strong> بالأسفل.<br/>
+          3. اختر <strong>إضافة إلى الشاشة الرئيسية (Add to Home Screen)</strong>.
         </div>
 
-        <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-            نظام آركو تك لإدارة المؤسسات
+        {/* Footer */}
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <p style={{ fontSize: "11px", color: "#666666", margin: 0 }}>
+            جميع الحقوق محفوظة © {new Date().getFullYear()} ARCO Tech
           </p>
-          <button 
-            onClick={() => setShowIntro(true)} 
-            style={{ background: "none", border: "none", color: "var(--gold-primary)", fontSize: "11px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-          >
-            <Play size={12} /> إعادة تشغيل المقدمة
-          </button>
         </div>
       </div>
     </div>
