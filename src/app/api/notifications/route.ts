@@ -47,8 +47,9 @@ export async function GET(request: NextRequest) {
       category: n.category,
     }));
 
-    // If user is regular employee, return their DB notifications
-    if (auth.role === "employee") {
+    // If user is regular employee or delegate (non-admin), strictly return ONLY their personal DB notifications
+    const isNonAdmin = !["admin", "superadmin", "hr"].includes(auth.role?.toLowerCase() || "");
+    if (isNonAdmin) {
       return NextResponse.json({
         notifications: formattedDbNotifs,
         unreadCount: formattedDbNotifs.filter(n => !n.isRead).length,
