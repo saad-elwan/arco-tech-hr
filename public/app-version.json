@@ -1,18 +1,18 @@
 {
-  "latestVersion": "1.3.2",
-  "versionCode": 8,
-  "minRequiredVersion": "1.3.2",
+  "latestVersion": "1.4.1",
+  "versionCode": 9,
+  "minRequiredVersion": "1.4.1",
   "apkUrl": "https://hr-amr.vercel.app/api/download",
-  "directDownloadUrl": "https://expo.dev/artifacts/eas/U7Io9cCYviysg3pxBytwQegD5KsF2uLevATBusf2f6A.apk",
+  "directDownloadUrl": "https://expo.dev/artifacts/eas/RtXE2W5lnVad3BUea8p_cb_Yio1bQeR8H0Rk2pTkhrM.apk",
   "releaseDate": "2026-08-31",
   "forceUpdate": false,
-  "title": "تحديث رسمي للنظام (v1.3.2)",
-  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.3.2) مع دعم الإشعارات السحابية وحفظ تسجيل الدخول الدائم ومسافة الأمان العلوية.",
+  "title": "تحديث رسمي للنظام (v1.4.1)",
+  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.4.1) مع التنسيق الكامل لجميع شاشات الهواتف ودعم الإشعارات السحابية وحفظ تسجيل الدخول ومسافة الأمان العلوية.",
   "features": [
-    "البقاء مسجلاً للدخول دائماً حتى بعد إغلاق التطبيق والمتصفح",
+    "تنسيق كامل وشامل لجميع عناصر الويب ومنع خروج أي عنصر خارج شاشة الهاتف",
+    "تحديث رقم الإصدار الرسمي إلى v1.4.1 (Build 9)",
     "استقبال الإشعارات السحابية حتى عند إغلاق التطبيق تماماً وقفل الشاشة",
-    "إصلاح حذف المهام وتحديث الحالات فورياً",
     "فصل شريط الحالة (الساعة والبطارية) عن عناصر الويب ومنع التداخل",
-    "تسهيل التحديث بضغطة زر واحدة ومتابعة العمل"
+    "إصلاح حذف المهام وتحديث الحالات فورياً"
   ]
 }
