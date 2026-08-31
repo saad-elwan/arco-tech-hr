@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthFromRequest, isHROrAdmin } from "@/lib/middleware";
+import { getAuthFromRequest } from "@/lib/middleware";
 
 // GET /api/notifications → personalized for each user
 export async function GET(request: NextRequest) {
@@ -8,29 +8,35 @@ export async function GET(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   try {
+    // 1. Fetch personal notifications from DB for this user
+    const dbNotifs = await prisma.notification.findMany({
+      where: { employeeId: auth.id },
+      orderBy: { createdAt: "desc" },
+      take: 25,
+    });
+
+    const formattedDbNotifs = dbNotifs.map(n => ({
+      id: `notif-${n.id}`,
+      title: n.title,
+      desc: n.body,
+      body: n.body,
+      message: n.body,
+      date: n.createdAt.toISOString(),
+      type: n.type,
+      link: n.link,
+      isRead: n.isRead,
+      category: n.category,
+    }));
+
+    // If user is regular employee, return their DB notifications
     if (auth.role === "employee") {
-      // Employee: personal notifications from DB
-      const notifs = await prisma.notification.findMany({
-        where: { employeeId: auth.id },
-        orderBy: { createdAt: "desc" },
-        take: 20,
+      return NextResponse.json({
+        notifications: formattedDbNotifs,
+        unreadCount: formattedDbNotifs.filter(n => !n.isRead).length,
       });
-
-      const notifications = notifs.map(n => ({
-        id: `notif-${n.id}`,
-        title: n.title,
-        desc: n.body,
-        date: n.createdAt.toISOString(),
-        type: n.type,
-        link: n.link,
-        isRead: n.isRead,
-        category: n.category,
-      }));
-
-      return NextResponse.json({ notifications, unreadCount: notifs.filter(n => !n.isRead).length });
     }
 
-    // HR/Admin: system-level notifications (tasks, attendance anomalies, pending requests)
+    // 2. For Admin / HR: Include system live alerts (pending requests, tasks, absences) if not already in DB
     const [recentTasks, recentAbsences, pendingAdvances, pendingLeaves] = await Promise.all([
       prisma.task.findMany({
         orderBy: { createdAt: "desc" },
@@ -47,11 +53,13 @@ export async function GET(request: NextRequest) {
       prisma.leaveRequest.count({ where: { status: "pending" } }),
     ]);
 
-    const notifications = [
+    const systemAlerts = [
       ...(pendingAdvances > 0 ? [{
         id: "pending-advances",
-        title: `📋 ${pendingAdvances} طلب سلفة قيد المراجعة`,
-        desc: "انقر لمراجعة طلبات السلف",
+        title: "📋 طلبات سلف قيد المراجعة",
+        desc: `يوجد ${pendingAdvances} طلب سلفة جديد بانتظار المراجعة والاعتماد`,
+        body: `يوجد ${pendingAdvances} طلب سلفة جديد بانتظار المراجعة والاعتماد`,
+        message: `يوجد ${pendingAdvances} طلب سلفة جديد بانتظار المراجعة والاعتماد`,
         date: new Date().toISOString(),
         type: "warning",
         link: "/requests",
@@ -59,8 +67,10 @@ export async function GET(request: NextRequest) {
       }] : []),
       ...(pendingLeaves > 0 ? [{
         id: "pending-leaves",
-        title: `📝 ${pendingLeaves} طلب إذن قيد المراجعة`,
-        desc: "انقر لمراجعة طلبات الإذن",
+        title: "📝 طلبات إجازة وإذن قيد المراجعة",
+        desc: `يوجد ${pendingLeaves} طلب إجازة أو إذن بانتظار موافقة الإدارة`,
+        body: `يوجد ${pendingLeaves} طلب إجازة أو إذن بانتظار موافقة الإدارة`,
+        message: `يوجد ${pendingLeaves} طلب إجازة أو إذن بانتظار موافقة الإدارة`,
         date: new Date().toISOString(),
         type: "info",
         link: "/requests",
@@ -69,7 +79,9 @@ export async function GET(request: NextRequest) {
       ...recentTasks.map(t => ({
         id: `task-${t.id}`,
         title: `مهمة جديدة: ${t.title}`,
-        desc: `تم التعيين إلى ${t.assignee.name}`,
+        desc: `تم تعيين المهمة للموظف ${t.assignee.name} بحالة ${t.status === "completed" ? "مكتملة" : "قيد التنفيذ"}`,
+        body: `تم تعيين المهمة للموظف ${t.assignee.name} بحالة ${t.status === "completed" ? "مكتملة" : "قيد التنفيذ"}`,
+        message: `تم تعيين المهمة للموظف ${t.assignee.name} بحالة ${t.status === "completed" ? "مكتملة" : "قيد التنفيذ"}`,
         date: t.createdAt.toISOString(),
         type: "info",
         link: "/tasks",
@@ -77,16 +89,28 @@ export async function GET(request: NextRequest) {
       })),
       ...recentAbsences.map(a => ({
         id: `att-${a.id}`,
-        title: `تنبيه حضور`,
-        desc: `${a.employee.name} مسجل كـ ${a.status === "late" ? "متأخر" : "غائب"} يوم ${a.date}`,
+        title: a.status === "late" ? "⏰ تنبيه تأخير موظف" : "❌ تنبيه غياب موظف",
+        desc: `الموظف ${a.employee.name} مسجل كـ ${a.status === "late" ? "متأخر" : "غائب"} بتاريخ ${a.date}`,
+        body: `الموظف ${a.employee.name} مسجل كـ ${a.status === "late" ? "متأخر" : "غائب"} بتاريخ ${a.date}`,
+        message: `الموظف ${a.employee.name} مسجل كـ ${a.status === "late" ? "متأخر" : "غائب"} بتاريخ ${a.date}`,
         date: a.createdAt.toISOString(),
         type: a.status === "late" ? "warning" : "danger",
         link: "/attendance",
         isRead: false,
       }))
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
+    ];
 
-    return NextResponse.json({ notifications, unreadCount: notifications.length });
+    // Combine DB notifications with system alerts
+    const allNotifications = [...formattedDbNotifs, ...systemAlerts]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 20);
+
+    const unreadCount = formattedDbNotifs.filter(n => !n.isRead).length;
+
+    return NextResponse.json({
+      notifications: allNotifications,
+      unreadCount
+    });
   } catch (error) {
     console.error("Notifications error:", error);
     return NextResponse.json({ notifications: [], unreadCount: 0 });
@@ -98,12 +122,14 @@ export async function PATCH(request: NextRequest) {
   const auth = getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
-  if (auth.role === "employee") {
+  try {
     await prisma.notification.updateMany({
       where: { employeeId: auth.id, isRead: false },
       data: { isRead: true }
     });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Error marking notifications read:", err);
+    return NextResponse.json({ error: "خطأ في التحديث" }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

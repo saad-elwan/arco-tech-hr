@@ -86,18 +86,20 @@ export async function POST(request: Request) {
       name: employee.name,
     });
 
-    // If admin or superadmin, log device session
-    if (employee.role === "admin" || employee.role === "superadmin") {
-      try {
-        const userAgent = request.headers.get("user-agent") || "Unknown Device";
-        const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "127.0.0.1";
-        
-        let deviceName = "متصفح ويب";
-        if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "جهاز iOS / iPhone";
-        else if (/android/i.test(userAgent)) deviceName = "جهاز Android";
-        else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
-        else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+    const isAdminUser = ["admin", "superadmin", "hr"].includes(employee.role?.toLowerCase());
 
+    const userAgent = request.headers.get("user-agent") || "Unknown Device";
+    const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "127.0.0.1";
+    
+    let deviceName = "متصفح ويب";
+    if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "هاتف iOS / iPhone";
+    else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
+    else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
+    else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+    // Log admin device session
+    if (isAdminUser) {
+      try {
         await prisma.adminDeviceSession.create({
           data: {
             adminId: employee.id,
@@ -108,28 +110,50 @@ export async function POST(request: Request) {
             lastSeen: new Date(),
           }
         });
+
+        // Notify other admins of this admin login
+        const otherAdmins = await prisma.employee.findMany({
+          where: { role: { in: ["superadmin", "admin"] }, id: { not: employee.id } },
+          select: { id: true }
+        });
+
+        for (const oAdm of otherAdmins) {
+          await prisma.notification.create({
+            data: {
+              employeeId: oAdm.id,
+              title: "👑 تسجيل دخول مسؤول نظام",
+              body: `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام من ${deviceName}`,
+              category: "attendance",
+              type: "info",
+              link: "/super-admin",
+              isRead: false,
+            }
+          });
+        }
       } catch (sessionErr) {
         console.error("Session log error:", sessionErr);
       }
     } else {
       // Notify admins of employee login
       try {
-        const userAgent = request.headers.get("user-agent") || "Unknown Device";
-        let deviceName = "متصفح ويب";
-        if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "هاتف iPhone";
-        else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
-        else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "جهاز Mac";
-        else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
-
-        await prisma.notification.create({
-          data: {
-            userId: null,
-            title: "🔐 تسجيل دخول موظف",
-            message: `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام (${deviceName})`,
-            type: "login",
-            isRead: false,
-          }
+        const allAdmins = await prisma.employee.findMany({
+          where: { role: { in: ["superadmin", "admin", "hr"] } },
+          select: { id: true }
         });
+
+        for (const adm of allAdmins) {
+          await prisma.notification.create({
+            data: {
+              employeeId: adm.id,
+              title: "🔐 تسجيل دخول موظف",
+              body: `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام (${deviceName})`,
+              category: "attendance",
+              type: "info",
+              link: "/attendance",
+              isRead: false,
+            }
+          });
+        }
       } catch (notifErr) {
         console.error("Notification create error:", notifErr);
       }

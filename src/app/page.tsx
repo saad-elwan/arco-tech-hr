@@ -53,69 +53,74 @@ export default function LoginPage() {
     }
   }
 
-  // If intro video is active, show the fullscreen luxury cinematic intro
+  // Auto-finish intro splash after 2.6s
+  useEffect(() => {
+    if (showIntro) {
+      const timer = setTimeout(() => setShowIntro(false), 2600);
+      return () => clearTimeout(timer);
+    }
+  }, [showIntro]);
+
+  // If intro is active, show the clean pure white pulsing logo splash
   if (showIntro) {
     return (
-      <div style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "#ffffff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-        overflow: "hidden"
-      }}>
-        <video
-          ref={videoRef}
-          src="https://www.image2url.com/r2/default/videos/1788143930875-70bf761e-7a96-47ea-8768-5877a898f95f.mp4"
-          autoPlay
-          playsInline
-          muted
-          onEnded={() => setShowIntro(false)}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            maxHeight: "100vh",
-            maxWidth: "100vw",
-            backgroundColor: "#ffffff"
-          }}
-        />
-        
-        {/* Skip button floating bottom-center */}
-        <div style={{
-          position: "absolute",
-          bottom: "32px",
+      <div 
+        onClick={() => setShowIntro(false)}
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "#ffffff",
           display: "flex",
-          gap: "12px",
-          zIndex: 10
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          cursor: "pointer",
+          userSelect: "none",
+          padding: "20px"
+        }}
+      >
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          maxWidth: "480px",
+          width: "90%",
+          animation: "arcoLogoPulse 2.4s ease-in-out infinite"
         }}>
-          <button
-            onClick={() => setShowIntro(false)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "12px 28px",
-              background: "rgba(255, 255, 255, 0.95)",
-              border: "1.5px solid var(--gold-primary)",
-              borderRadius: "30px",
-              color: "#1a1a1a",
-              fontSize: "14px",
-              fontWeight: 800,
-              cursor: "pointer",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15), 0 0 20px rgba(212, 175, 55, 0.25)",
-              transition: "all 0.3s ease"
-            }}
-          >
-            <span>دخول النظام / تخطي</span>
-            <SkipForward size={16} color="var(--gold-primary)" />
-          </button>
+          <img 
+            src="/arco-logo.svg" 
+            alt="Arco Tech For Management Sys" 
+            style={{ 
+              width: "100%", 
+              height: "auto", 
+              maxHeight: "180px",
+              objectFit: "contain",
+              filter: "drop-shadow(0 10px 25px rgba(2, 132, 199, 0.15))"
+            }} 
+          />
         </div>
+
+        {/* Subtle pulsing indicator */}
+        <div style={{
+          marginTop: "32px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#0284c7", animation: "pulse 1.2s infinite" }}></div>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", animation: "pulse 1.2s infinite 0.2s" }}></div>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#0f2b48", animation: "pulse 1.2s infinite 0.4s" }}></div>
+        </div>
+
+        <style jsx>{`
+          @keyframes arcoLogoPulse {
+            0% { transform: scale(0.96); filter: drop-shadow(0 8px 18px rgba(2,132,199,0.12)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 16px 36px rgba(2,132,199,0.22)); }
+            100% { transform: scale(0.96); filter: drop-shadow(0 8px 18px rgba(2,132,199,0.12)); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -123,12 +128,13 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card" style={{ animation: "slideIn 0.4s ease" }}>
-        <div className="login-logo">
-          <div className="login-logo-icon">
-            <ShieldCheck size={32} color="#000" />
-          </div>
-          <h1 className="login-title">Arco Tech HR</h1>
-          <p className="login-subtitle">الإدارة الذكية للموارد البشرية</p>
+        <div className="login-logo" style={{ marginBottom: "20px" }}>
+          <img 
+            src="/arco-logo.svg" 
+            alt="Arco Tech For Management Sys" 
+            style={{ width: "220px", height: "auto", margin: "0 auto 12px", display: "block" }} 
+          />
+          <p className="login-subtitle">نظام إدارة الموارد البشرية والعمليات المتكامل</p>
         </div>
 
         {error && (

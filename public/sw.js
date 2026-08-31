@@ -1,19 +1,55 @@
-const CACHE_NAME = 'hr-system-v1';
-const urlsToCache = [
-  '/pwa',
-  '/manifest.json',
-];
+const CACHE_NAME = 'arco-hr-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
-  );
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
+// Push & Mobile Lockscreen Notification Handler
+self.addEventListener('push', (event) => {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data = { title: "إشعار جديد", body: event.data.text() };
+    }
+  }
+  const title = data.title || "نظام الموارد البشرية - Arco Tech";
+  const options = {
+    body: data.body || data.message || data.desc || "لديك إشعار جديد في النظام",
+    icon: "/icon-192.png",
+    badge: "/favicon.ico",
+    vibrate: [300, 150, 300],
+    data: { link: data.link || "/dashboard" },
+    tag: "arco-hr-" + Date.now(),
+    renotify: true,
+    requireInteraction: false,
+    dir: "rtl",
+    lang: "ar"
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Click notification to focus or open web app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.link || '/dashboard';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if ('focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });

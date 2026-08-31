@@ -83,12 +83,12 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           // Play audio sound chime
           playNotificationSound();
           
-          // Show OS Popup Notification
+          // Show OS Popup Notification with full description
           const latest = d.notifications?.[0];
           if (latest) {
             showBrowserNotification(latest.title, {
-              body: latest.body,
-              link: latest.link || "/me"
+              body: latest.desc || latest.body || latest.message || "لديك إشعار جديد في النظام",
+              link: latest.link || "/dashboard"
             });
           }
         }
@@ -104,17 +104,18 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   // Open notifications
   const handleNotifsClick = async () => {
-    setShowNotifs(!showNotifs);
+    const nextState = !showNotifs;
+    setShowNotifs(nextState);
     requestNotificationPermission();
-    if (!showNotifs) {
+    if (nextState) {
+      setUnreadCount(0);
+      prevUnreadRef.current = 0;
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       try {
+        fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
         const res = await fetch("/api/notifications");
         const data = await res.json();
-        setNotifications(data.notifications || []);
-        setUnreadCount(0);
-        prevUnreadRef.current = 0;
-        // Mark all as read
-        fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
+        setNotifications((data.notifications || []).map((n: any) => ({ ...n, isRead: true })));
       } catch {}
     }
   };
