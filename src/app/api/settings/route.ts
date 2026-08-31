@@ -47,6 +47,11 @@ export async function DELETE(request: NextRequest) {
 
   // Clear all data except company settings
   await prisma.$transaction([
+    prisma.notification.deleteMany(),
+    prisma.locationLog.deleteMany(),
+    prisma.advanceRequest.deleteMany(),
+    prisma.leaveRequest.deleteMany(),
+    prisma.payroll.deleteMany(),
     prisma.taskComment.deleteMany(),
     prisma.task.deleteMany(),
     prisma.evaluation.deleteMany(),

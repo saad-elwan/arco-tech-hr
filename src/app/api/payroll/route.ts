@@ -185,18 +185,20 @@ export async function PUT(request: NextRequest) {
     });
   }
 
-  // Notify employee about their payroll
-  const parts: string[] = [];
-  if (payrollData.bonus > 0) parts.push(`مكافأة: ${payrollData.bonus} ج.م`);
-  if (payrollData.autoDeduction > 0) parts.push(`خصومات: ${payrollData.autoDeduction} ج.م`);
-  await createNotification({
-    employeeId: updated.employeeId,
-    type: "success",
-    category: "payroll",
-    title: `💰 تم صرف راتب شهر ${period}`,
-    body: `صافي الراتب: ${payrollData.netSalary.toLocaleString("ar-EG")} ج.م${parts.length > 0 ? " — " + parts.join(" | ") : ""}`,
-    link: "/me",
-  });
+  // Notify employee about their payroll (only when paid)
+  if (payrollData.status === "paid") {
+    const parts: string[] = [];
+    if (payrollData.bonus > 0) parts.push(`مكافأة: ${payrollData.bonus} ج.م`);
+    if (payrollData.autoDeduction > 0) parts.push(`خصومات: ${payrollData.autoDeduction} ج.م`);
+    await createNotification({
+      employeeId: updated.employeeId,
+      type: "success",
+      category: "payroll",
+      title: `💰 تم صرف راتب شهر ${period}`,
+      body: `صافي الراتب: ${payrollData.netSalary.toLocaleString("ar-EG")} ج.م${parts.length > 0 ? " — " + parts.join(" | ") : ""}`,
+      link: "/me",
+    });
+  }
 
   return NextResponse.json(updated);
 }

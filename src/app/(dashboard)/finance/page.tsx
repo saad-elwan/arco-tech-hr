@@ -520,7 +520,7 @@ export default function FinancePage() {
             <div className="empty-state" style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-muted)" }}>
               <div style={{ marginBottom: "16px", color: "var(--gold-dark)", opacity: 0.5 }}><AlertCircle size={48} style={{ margin: "0 auto" }}/></div>
               <h3 style={{ margin: "0 0 8px 0", color: "var(--text-primary)" }}>لم يتم احتساب الرواتب بعد</h3>
-              <p>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير המالي.</p>
+              <p>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير المالي.</p>
             </div>
           ) : (
             <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse" }}>

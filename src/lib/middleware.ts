@@ -9,10 +9,8 @@ export function getAuthFromRequest(request: NextRequest): {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     const cookieToken = request.cookies.get("hr_token")?.value;
-    console.log("API cookieToken:", cookieToken?.substring(0, 30) + "...");
     if (!cookieToken) return null;
     const verified = verifyToken(cookieToken);
-    console.log("API verified:", JSON.stringify(verified));
     return verified;
   }
   const token = authHeader.substring(7);

@@ -50,17 +50,23 @@ export async function PUT(
   };
 
   if (data.password) {
-    if (!data.currentPassword) {
-      return NextResponse.json({ error: "كلمة المرور الحالية مطلوبة" }, { status: 400 });
-    }
-    const employee = await prisma.employee.findUnique({ where: { id: parseInt(id) } });
-    if (!employee) {
-      return NextResponse.json({ error: "الموظف غير موجود" }, { status: 404 });
-    }
-    const { verifyPassword } = await import("@/lib/auth");
-    const isValid = await verifyPassword(data.currentPassword, employee.password);
-    if (!isValid) {
-      return NextResponse.json({ error: "كلمة المرور الحالية غير صحيحة" }, { status: 400 });
+    const auth = (await import("@/lib/middleware")).getAuthFromRequest(request);
+    const isAdminOrHR = auth?.role === "admin" || auth?.role === "hr";
+    
+    if (!isAdminOrHR) {
+      // Only require current password if the user is editing their own password
+      if (!data.currentPassword) {
+        return NextResponse.json({ error: "كلمة المرور الحالية مطلوبة" }, { status: 400 });
+      }
+      const employee = await prisma.employee.findUnique({ where: { id: parseInt(id) } });
+      if (!employee) {
+        return NextResponse.json({ error: "الموظف غير موجود" }, { status: 404 });
+      }
+      const { verifyPassword } = await import("@/lib/auth");
+      const isValid = await verifyPassword(data.currentPassword, employee.password);
+      if (!isValid) {
+        return NextResponse.json({ error: "كلمة المرور الحالية غير صحيحة" }, { status: 400 });
+      }
     }
     updateData.password = await hashPassword(data.password);
   }

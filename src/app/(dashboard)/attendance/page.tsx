@@ -190,9 +190,9 @@ export default function AttendancePage() {
                     </td>
                     <td style={{ padding: "16px" }}>{getStatusBadge(record.status)}</td>
                     <td style={{ padding: "16px" }}>
-                      <div className="chip" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "20px", fontSize: "12px", color: record.source === 'fingerprint' ? 'var(--gold-primary)' : 'var(--text-primary)' }}>
+                      <div className="chip" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "20px", fontSize: "12px", color: record.source === 'fingerprint' ? 'var(--gold-primary)' : record.source === 'app' ? 'var(--info)' : 'var(--text-primary)' }}>
                         {record.source === 'fingerprint' ? <Activity size={14}/> : <UserCheck size={14}/>}
-                        <span>{record.source === 'fingerprint' ? 'ماكينة البصمة' : 'إدخال يدوي'}</span>
+                        <span>{record.source === 'fingerprint' ? 'ماكينة البصمة' : record.source === 'app' ? 'تطبيق الموظف' : 'إدخال يدوي'}</span>
                       </div>
                     </td>
                     <td style={{ padding: "16px", color: 'var(--text-secondary)', fontSize: 12, maxWidth: 150 }}>
@@ -311,7 +311,7 @@ export default function AttendancePage() {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                     <div className="form-group">
-                      <label className="form-label">وقت החضور (In)</label>
+                      <label className="form-label">وقت الحضور (In)</label>
                       <input type="time" className="form-control" value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} />
                     </div>
                     <div className="form-group">
