@@ -341,7 +341,7 @@ export default function LoginPage() {
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <a
             href="/api/download"
-            download="ARCO-HR-v1.2.0.apk"
+            download="ARCO-HR-v1.3.0.apk"
             onClick={() => {
               if (document.getElementById('androidHint')) {
                 document.getElementById('androidHint')!.style.display = 'block';
@@ -406,7 +406,7 @@ export default function LoginPage() {
         {/* Hints */}
         <div id="androidHint" style={{ display: 'none', background: 'rgba(61,220,132,0.1)', border: '1px solid rgba(61,220,132,0.3)', padding: '12px', borderRadius: '12px', fontSize: '12px', color: '#3ddc84', marginBottom: '14px', lineHeight: 1.6 }}>
           <strong>🚀 خطوات التثبيت:</strong><br/>
-          1. افتح الملف المحمل <strong>ARCO-HR-v1.2.0.apk</strong> واضغط تثبيت.<br/>
+          1. افتح الملف المحمل <strong>ARCO-HR-v1.3.0.apk</strong> واضغط تثبيت.<br/>
           2. اسمح بتثبيت التطبيقات إذا طلب هاتفك ذلك.
         </div>
 

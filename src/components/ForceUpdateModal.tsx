@@ -20,14 +20,13 @@ export default function ForceUpdateModal() {
     if (typeof window === "undefined") return;
 
     const detectOldApp = () => {
-      // Verified updated v1.2.0 app
-      const isNewApp = Boolean(
-        (window as any).__ARCO_APP_VERSION__ === "1.2.0" ||
-        (window as any).__ARCO_IS_LATEST_BUILD__ === true ||
-        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 3
+      // The newest build (v1.3.0 Build 6)
+      const isLatest = Boolean(
+        (window as any).__ARCO_APP_VERSION__ === "1.3.0" ||
+        Number((window as any).__ARCO_VERSION_CODE__ || 0) >= 6
       );
 
-      if (isNewApp) {
+      if (isLatest) {
         setShowModal(false);
         return;
       }
@@ -48,8 +47,7 @@ export default function ForceUpdateModal() {
         typeof window !== "undefined" && (window.location.search.includes("update=true") || window.location.hash.includes("update"))
       );
 
-      // If in mobile WebView or Android app and NOT running v1.2.0:
-      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isNewApp) {
+      if ((isReactNativeWebView || isAndroidWebView || isAndroidApp || isTestParam) && !isLatest) {
         setShowModal(true);
       }
     };
@@ -144,7 +142,7 @@ export default function ForceUpdateModal() {
     try {
       const a = document.createElement("a");
       a.href = DOWNLOAD_ENDPOINT;
-      a.download = "ARCO-HR-v1.2.0.apk";
+      a.download = "ARCO-HR-v1.3.0.apk";
       a.target = "_self";
       document.body.appendChild(a);
       a.click();
@@ -229,7 +227,7 @@ export default function ForceUpdateModal() {
             lineHeight: 1.4,
           }}
         >
-          {isCompleted ? "اكتمل تنزيل التحديث!" : "جاري تنزيل التحديث..."}
+          {isCompleted ? "اكتمل تنزيل التحديث!" : "جاري تنزيل التحديث v1.3.0..."}
         </h1>
 
         {/* Version Badge */}
@@ -247,8 +245,8 @@ export default function ForceUpdateModal() {
             marginBottom: "20px",
           }}
         >
-          <span>الإصدار المطلوب:</span>
-          <span style={{ color: "#0284c7" }}>v1.2.0</span>
+          <span>الإصدار الرسمي:</span>
+          <span style={{ color: "#0284c7" }}>v1.3.0 (Build 6)</span>
         </div>
 
         {/* In-App Real-time Progress Box */}
@@ -299,7 +297,7 @@ export default function ForceUpdateModal() {
         {isCompleted ? (
           <a
             href={DOWNLOAD_ENDPOINT}
-            download="ARCO-HR-v1.2.0.apk"
+            download="ARCO-HR-v1.3.0.apk"
             onClick={(e) => {
               triggerInstallAction();
             }}
@@ -391,10 +389,10 @@ export default function ForceUpdateModal() {
         >
           <div style={{ fontWeight: 800, marginBottom: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>✨</span>
-            <span>تحديث مباشر متوافق مع نسختك:</span>
+            <span>تحديث رسمي v1.3.0:</span>
           </div>
           <div>
-            اضغط على زر <strong>"تثبيت التحديث الآن"</strong> بالأعلى وسيفتح مثبت حزم أندرويد لتحديث التطبيق مباشرة.
+            اضغط على زر <strong>"تثبيت التحديث الآن"</strong> وسيتم تحديث التطبيق إلى الإصدار النهائي v1.3.0 بسلاسة.
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/Wqla_1fO33BqUTXJn9MxVF--eSc3LCXf_jj-Wqac5V4.apk";
+const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/XHYeotgb4m7Wm7OGFedu99WR_O0FIVD9XV2N6CfQQmk.apk";
 
 export async function GET(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     const headers = new Headers();
     headers.set("Content-Type", "application/vnd.android.package-archive");
-    headers.set("Content-Disposition", 'attachment; filename="ARCO-HR-v1.2.0.apk"');
+    headers.set("Content-Disposition", 'attachment; filename="ARCO-HR-v1.3.0.apk"');
     headers.set("Access-Control-Allow-Origin", "*");
     
     const contentLength = upstreamRes.headers.get("content-length");
