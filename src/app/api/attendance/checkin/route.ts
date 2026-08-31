@@ -139,14 +139,22 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Notify admins about check-in
+    const userAgent = request.headers.get("user-agent") || "Unknown Device";
+    let deviceName = "متصفح ويب";
+    if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "هاتف iOS / iPhone";
+    else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
+    else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
+    else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+    // Notify admins about check-in (device type only visible to superadmin)
     const emp = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true, department: { select: { name: true } } } });
     const statusLabel = status === "late" ? "⚠️ متأخر" : "✅ في الوقت";
     await createAdminNotification({
       type: status === "late" ? "warning" : "success",
       category: "attendance",
       title: `${statusLabel} — ${emp?.name} سجّل حضوره`,
-      body: `${emp?.name} (${emp?.department?.name || "غير محدد"}) — الدخول: ${timeStr} ${attendanceNote ? `[${attendanceNote}]` : ""}`,
+      body: `${emp?.name} (${emp?.department?.name || "موظف"}) — الدخول: ${timeStr} ${attendanceNote ? `[${attendanceNote}]` : ""}`,
+      superAdminBody: `${emp?.name} (${emp?.department?.name || "موظف"}) — الدخول: ${timeStr} | الجهاز: ${deviceName} ${attendanceNote ? `[${attendanceNote}]` : ""}`,
       link: "/attendance",
     });
   } else {
@@ -176,13 +184,21 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Notify admins about check-out
+    const userAgent = request.headers.get("user-agent") || "Unknown Device";
+    let deviceName = "متصفح ويب";
+    if (/iphone|ipad|ipod/i.test(userAgent)) deviceName = "هاتف iOS / iPhone";
+    else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
+    else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
+    else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+    // Notify admins about check-out (device type only visible to superadmin)
     const emp = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true, department: { select: { name: true } } } });
     await createAdminNotification({
       type: "info",
       category: "attendance",
       title: `🚪 ${emp?.name} سجّل انصرافه`,
-      body: `${emp?.name} (${emp?.department?.name || "غير محدد"}) — الانصراف: ${timeStr}`,
+      body: `${emp?.name} (${emp?.department?.name || "موظف"}) — الانصراف: ${timeStr}`,
+      superAdminBody: `${emp?.name} (${emp?.department?.name || "موظف"}) — الانصراف: ${timeStr} | الجهاز: ${deviceName}`,
       link: "/attendance",
     });
   }

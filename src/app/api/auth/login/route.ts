@@ -115,15 +115,20 @@ export async function POST(request: Request) {
         if (employee.role !== "superadmin") {
           const otherAdmins = await prisma.employee.findMany({
             where: { role: { in: ["superadmin", "admin"] }, id: { not: employee.id } },
-            select: { id: true }
+            select: { id: true, role: true }
           });
 
           for (const oAdm of otherAdmins) {
+            const isSuper = oAdm.role === "superadmin";
+            const bodyText = isSuper
+              ? `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام من ${deviceName}`
+              : `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام`;
+
             await prisma.notification.create({
               data: {
                 employeeId: oAdm.id,
                 title: "👑 تسجيل دخول مسؤول نظام",
-                body: `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام من ${deviceName}`,
+                body: bodyText,
                 category: "attendance",
                 type: "info",
                 link: "/attendance",
@@ -136,19 +141,24 @@ export async function POST(request: Request) {
         console.error("Session log error:", sessionErr);
       }
     } else {
-      // Notify admins of employee login
+      // Notify admins of employee login (device type only visible to superadmin)
       try {
         const allAdmins = await prisma.employee.findMany({
           where: { role: { in: ["superadmin", "admin", "hr"] } },
-          select: { id: true }
+          select: { id: true, role: true }
         });
 
         for (const adm of allAdmins) {
+          const isSuper = adm.role === "superadmin";
+          const bodyText = isSuper
+            ? `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام (${deviceName})`
+            : `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام`;
+
           await prisma.notification.create({
             data: {
               employeeId: adm.id,
               title: "🔐 تسجيل دخول موظف",
-              body: `الموظف ${employee.name} (${employee.department?.name || 'موظف'}) قام بتسجيل الدخول للنظام (${deviceName})`,
+              body: bodyText,
               category: "attendance",
               type: "info",
               link: "/attendance",
