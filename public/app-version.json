@@ -1,11 +1,11 @@
 {
   "latestVersion": "1.2.0",
   "versionCode": 5,
-  "minRequiredVersion": "1.2.0",
+  "minRequiredVersion": "1.0.0",
   "apkUrl": "https://hr-amr.vercel.app/api/download",
   "directDownloadUrl": "https://expo.dev/artifacts/eas/Wqla_1fO33BqUTXJn9MxVF--eSc3LCXf_jj-Wqac5V4.apk",
   "releaseDate": "2026-08-31",
-  "forceUpdate": true,
+  "forceUpdate": false,
   "title": "تحديث إجباري للنظام",
   "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.2.0). يرجى تحديث التطبيق الآن للمتابعة والاستمرار في استخدام النظام.",
   "features": [
