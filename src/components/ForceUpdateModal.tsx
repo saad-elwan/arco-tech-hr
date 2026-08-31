@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 
+const DEFAULT_APK_URL = "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/940ec600-de05-4dfa-88fd-709f83832b87";
+
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
-  const [apkUrl, setApkUrl] = useState("");
+  const [apkUrl, setApkUrl] = useState(DEFAULT_APK_URL);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -50,7 +52,7 @@ export default function ForceUpdateModal() {
       };
 
       // Small delay to allow injected JS to run first
-      setTimeout(checkVersion, 500);
+      setTimeout(checkVersion, 400);
     }
   }, []);
 
@@ -69,15 +71,15 @@ export default function ForceUpdateModal() {
   if (!showModal) return null;
 
   const handleDownload = () => {
-    if (!apkUrl) return;
+    const targetUrl = apkUrl || DEFAULT_APK_URL;
     try {
       if ((window as any).ReactNativeWebView?.postMessage) {
         (window as any).ReactNativeWebView.postMessage(
-          JSON.stringify({ type: "OPEN_URL", url: apkUrl })
+          JSON.stringify({ type: "OPEN_URL", url: targetUrl })
         );
       }
     } catch {}
-    window.location.href = apkUrl;
+    window.location.href = targetUrl;
   };
 
   return (
