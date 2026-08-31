@@ -111,24 +111,26 @@ export async function POST(request: Request) {
           }
         });
 
-        // Notify other admins of this admin login
-        const otherAdmins = await prisma.employee.findMany({
-          where: { role: { in: ["superadmin", "admin"] }, id: { not: employee.id } },
-          select: { id: true }
-        });
-
-        for (const oAdm of otherAdmins) {
-          await prisma.notification.create({
-            data: {
-              employeeId: oAdm.id,
-              title: "👑 تسجيل دخول مسؤول نظام",
-              body: `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام من ${deviceName}`,
-              category: "attendance",
-              type: "info",
-              link: "/super-admin",
-              isRead: false,
-            }
+        // Notify other admins ONLY if the logged in user is a regular admin (NOT superadmin)
+        if (employee.role !== "superadmin") {
+          const otherAdmins = await prisma.employee.findMany({
+            where: { role: { in: ["superadmin", "admin"] }, id: { not: employee.id } },
+            select: { id: true }
           });
+
+          for (const oAdm of otherAdmins) {
+            await prisma.notification.create({
+              data: {
+                employeeId: oAdm.id,
+                title: "👑 تسجيل دخول مسؤول نظام",
+                body: `المسؤول ${employee.name} (${employee.email}) قام بتسجيل الدخول للنظام من ${deviceName}`,
+                category: "attendance",
+                type: "info",
+                link: "/attendance",
+                isRead: false,
+              }
+            });
+          }
         }
       } catch (sessionErr) {
         console.error("Session log error:", sessionErr);

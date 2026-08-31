@@ -50,7 +50,17 @@ export default function SuperAdminPage() {
       try {
         const parsed = JSON.parse(userData);
         setUser(parsed);
-      } catch {}
+        if (parsed.role !== "superadmin") {
+          window.location.replace("/dashboard");
+          return;
+        }
+      } catch {
+        window.location.replace("/dashboard");
+        return;
+      }
+    } else {
+      window.location.replace("/");
+      return;
     }
     fetchSessions();
     fetchUsers();

@@ -6,8 +6,8 @@ import { ensureDatabaseSchema } from "@/lib/ensureSchema";
 export async function GET(request: NextRequest) {
   await ensureDatabaseSchema();
   const auth = getAuthFromRequest(request);
-  if (!auth || !isAdmin(request)) {
-    return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  if (!auth || !isSuperAdmin(request)) {
+    return NextResponse.json({ error: "غير مصرح - هذه الصفحة مخصصة للمشرف العام فقط" }, { status: 403 });
   }
 
   try {

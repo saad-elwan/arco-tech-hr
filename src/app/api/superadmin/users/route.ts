@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromRequest, isSuperAdmin, isAdmin } from "@/lib/middleware";
 import bcrypt from "bcryptjs";
 
-// GET /api/superadmin/users -> Get all users across the system
+// GET /api/superadmin/users -> Get all users across the system (Super Admin only)
 export async function GET(request: NextRequest) {
   const auth = getAuthFromRequest(request);
-  if (!auth || !isAdmin(request)) {
-    return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  if (!auth || !isSuperAdmin(request)) {
+    return NextResponse.json({ error: "غير مصرح - هذه الصفحة مخصصة للمشرف العام فقط" }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
