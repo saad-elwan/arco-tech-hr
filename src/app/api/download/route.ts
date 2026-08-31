@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
+const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
 
 export async function GET() {
   return NextResponse.redirect(DIRECT_APK_URL, {

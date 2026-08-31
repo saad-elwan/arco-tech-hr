@@ -257,7 +257,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={async () => {
-              let apkUrl = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
+              let apkUrl = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
               try {
                 const res = await fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" });
                 const data = await res.json();
@@ -283,7 +283,7 @@ export default function LoginPage() {
 
               setTimeout(() => {
                 try {
-                  window.location.href = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
+                  window.location.href = "intent://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
                 } catch {
                   try {
                     window.location.assign(apkUrl);

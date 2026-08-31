@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 
-const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
-const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
+const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk";
+const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
@@ -70,7 +70,6 @@ export default function ForceUpdateModal() {
     setIsDownloading(true);
     setProgress(5);
 
-    // Simulate in-app download progress smoothly
     let current = 5;
     if (downloadTimerRef.current) clearInterval(downloadTimerRef.current);
 
@@ -223,7 +222,7 @@ export default function ForceUpdateModal() {
           }}
         >
           <span>الإصدار المطلوب:</span>
-          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 3)</span>
+          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 4)</span>
         </div>
 
         {/* In-App Progress Box */}
@@ -298,28 +297,27 @@ export default function ForceUpdateModal() {
           <span>{isCompleted ? "تثبيت التحديث الآن (Install)" : "بدء التثبيت المباشر"}</span>
         </button>
 
-        {/* Crucial Conflict Warning Card */}
+        {/* Guidance Card */}
         <div
           style={{
             width: "100%",
-            backgroundColor: "#fffbeb",
-            border: "1.5px solid #fde68a",
+            backgroundColor: "#f0fdf4",
+            border: "1.5px solid #86efac",
             borderRadius: "14px",
             padding: "12px 14px",
             marginBottom: "12px",
             textAlign: "right",
             fontSize: "12px",
             lineHeight: 1.7,
-            color: "#92400e",
+            color: "#166534",
           }}
         >
           <div style={{ fontWeight: 800, marginBottom: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
-            <span>⚠️</span>
-            <span>تنبيه هام عند التثبيت:</span>
+            <span>✨</span>
+            <span>تحديث مباشر متوافق مع نسختك:</span>
           </div>
           <div>
-            إذا ظهرت لك رسالة <strong>(Package conflicts / تعارض في الحزمة)</strong>:
-            يرجى <strong>إلغاء تثبيت النسخة القديمة</strong> من هاتفك أولاً ثم الضغط على زر التثبيت أعلاه.
+            اضغط على <strong>"تثبيت التحديث الآن"</strong> وسيتم ترقية التطبيق مباشرةً فوق نسختك الحالية دون أي تعارض وبدون حذف التطبيق.
           </div>
         </div>
 
