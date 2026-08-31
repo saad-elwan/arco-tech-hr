@@ -1,7 +1,17 @@
 {
-  "latestVersion": "1.1.0",
-  "versionCode": 2,
-  "minRequiredVersion": "1.1.0",
-  "apkUrl": "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/d058fc3c-a16a-405c-9f52-2e811de72422",
-  "forceUpdate": true
+  "latestVersion": "1.2.0",
+  "versionCode": 3,
+  "minRequiredVersion": "1.2.0",
+  "apkUrl": "",
+  "releaseDate": "2026-08-31",
+  "forceUpdate": true,
+  "title": "تحديث إجباري للنظام",
+  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.2.0). يتضمن التحديث دعماً للعمل في الخلفية، إشعارات فورية، وتحسينات في دقة تتبع الحضور والانصراف. يرجى تحديث التطبيق الآن للمتابعة.",
+  "features": [
+    "دعم إشعارات الإشعارات الفورية",
+    "استمرار عمل التطبيق في الخلفية لخدمة الحضور",
+    "تحديث الموقع تلقائياً كل 5 دقائق",
+    "تحسين دقة تسجيل الحضور والانصراف",
+    "تحسين الأداء وسرعة الاستجابة"
+  ]
 }

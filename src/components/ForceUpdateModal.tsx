@@ -1,47 +1,83 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const APK_URL = "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/d058fc3c-a16a-405c-9f52-2e811de72422";
-
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
+  const [apkUrl, setApkUrl] = useState("");
 
   useEffect(() => {
-    // Check if running inside React Native WebView
     if (typeof window !== "undefined") {
+      // Check if running inside ANY React Native WebView
       const isWebView = Boolean(
-        (window as any).ReactNativeWebView ||
-        (window as any).__REACT_WEB_VIEW__ ||
-        /arco-app-webview/i.test(navigator.userAgent)
+        (window as any).ReactNativeWebView
       );
 
-      // Check if not yet running the new updated version (1.1.0)
-      const isUpdated = Boolean(
-        (window as any).__ARCO_APP_VERSION__ === "1.1.0" ||
-        navigator.userAgent.includes("ArcoApp/1.1.0") ||
-        sessionStorage.getItem("arco_app_version") === "1.1.0"
-      );
+      if (!isWebView) return;
 
-      if (isWebView && !isUpdated) {
-        setShowModal(true);
-      }
+      // Check if the new updated app injected its version
+      // The new app sets window.__ARCO_APP_VERSION__ before page load
+      const checkVersion = () => {
+        const appVersion = (window as any).__ARCO_APP_VERSION__;
+        const sessionVersion = sessionStorage.getItem("arco_app_version");
+        
+        // If no version is set, this is the OLD app that doesn't inject version
+        if (!appVersion && !sessionVersion) {
+          // Fetch the latest APK URL
+          fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
+            .then(r => r.json())
+            .then(data => {
+              if (data.apkUrl) setApkUrl(data.apkUrl);
+            })
+            .catch(() => {});
+          setShowModal(true);
+          return;
+        }
+
+        // If version IS set, check if it meets minimum
+        const currentVersion = appVersion || sessionVersion || "0.0.0";
+        fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
+          .then(r => r.json())
+          .then(data => {
+            if (data.apkUrl) setApkUrl(data.apkUrl);
+            if (data.forceUpdate && data.minRequiredVersion) {
+              const isOutdated = compareVersions(currentVersion, data.minRequiredVersion);
+              if (isOutdated) {
+                setShowModal(true);
+              }
+            }
+          })
+          .catch(() => {});
+      };
+
+      // Small delay to allow injected JS to run first
+      setTimeout(checkVersion, 500);
     }
   }, []);
+
+  const compareVersions = (current: string, target: string): boolean => {
+    const cParts = current.split(".").map(p => parseInt(p, 10) || 0);
+    const tParts = target.split(".").map(p => parseInt(p, 10) || 0);
+    for (let i = 0; i < Math.max(cParts.length, tParts.length); i++) {
+      const c = cParts[i] || 0;
+      const t = tParts[i] || 0;
+      if (c < t) return true;
+      if (c > t) return false;
+    }
+    return false;
+  };
 
   if (!showModal) return null;
 
   const handleDownload = () => {
-    // Attempt postMessage to React Native to open URL in native browser if supported
+    if (!apkUrl) return;
     try {
       if ((window as any).ReactNativeWebView?.postMessage) {
         (window as any).ReactNativeWebView.postMessage(
-          JSON.stringify({ type: "OPEN_URL", url: APK_URL })
+          JSON.stringify({ type: "OPEN_URL", url: apkUrl })
         );
       }
     } catch {}
-
-    // Direct redirect to APK download page
-    window.location.href = APK_URL;
+    window.location.href = apkUrl;
   };
 
   return (
@@ -119,7 +155,7 @@ export default function ForceUpdateModal() {
             lineHeight: 1.4,
           }}
         >
-          تحديث إجباري للنظام (v1.1.0)
+          تحديث إجباري للنظام
         </h1>
 
         {/* Version Pill */}
@@ -138,7 +174,7 @@ export default function ForceUpdateModal() {
           }}
         >
           <span>الإصدار الجديد:</span>
-          <span>1.1.0 (Build 2)</span>
+          <span>1.2.0 (Build 3)</span>
         </div>
 
         {/* Message */}
@@ -151,7 +187,7 @@ export default function ForceUpdateModal() {
             padding: "0 10px",
           }}
         >
-          يتوفر إصدار جديد وهام من تطبيق <strong>ARCO HR</strong>. يتضمن دعماً للإشعارات، واستمرار العمل في الخلفية، وتحسينات في الأداء. يرجى تحديث التطبيق للمتابعة.
+          يتوفر إصدار جديد وهام من تطبيق <strong>ARCO HR</strong>. يتضمن دعماً للإشعارات، واستمرار العمل في الخلفية، وتحديث الموقع تلقائياً كل 5 دقائق. يرجى تحديث التطبيق للمتابعة.
         </p>
 
         {/* Big Blue Download Button */}
@@ -182,7 +218,7 @@ export default function ForceUpdateModal() {
           <span>تحميل التحديث المباشر (APK)</span>
         </button>
 
-        {/* Security & Authenticity Note */}
+        {/* Security Note */}
         <p
           style={{
             fontSize: "12px",
