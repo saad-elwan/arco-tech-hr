@@ -12,6 +12,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#050505",
 };
 
 export default function RootLayout({
@@ -29,7 +31,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#111111" />
+        <meta name="theme-color" content="#050505" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

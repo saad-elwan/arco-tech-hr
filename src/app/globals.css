@@ -1555,27 +1555,44 @@ tbody tr { transition: background 0.2s ease; }
   outline: 2px solid var(--gold-primary); outline-offset: 2px;
 }
 
-/* Universal Mobile Responsiveness */
+/* Universal Mobile Fullscreen & Responsiveness */
+html, body {
+  background-color: #050505 !important;
+  color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
 @media screen and (max-width: 768px) {
-  html, body {
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
   
-  .layout, .main-content, .page-container {
+  .layout, .main-content, .page-container, .dashboard-container {
     width: 100% !important;
     max-width: 100vw !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
   }
 
-  .grid, .grid-2, .grid-3, .grid-4, .stat-grid {
+  .grid, .grid-2, .grid-3, .grid-4, .stat-grid, .stats-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
     width: 100% !important;
   }
 
-  .card, .table-container, .panel {
+  .card, .table-container, .panel, .login-card {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -1590,7 +1607,7 @@ tbody tr { transition: background 0.2s ease; }
 
   table {
     width: 100% !important;
-    min-width: 480px;
+    min-width: 460px;
   }
 
   .page-header {
@@ -1599,8 +1616,9 @@ tbody tr { transition: background 0.2s ease; }
     gap: 12px !important;
   }
 
-  .page-header .btn {
+  .page-header .btn, .btn-group .btn {
     width: 100% !important;
+    justify-content: center !important;
   }
 
   img, video {
@@ -1611,4 +1629,5 @@ tbody tr { transition: background 0.2s ease; }
 
 /* Smooth page entrance */
 .page-container > div { animation: fadeIn 0.3s ease; }
+
 
