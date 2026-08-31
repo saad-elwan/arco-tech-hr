@@ -12,7 +12,6 @@ export default function ForceUpdateModal() {
   const [downloadSpeed, setDownloadSpeed] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState(false);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const lastLoadedRef = useRef<number>(0);
@@ -59,7 +58,7 @@ export default function ForceUpdateModal() {
 
   // Auto-start real in-app download when modal appears
   useEffect(() => {
-    if (showModal && !isDownloading && !isCompleted && !blobUrl) {
+    if (showModal && !isDownloading && !isCompleted) {
       startRealDownload();
     }
   }, [showModal]);
@@ -98,24 +97,14 @@ export default function ForceUpdateModal() {
     };
 
     xhr.onload = () => {
-      if (xhr.status === 200 && xhr.response) {
+      if (xhr.status === 200) {
         setProgress(100);
         setIsCompleted(true);
         setIsDownloading(false);
         setDownloadSpeed("");
-
-        try {
-          const apkBlob = new Blob([xhr.response], {
-            type: "application/vnd.android.package-archive",
-          });
-          const url = URL.createObjectURL(apkBlob);
-          setBlobUrl(url);
-
-          // Auto-trigger installation prompt
-          installApk(url);
-        } catch (e) {
-          installApk(DIRECT_APK_URL);
-        }
+        
+        // Auto-trigger package download/install prompt
+        triggerInstallAction();
       } else {
         handleDownloadFallback();
       }
@@ -133,34 +122,26 @@ export default function ForceUpdateModal() {
     setDownloadError(true);
   };
 
-  const installApk = (targetUrl?: string) => {
-    const finalUrl = targetUrl || blobUrl || DOWNLOAD_ENDPOINT;
-
-    // 1. Post to native bridge if present
+  const triggerInstallAction = () => {
+    // 1. Direct standard navigation to /api/download
     try {
-      if ((window as any).ReactNativeWebView?.postMessage) {
-        (window as any).ReactNativeWebView.postMessage(
-          JSON.stringify({ type: "OPEN_URL", url: DIRECT_APK_URL })
-        );
-      }
-    } catch {}
+      window.location.href = DOWNLOAD_ENDPOINT;
+    } catch {
+      try {
+        window.location.assign(DOWNLOAD_ENDPOINT);
+      } catch {}
+    }
 
-    // 2. Trigger direct download/open in Android
+    // 2. Direct Anchor trigger
     try {
       const a = document.createElement("a");
-      a.href = finalUrl;
+      a.href = DOWNLOAD_ENDPOINT;
       a.download = "ARCO-HR-v1.2.0.apk";
       a.target = "_self";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch {
-      try {
-        window.location.assign(finalUrl);
-      } catch {
-        window.location.href = finalUrl;
-      }
-    }
+    } catch {}
   };
 
   if (!showModal) return null;
@@ -308,8 +289,12 @@ export default function ForceUpdateModal() {
 
         {/* Action Button */}
         {isCompleted ? (
-          <button
-            onClick={() => installApk()}
+          <a
+            href={DOWNLOAD_ENDPOINT}
+            download="ARCO-HR-v1.2.0.apk"
+            onClick={(e) => {
+              triggerInstallAction();
+            }}
             id="force-update-action-btn"
             style={{
               width: "100%",
@@ -329,11 +314,12 @@ export default function ForceUpdateModal() {
               transition: "all 0.2s ease",
               marginBottom: "14px",
               fontFamily: "inherit",
+              textDecoration: "none",
             }}
           >
             <span style={{ fontSize: "18px" }}>🚀</span>
             <span>تثبيت التحديث الآن (Install)</span>
-          </button>
+          </a>
         ) : downloadError ? (
           <button
             onClick={startRealDownload}
@@ -400,7 +386,7 @@ export default function ForceUpdateModal() {
             <span>تحديث مباشر متوافق مع نسختك:</span>
           </div>
           <div>
-            سيتم تنزيل ملف <strong>ARCO-HR-v1.2.0.apk</strong> وتثبيته مباشرة فوق التطبيق القديم دون حذفه.
+            اضغط على زر <strong>"تثبيت التحديث الآن"</strong> بالأعلى وسيفتح مثبت حزم أندرويد لتحديث التطبيق مباشرة.
           </div>
         </div>
 

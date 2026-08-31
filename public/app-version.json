@@ -2,7 +2,7 @@
   "latestVersion": "1.2.0",
   "versionCode": 4,
   "minRequiredVersion": "1.2.0",
-  "apkUrl": "https://expo.dev/artifacts/eas/KH8_TFgwCbJZU3xNmX-nNdVMNcpii9za8ATURA-slL4.apk",
+  "apkUrl": "https://hr-amr.vercel.app/api/download",
   "directDownloadUrl": "https://hr-amr.vercel.app/api/download",
   "releaseDate": "2026-08-31",
   "forceUpdate": true,
