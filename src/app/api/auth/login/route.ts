@@ -171,28 +171,40 @@ export async function POST(request: Request) {
       }
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set("hr_token", token, {
-      httpOnly: true,
+    const employeePayload = {
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      role: employee.role,
+      department: employee.department?.name,
+      shift: employee.shift?.name,
+      permissions: employee.permissions,
+    };
+
+    const response = NextResponse.json({
+      success: true,
+      employee: employeePayload,
+      token,
+    }, { headers });
+
+    // 1 Year Persistent Session Cookie (365 Days)
+    response.cookies.set("hr_token", token, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 365,
       path: "/",
       sameSite: "lax",
     });
 
-    return NextResponse.json({
-      success: true,
-      employee: {
-        id: employee.id,
-        name: employee.name,
-        email: employee.email,
-        role: employee.role,
-        department: employee.department?.name,
-        shift: employee.shift?.name,
-        permissions: employee.permissions,
-      },
-      token,
-    }, { headers });
+    response.cookies.set("hr_user", JSON.stringify(employeePayload), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+      sameSite: "lax",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500, headers });
