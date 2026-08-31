@@ -1,45 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1150 360" width="100%" height="100%">
   <defs>
-    <linearGradient id="blueWave" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1d4ed8" />
-      <stop offset="50%" stop-color="#0284c7" />
+    <linearGradient id="blueRibbon" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="45%" stop-color="#0284c7" />
       <stop offset="100%" stop-color="#38bdf8" />
     </linearGradient>
-    <linearGradient id="greenWave" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#059669" />
+    <linearGradient id="greenRibbon" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857" />
       <stop offset="50%" stop-color="#10b981" />
       <stop offset="100%" stop-color="#34d399" />
     </linearGradient>
-    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0284c7" flood-opacity="0.18" />
+    <filter id="logoGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0284c7" flood-opacity="0.15" />
     </filter>
   </defs>
 
-  <g transform="translate(40, 40)">
-    <!-- Arch Icon Group -->
-    <g filter="url(#subtleGlow)">
-      <!-- Left Curve Solid -->
-      <path d="M 60 220 C 50 160, 90 90, 160 50 C 130 90, 105 150, 95 220 Z" fill="url(#blueWave)" />
+  <g transform="translate(30, 25)">
+    <!-- Iconic Arch Waves -->
+    <g filter="url(#logoGlow)">
+      <!-- Left Outer Arch Curve -->
+      <path d="M 50 250 C 40 170, 95 85, 185 40 C 150 90, 115 160, 95 250 Z" fill="url(#blueRibbon)" />
       
-      <!-- Middle Arch Segment 1 -->
-      <path d="M 95 220 C 115 140, 180 60, 270 30 C 230 65, 175 135, 140 220 Z" fill="url(#blueWave)" />
+      <!-- Inner Arch Blue Swoosh -->
+      <path d="M 95 250 C 120 150, 205 60, 310 25 C 260 70, 195 150, 150 250 Z" fill="url(#blueRibbon)" />
       
-      <!-- Top Sweeping Green Ribbons -->
-      <path d="M 125 150 C 180 80, 260 40, 350 20 C 290 45, 215 90, 165 170 Z" fill="url(#greenWave)" />
-      <path d="M 170 120 C 225 65, 305 30, 390 10 C 330 35, 255 75, 205 145 Z" fill="url(#greenWave)" />
+      <!-- Upper Green Ribbons (Left to Right flow) -->
+      <path d="M 130 160 C 190 85, 290 35, 410 15 C 330 45, 235 100, 175 190 Z" fill="url(#greenRibbon)" />
+      <path d="M 180 130 C 245 65, 345 25, 460 5 C 385 35, 285 80, 225 160 Z" fill="url(#greenRibbon)" />
 
-      <!-- Right Leg of A -->
-      <path d="M 230 220 C 255 170, 290 120, 340 70 C 305 125, 270 175, 255 220 Z" fill="url(#blueWave)" />
+      <!-- Right Blue Leg -->
+      <path d="M 260 250 C 295 180, 345 120, 415 60 C 370 125, 325 185, 295 250 Z" fill="url(#blueRibbon)" />
     </g>
 
-    <!-- Typography -->
-    <!-- Arco -->
-    <text x="400" y="145" font-family="'Cairo', 'Segoe UI', Arial, sans-serif" font-weight="900" font-size="96" fill="#0f2b48" letter-spacing="-1">
-      Arco <tspan fill="#0284c7">Tech</tspan>
+    <!-- Arco Tech Typography -->
+    <!-- Arco in Navy Dark (#0a2540) -->
+    <text x="490" y="165" font-family="'Cairo', 'Segoe UI', Arial, sans-serif" font-weight="900" font-size="112" fill="#092540" letter-spacing="-1.5">
+      Arco
     </text>
-    
-    <!-- Subtitle -->
-    <text x="405" y="215" font-family="'Cairo', 'Segoe UI', Arial, sans-serif" font-weight="600" font-size="40" fill="#64748b" letter-spacing="0.5">
+
+    <!-- Tech in Cyan Blue (#0284c7) -->
+    <text x="745" y="165" font-family="'Cairo', 'Segoe UI', Arial, sans-serif" font-weight="900" font-size="112" fill="#0284c7" letter-spacing="-1.5">
+      Tech
+    </text>
+
+    <!-- Subtitle: For Management Sys in Elegant Slate Gray -->
+    <text x="495" y="245" font-family="'Cairo', 'Segoe UI', Arial, sans-serif" font-weight="600" font-size="46" fill="#64748b" letter-spacing="0.5">
       For Management Sys
     </text>
   </g>

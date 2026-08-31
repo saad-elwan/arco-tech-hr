@@ -67,17 +67,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [permissionsNeeded, setPermissionsNeeded] = useState(false);
+  const [toastNotif, setToastNotif] = useState<any>(null);
   const prevUnreadRef = useRef(0);
 
   useEffect(() => {
-    // Check permission status
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission !== "granted") {
-        setPermissionsNeeded(true);
-      }
-    }
-
     const checkNotifs = async () => {
       try {
         const res = await fetch("/api/notifications");
@@ -88,9 +81,13 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           // Play audio sound chime
           playNotificationSound();
           
-          // Show OS Popup Notification with full description
           const latest = d.notifications?.[0];
           if (latest) {
+            // Trigger in-app Toast Notification Popup
+            setToastNotif(latest);
+            setTimeout(() => setToastNotif(null), 6500);
+
+            // Show Native OS / Mobile Push Notification with full description
             showBrowserNotification(latest.title, {
               body: latest.desc || latest.body || latest.message || "لديك إشعار جديد في النظام",
               link: latest.link || "/dashboard"
@@ -103,24 +100,15 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     checkNotifs();
-    const interval = setInterval(checkNotifs, 15000);
+    const interval = setInterval(checkNotifs, 12000);
     return () => clearInterval(interval);
   }, []);
-
-  // Request all permissions at once (Notifications, GPS, Mic, Audio)
-  const handleActivateAllPermissions = async () => {
-    const res = await import("@/lib/audioNotifications").then(m => m.requestAllSystemPermissions());
-    if (res.notifications) {
-      setPermissionsNeeded(false);
-    }
-  };
 
   // Open notifications
   const handleNotifsClick = async () => {
     const nextState = !showNotifs;
     setShowNotifs(nextState);
     if (nextState) {
-      handleActivateAllPermissions();
       setUnreadCount(0);
       prevUnreadRef.current = 0;
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -283,30 +271,6 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
         )}
 
-        {/* Permission Request Prompt if not granted */}
-        {permissionsNeeded && (
-          <button
-            onClick={handleActivateAllPermissions}
-            className="btn btn-primary"
-            style={{
-              padding: "7px 14px",
-              fontSize: "12px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              background: "linear-gradient(135deg, #d4af37, #f59e0b)",
-              color: "#000",
-              borderRadius: "20px",
-              border: "none",
-              boxShadow: "0 0 15px rgba(212, 175, 55, 0.4)",
-              animation: "pulse 2s infinite"
-            }}
-          >
-            <Bell size={14} /> تفعيل الإشعارات والموقع
-          </button>
-        )}
-
         {/* Status Indicator */}
         <div style={{
           display: "flex",
@@ -415,6 +379,69 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
 
       </div>
+
+      {/* Live In-App Toast Popup Notification (Desktop & Mobile) */}
+      {toastNotif && (
+        <div 
+          onClick={() => {
+            if (toastNotif.link) router.push(toastNotif.link);
+            setToastNotif(null);
+          }}
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            maxWidth: "460px",
+            width: "calc(100% - 32px)",
+            background: "rgba(14, 18, 26, 0.95)",
+            border: "1.5px solid var(--gold-primary)",
+            borderRadius: "16px",
+            padding: "16px 20px",
+            boxShadow: "0 15px 40px rgba(0,0,0,0.6), 0 0 25px rgba(212, 175, 55, 0.35)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "14px",
+            animation: "slideIn 0.3s ease"
+          }}
+        >
+          <div style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(2,132,199,0.2))",
+            border: "1px solid var(--gold-primary)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, color: "var(--gold-primary)"
+          }}>
+            <Bell size={20} />
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+              <strong style={{ fontSize: "14px", color: "var(--gold-primary)" }}>{toastNotif.title}</strong>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>الآن</span>
+            </div>
+            <p style={{ margin: 0, fontSize: "13px", color: "var(--text-primary)", lineHeight: 1.5, wordBreak: "break-word" }}>
+              {toastNotif.desc || toastNotif.body || toastNotif.message || "لديك إشعار جديد في النظام"}
+            </p>
+          </div>
+
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setToastNotif(null);
+            }}
+            style={{
+              background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px"
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </header>
   );
 }

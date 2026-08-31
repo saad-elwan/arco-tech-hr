@@ -38,6 +38,30 @@ export async function POST(request: NextRequest) {
     data: { employeeId: auth.id, amount: Number(amount), reason }
   });
 
+  // Notify admins and superadmins
+  try {
+    const admins = await prisma.employee.findMany({
+      where: { role: { in: ["superadmin", "admin", "hr"] } },
+      select: { id: true }
+    });
+    const empData = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true } });
+    for (const adm of admins) {
+      await prisma.notification.create({
+        data: {
+          employeeId: adm.id,
+          title: "💵 طلب سلفة جديد",
+          body: `الموظف ${empData?.name || auth.name} تقدم بطلب سلفة بمبلغ ${Number(amount).toLocaleString('ar-EG')} ج.م (السبب: ${reason})`,
+          category: "finance",
+          type: "warning",
+          link: "/finance",
+          isRead: false,
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Advance notification error:", err);
+  }
+
   return NextResponse.json({ success: true, advance });
 }
 

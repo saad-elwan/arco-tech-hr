@@ -125,20 +125,45 @@ export default function LoginPage() {
     );
   }
 
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div className="login-page">
-      <div className="login-card" style={{ animation: "slideIn 0.4s ease" }}>
-        <div className="login-logo" style={{ marginBottom: "20px" }}>
-          <img 
-            src="/arco-logo.svg" 
-            alt="Arco Tech For Management Sys" 
-            style={{ width: "220px", height: "auto", margin: "0 auto 12px", display: "block" }} 
-          />
-          <p className="login-subtitle">نظام إدارة الموارد البشرية والعمليات المتكامل</p>
+    <div className="login-page" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", background: "radial-gradient(ellipse at center, rgba(15, 30, 55, 0.6) 0%, rgba(5, 5, 5, 0.98) 100%)" }}>
+      <div className="login-card" style={{ 
+        maxWidth: "440px", 
+        width: "100%", 
+        padding: "36px 32px", 
+        background: "rgba(14, 18, 26, 0.85)", 
+        border: "1px solid rgba(212, 175, 55, 0.35)", 
+        borderRadius: "24px", 
+        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(2, 132, 199, 0.15)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        animation: "slideIn 0.4s ease" 
+      }}>
+        {/* Unclipped Official Logo */}
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <div style={{ 
+            background: "#ffffff", 
+            padding: "16px 20px", 
+            borderRadius: "16px", 
+            display: "inline-block", 
+            width: "100%", 
+            boxShadow: "0 8px 25px rgba(0,0,0,0.3)" 
+          }}>
+            <img 
+              src="/arco-logo.svg" 
+              alt="Arco Tech For Management Sys" 
+              style={{ width: "100%", height: "auto", maxHeight: "85px", objectFit: "contain", display: "block", margin: "0 auto" }} 
+            />
+          </div>
+          <p style={{ margin: "14px 0 0", fontSize: "13px", color: "var(--gold-primary)", fontWeight: 600, letterSpacing: "0.5px" }}>
+            نظام إدارة الموارد البشرية والعمليات المتكامل
+          </p>
         </div>
 
         {error && (
-          <div className="alert alert-danger">
+          <div className="alert alert-danger" style={{ marginBottom: "20px", borderRadius: "12px", fontSize: "13px" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
@@ -146,55 +171,97 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label">البريد الإلكتروني أو اسم المستخدم</label>
-            <input
-              type="text"
-              className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="مثال: Arco أو admin@company.com"
-              required
-              id="login-email"
-              autoComplete="username"
-            />
+        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>
+              البريد الإلكتروني أو اسم المستخدم
+            </label>
+            <div style={{ position: "relative" }}>
+              <input
+                type="text"
+                className="form-control"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="مثال: Arco أو admin@company.com"
+                required
+                id="login-email"
+                autoComplete="username"
+                style={{ height: "48px", borderRadius: "12px", paddingRight: "16px", paddingLeft: "16px", fontSize: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">كلمة المرور</label>
-            <input
-              type="password"
-              className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              id="login-password"
-              autoComplete="current-password"
-            />
+
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }}>
+              كلمة المرور
+            </label>
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                className="form-control"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                id="login-password"
+                autoComplete="current-password"
+                style={{ height: "48px", borderRadius: "12px", paddingRight: "16px", paddingLeft: "42px", fontSize: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
+
           <button
             type="submit"
             className="btn btn-primary"
             disabled={loading}
             id="login-btn"
-            style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
+            style={{ 
+              width: "100%", 
+              height: "48px",
+              justifyContent: "center", 
+              marginTop: "10px", 
+              borderRadius: "14px", 
+              fontSize: "15px", 
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #d4af37, #b38b22)",
+              boxShadow: "0 4px 20px rgba(212, 175, 55, 0.4)",
+              color: "#000"
+            }}
           >
             {loading ? (
               <>
-                <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2, borderTopColor: "#000" }} />
                 جاري تسجيل الدخول...
               </>
             ) : (
               <>
                 <LogIn size={18} />
-                تسجيل الدخول
+                تسجيل الدخول للنظام
               </>
             )}
           </button>
         </form>
 
-        <div className="gold-divider" style={{ margin: "24px 0 16px" }} />
+        <div className="gold-divider" style={{ margin: "24px 0 18px" }} />
         
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
           <button

@@ -23,6 +23,31 @@ export async function POST(request: NextRequest) {
     }
   });
 
+  // Notify admins and superadmins
+  try {
+    const admins = await prisma.employee.findMany({
+      where: { role: { in: ["superadmin", "admin", "hr"] } },
+      select: { id: true }
+    });
+    const empData = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true } });
+    const leaveTypeName = type === "vacation" ? "إجازة سنوية/عارضة" : type === "early_leave" ? "إذن انصراف مبكر" : "إذن غياب";
+    for (const adm of admins) {
+      await prisma.notification.create({
+        data: {
+          employeeId: adm.id,
+          title: "🏖️ طلب إجازة / إذن جديد",
+          body: `الموظف ${empData?.name || auth.name} تقدم بطلب (${leaveTypeName}) لتاريخ ${date} (السبب: ${reason})`,
+          category: "requests",
+          type: "info",
+          link: "/requests",
+          isRead: false,
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Leave notification error:", err);
+  }
+
   return NextResponse.json({ success: true, leave });
 }
 

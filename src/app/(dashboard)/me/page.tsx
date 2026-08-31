@@ -397,6 +397,74 @@ export default function EmployeePortal() {
         </div>
       </div>
 
+      {/* Advance Requests History */}
+      <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 15, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+            <FileText size={18} color="var(--gold-primary)" /> سجل ومتابعة طلبات السلف وموقف الاعتماد
+          </h3>
+          <button onClick={() => setShowAdvanceForm(true)} className="btn btn-primary btn-sm">
+            <Plus size={14} /> طلب سلفة جديدة
+          </button>
+        </div>
+        {!advances.requests || advances.requests.length === 0 ? (
+          <p style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "20px 0" }}>لا توجد طلبات سلف سابقة مسجلة</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {advances.requests.map((adv: any) => {
+              const isApproved = adv.status === "approved";
+              const isRejected = adv.status === "rejected";
+              const isPending = adv.status === "pending";
+              const remaining = isApproved ? Math.max(0, adv.approvedAmount - adv.repaidAmount) : 0;
+
+              return (
+                <div 
+                  key={adv.id} 
+                  style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    alignItems: "center", 
+                    padding: "14px 16px", 
+                    borderRadius: 10, 
+                    background: "var(--bg-secondary)", 
+                    border: `1px solid ${isApproved ? "rgba(16,185,129,0.3)" : isRejected ? "rgba(239,68,68,0.3)" : "var(--border)"}`,
+                    flexWrap: "wrap",
+                    gap: 12
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                        {adv.amount?.toLocaleString("ar-EG")} جنيه
+                      </span>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                        بتاريخ {adv.date || new Date(adv.createdAt).toLocaleDateString("ar-EG")}
+                      </span>
+                    </div>
+                    {adv.reason && (
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
+                        السبب: {adv.reason}
+                      </div>
+                    )}
+                    {isApproved && (
+                      <div style={{ fontSize: 12, color: "var(--gold-primary)", marginTop: 4, fontWeight: 600 }}>
+                        المعتمد: {adv.approvedAmount?.toLocaleString("ar-EG")} ج.م • تم سداد: {adv.repaidAmount?.toLocaleString("ar-EG")} ج.م • المتبقي: {remaining.toLocaleString("ar-EG")} ج.م
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <span className={`badge ${isApproved ? "badge-success" : isRejected ? "badge-danger" : "badge-warning"}`} style={{ padding: "6px 12px", fontSize: "12px" }}>
+                      {isApproved ? "✅ تمت الموافقة والاعتماد" : isRejected ? "❌ تم الرفض" : "⏳ قيد المراجعة والتدقيق"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Leave Requests */}
       <div className="card" style={{ padding: 20, marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
