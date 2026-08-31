@@ -7,9 +7,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
+
+  // Persistent session auto-redirect if already logged in
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem("hr_user");
+      const savedToken = localStorage.getItem("hr_token");
+      if (savedUser && savedToken) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.role === "employee" || parsed?.role === "delegate") {
+          router.replace("/me");
+          return;
+        } else if (parsed?.role) {
+          router.replace("/dashboard");
+          return;
+        }
+      }
+    } catch {}
+    setCheckingAuth(false);
+  }, [router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +63,26 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#050505",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src="/arco-logo.png"
+          alt="ARCO"
+          style={{ width: "180px", maxHeight: "70px", objectFit: "contain" }}
+        />
+      </div>
+    );
   }
 
   return (
