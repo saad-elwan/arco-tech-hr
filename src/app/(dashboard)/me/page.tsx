@@ -19,6 +19,12 @@ export default function EmployeePortal() {
   const [company, setCompany] = useState<any>(null);
   const [myRoutes, setMyRoutes] = useState<any[]>([]);
 
+  // Unable to reach modal state
+  const [selectedCheckpoint, setSelectedCheckpoint] = useState<any>(null);
+  const [isUnableModalOpen, setIsUnableModalOpen] = useState(false);
+  const [unableReason, setUnableReason] = useState("");
+  const [savingCheckpoint, setSavingCheckpoint] = useState(false);
+
   useEffect(() => {
     let mounted = true;
     async function loadInitialData() {
@@ -44,30 +50,51 @@ export default function EmployeePortal() {
       .then(d => { if (mounted && Array.isArray(d)) setMyRoutes(d); })
       .catch(() => {});
 
-    // Continuous Location Tracking Service (Every 5 minutes)
-    const sendPeriodicLocation = () => {
-      if (typeof navigator !== "undefined" && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-          try {
-            await fetch("/api/location", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-              })
-            });
-          } catch {}
-        }, () => {}, { enableHighAccuracy: true });
-      }
+    // Continuous High-Accuracy Location Tracking Service (Real-time watch + 1-minute interval)
+    let watchId: number | null = null;
+    let lastSent = 0;
+    let locInterval: any = null;
+
+    const postLocation = async (lat: number, lng: number) => {
+      const now = Date.now();
+      if (now - lastSent < 20000) return; // Debounce to max once per 20s
+      lastSent = now;
+      try {
+        await fetch("/api/location", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ latitude: lat, longitude: lng })
+        });
+      } catch {}
     };
 
-    sendPeriodicLocation();
-    const locInterval = setInterval(sendPeriodicLocation, 5 * 60 * 1000); // 5 minutes
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => postLocation(pos.coords.latitude, pos.coords.longitude),
+          () => {},
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+        );
+      } catch {}
+
+      const sendPeriodicLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => postLocation(pos.coords.latitude, pos.coords.longitude),
+          () => {},
+          { enableHighAccuracy: true }
+        );
+      };
+
+      sendPeriodicLocation();
+      locInterval = setInterval(sendPeriodicLocation, 60000); // 1 minute
+    }
 
     return () => { 
       mounted = false; 
-      clearInterval(locInterval);
+      if (watchId !== null && typeof navigator !== "undefined" && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+      if (locInterval) clearInterval(locInterval);
     };
   }, []);
 
@@ -86,6 +113,34 @@ export default function EmployeePortal() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const openUnableModal = (cp: any) => {
+    setSelectedCheckpoint(cp);
+    setUnableReason("");
+    setIsUnableModalOpen(true);
+  };
+
+  const handleUnableSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCheckpoint || !unableReason.trim()) return;
+    setSavingCheckpoint(true);
+    try {
+      const res = await fetch(`/api/routes/checkpoints/${selectedCheckpoint.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "skipped", notes: unableReason.trim() })
+      });
+      if (res.ok) {
+        setIsUnableModalOpen(false);
+        const today = new Date().toISOString().split("T")[0];
+        fetch(`/api/routes?date=${today}`)
+          .then(r => r.json())
+          .then(d => { if (Array.isArray(d)) setMyRoutes(d); });
+      }
+    } finally {
+      setSavingCheckpoint(false);
     }
   };
 
@@ -305,14 +360,36 @@ export default function EmployeePortal() {
                         <span className="badge badge-success" style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <CheckCircle size={14} /> تمت الزيارة بنجاح
                         </span>
+                      ) : cp.status === "skipped" ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span className="badge badge-warning" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <AlertCircle size={14} /> تعذر الوصول ({cp.notes || "غير محدد"})
+                          </span>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleVisitCheckpoint(cp.id)}
+                            style={{ fontSize: "11px", padding: "4px 8px" }}
+                          >
+                            إعادة المحاولة
+                          </button>
+                        </div>
                       ) : (
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => handleVisitCheckpoint(cp.id)}
-                          style={{ display: "flex", alignItems: "center", gap: 6 }}
-                        >
-                          <CheckCircle size={14} /> تأكيد زيارة العميل
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => handleVisitCheckpoint(cp.id)}
+                            style={{ display: "flex", alignItems: "center", gap: 6 }}
+                          >
+                            <CheckCircle size={14} /> تأكيد زيارة العميل
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => openUnableModal(cp)}
+                            style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--danger)", borderColor: "rgba(239,68,68,0.3)" }}
+                          >
+                            <AlertCircle size={14} /> تعذر الوصول
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -611,6 +688,72 @@ export default function EmployeePortal() {
               <button className="btn btn-secondary" onClick={() => setShowLeaveForm(false)}>إلغاء</button>
               <button className="btn btn-primary" onClick={submitLeave} disabled={!leaveReason}>إرسال الطلب</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* UNABLE TO REACH MODAL */}
+      {isUnableModalOpen && selectedCheckpoint && (
+        <div className="modal-overlay" onClick={() => !savingCheckpoint && setIsUnableModalOpen(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: "460px" }}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--danger)" }}>
+                <AlertCircle size={20} /> تسجيل سبب تعذر زيارة العميل
+              </h3>
+              <button className="modal-close" onClick={() => setIsUnableModalOpen(false)}>✕</button>
+            </div>
+            <form onSubmit={handleUnableSubmit}>
+              <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ padding: "12px 14px", borderRadius: "8px", background: "rgba(255,255,255,0.03)", fontSize: "13px" }}>
+                  العميل: <strong style={{ color: "var(--gold-primary)" }}>{selectedCheckpoint.clientName}</strong>
+                  {selectedCheckpoint.address && <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: 2 }}>العنوان: {selectedCheckpoint.address}</div>}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">سبب تعذر الوصول / إلغاء الزيارة <span style={{ color: "var(--danger)" }}>*</span></label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    placeholder="اكتب سبب عدم إتمام الزيارة بالتفصيل (مثل: المحل مغلق، لم يتم الرد، العميل طلب التأجيل...)"
+                    value={unableReason}
+                    onChange={(e) => setUnableReason(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                {/* Quick Suggestion Tags */}
+                <div>
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: 6 }}>أسباب شائعة سريعة (انقر للاختيار):</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {["مقر العميل مغلق", "عدم تواجد المسؤول", "العنوان غير مطابق", "طلب العميل تأجيل الموعد", "تعذر الاتصال هاتفياً"].map((tag) => (
+                      <button
+                        type="button"
+                        key={tag}
+                        onClick={() => setUnableReason(tag)}
+                        style={{
+                          background: "rgba(212,175,55,0.08)",
+                          border: "1px solid rgba(212,175,55,0.2)",
+                          borderRadius: "6px",
+                          padding: "4px 8px",
+                          fontSize: "11px",
+                          color: "var(--text-secondary)",
+                          cursor: "pointer"
+                        }}
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsUnableModalOpen(false)}>إلغاء</button>
+                <button type="submit" className="btn btn-danger" disabled={savingCheckpoint}>
+                  {savingCheckpoint ? "جاري الإرسال..." : "تأكيد تعذر الزيارة"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

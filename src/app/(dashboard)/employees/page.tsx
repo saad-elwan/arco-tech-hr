@@ -98,6 +98,28 @@ export default function EmployeesPage() {
     setIsFormModalOpen(true);
   };
 
+  const openAddDelegateForm = () => {
+    setIsEditMode(false);
+    setSelectedEmp(null);
+    setFormData({ 
+      name: "", 
+      email: "", 
+      password: "", 
+      phone: "", 
+      nationalId: "", 
+      role: "delegate", 
+      status: "active", 
+      departmentId: "", 
+      shiftId: "", 
+      fingerprintId: "", 
+      hireDate: new Date().toISOString().split("T")[0], 
+      basicSalary: "", 
+      maxAdvanceLimit: "", 
+      permissions: ["/me", "/tracking", "/tasks"] 
+    });
+    setIsFormModalOpen(true);
+  };
+
   const openEditForm = (emp: any) => {
     setIsEditMode(true);
     setSelectedEmp(emp);
@@ -120,7 +142,13 @@ export default function EmployeesPage() {
     setIsFormModalOpen(true);
   };
 
-  const roleLabels: Record<string, string> = { admin: "مدير نظام", hr: "موارد بشرية", employee: "موظف" };
+  const roleLabels: Record<string, string> = { 
+    superadmin: "مشرف عام",
+    admin: "مدير نظام", 
+    hr: "موارد بشرية", 
+    employee: "موظف",
+    delegate: "🚗 مندوب ميداني"
+  };
 
   const availablePermissions = [
     { id: "/me", label: "حسابي (أساسي)" },
@@ -152,9 +180,18 @@ export default function EmployeesPage() {
           </h1>
           <p className="page-subtitle">عرض التفاصيل الدقيقة والسجلات الوظيفية لكل فرد في المؤسسة</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddForm} style={{ boxShadow: "0 4px 15px rgba(212, 175, 55, 0.3)" }}>
-          <UserPlus size={18} /> تعيين موظف جديد
-        </button>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={openAddDelegateForm} 
+            style={{ display: "flex", alignItems: "center", gap: 8, borderColor: "rgba(56, 189, 248, 0.4)", color: "#38bdf8" }}
+          >
+            🚗 إضافة مندوب جديد
+          </button>
+          <button className="btn btn-primary" onClick={openAddForm} style={{ boxShadow: "0 4px 15px rgba(212, 175, 55, 0.3)" }}>
+            <UserPlus size={18} /> تعيين موظف جديد
+          </button>
+        </div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: "24px" }}>
@@ -377,6 +414,7 @@ export default function EmployeesPage() {
                     <label className="form-label">تفضيلات الوصول (الصلاحية)</label>
                     <select className="form-control" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
                       <option value="employee">موظف (صلاحيات محدودة)</option>
+                      <option value="delegate">🚗 مندوب ميداني (Delegate)</option>
                       <option value="hr">إدارة الموارد البشرية</option>
                       <option value="admin">مدير نظام (صلاحيات كاملة)</option>
                     </select>
@@ -410,7 +448,7 @@ export default function EmployeesPage() {
                     <input type="text" className="form-control" value={formData.fingerprintId} onChange={e => setFormData({...formData, fingerprintId: e.target.value})} placeholder="مثال: 1004" />
                   </div>
                   
-                  {formData.role === "employee" && (
+                  {(formData.role === "employee" || formData.role === "delegate") && (
                     <div className="form-group" style={{ gridColumn: "1 / -1" }}>
                       <label className="form-label">الصفحات المسموح للموظف برؤيتها (الصلاحيات المخصصة)</label>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border)" }}>

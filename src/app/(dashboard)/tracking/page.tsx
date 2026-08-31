@@ -13,8 +13,9 @@ export default function TrackingPage() {
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
 
-  // Route modal states
+  // Route Creation & Editing State
   const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+  const [editingRoute, setEditingRoute] = useState<any>(null);
   const [delegates, setDelegates] = useState<any[]>([]);
   const [routeTitle, setRouteTitle] = useState("");
   const [selectedDelegateId, setSelectedDelegateId] = useState("");
@@ -59,6 +60,51 @@ export default function TrackingPage() {
     }
   };
 
+  const openAddRouteModal = () => {
+    setEditingRoute(null);
+    setRouteTitle("");
+    setSelectedDelegateId("");
+    setCheckpoints([{ clientName: "", address: "", phone: "", lat: 30.0444, lng: 31.2357 }]);
+    setRouteMsg({ error: "", success: "" });
+    setIsRouteModalOpen(true);
+  };
+
+  const openEditRouteModal = (rt: any) => {
+    setEditingRoute(rt);
+    setRouteTitle(rt.title);
+    setSelectedDelegateId(rt.delegateId || rt.delegate?.id || "");
+    setCheckpoints(
+      rt.checkpoints && rt.checkpoints.length > 0
+        ? rt.checkpoints.map((cp: any) => ({
+            clientName: cp.clientName || "",
+            address: cp.address || "",
+            phone: cp.phone || "",
+            lat: cp.lat || 30.0444,
+            lng: cp.lng || 31.2357,
+            status: cp.status || "pending",
+            notes: cp.notes || null,
+          }))
+        : [{ clientName: "", address: "", phone: "", lat: 30.0444, lng: 31.2357 }]
+    );
+    setRouteMsg({ error: "", success: "" });
+    setIsRouteModalOpen(true);
+  };
+
+  const handleDeleteRoute = async (rt: any) => {
+    if (!confirm(`هل أنت متأكد من رغبتك في حذف خط السير "${rt.title}" للمندوب ${rt.delegate?.name || ""}?`)) return;
+    try {
+      const res = await fetch(`/api/routes?id=${rt.id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchLocationData();
+      } else {
+        const d = await res.json();
+        alert(d.error || "تعذر حذف خط السير");
+      }
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
   const addCheckpointRow = () => {
     setCheckpoints(prev => [
       ...prev,
@@ -74,21 +120,25 @@ export default function TrackingPage() {
     setCheckpoints(prev => prev.map((cp, i) => i === idx ? { ...cp, [field]: value } : cp));
   };
 
-  const handleCreateRoute = async (e: React.FormEvent) => {
+  const handleCreateOrUpdateRoute = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingRoute(true);
     setRouteMsg({ error: "", success: "" });
 
     try {
+      const method = editingRoute ? "PUT" : "POST";
+      const body: any = {
+        delegateId: selectedDelegateId,
+        date: selectedDate,
+        title: routeTitle,
+        checkpoints
+      };
+      if (editingRoute) body.id = editingRoute.id;
+
       const res = await fetch("/api/routes", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          delegateId: selectedDelegateId,
-          date: selectedDate,
-          title: routeTitle,
-          checkpoints
-        })
+        body: JSON.stringify(body)
       });
 
       const resData = await res.json();
@@ -97,11 +147,12 @@ export default function TrackingPage() {
         return;
       }
 
-      setRouteMsg({ error: "", success: "تم إنشاء خط السير بنجاح وإسناده للمندوب!" });
+      setRouteMsg({ error: "", success: editingRoute ? "تم تعديل خط السير بنجاح!" : "تم إنشاء خط السير بنجاح وإسناده للمندوب!" });
       fetchLocationData();
       setTimeout(() => {
         setIsRouteModalOpen(false);
         setRouteMsg({ error: "", success: "" });
+        setEditingRoute(null);
         setRouteTitle("");
         setSelectedDelegateId("");
         setCheckpoints([{ clientName: "", address: "", phone: "", lat: 30.0444, lng: 31.2357 }]);
@@ -148,7 +199,7 @@ export default function TrackingPage() {
           />
           <button 
             className="btn btn-primary"
-            onClick={() => setIsRouteModalOpen(true)}
+            onClick={openAddRouteModal}
             style={{ display: "flex", alignItems: "center", gap: 8 }}
           >
             <Plus size={16} /> إضافة خط سير يومي للمندوب
@@ -205,9 +256,27 @@ export default function TrackingPage() {
                         المندوب: <strong>{rt.delegate?.name}</strong> {rt.delegate?.phone ? `(${rt.delegate.phone})` : ""}
                       </p>
                     </div>
-                    <span className={`badge ${pct === 100 ? "badge-success" : "badge-gold"}`}>
-                      {pct}% مكتمل
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span className={`badge ${pct === 100 ? "badge-success" : "badge-gold"}`}>
+                        {pct}% مكتمل
+                      </span>
+                      <button
+                        className="btn btn-ghost btn-sm btn-icon"
+                        style={{ color: "var(--gold-primary)" }}
+                        onClick={() => openEditRouteModal(rt)}
+                        title="تعديل خط السير"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm btn-icon"
+                        style={{ color: "var(--danger)" }}
+                        onClick={() => handleDeleteRoute(rt)}
+                        title="حذف خط السير"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Progress Bar */}
@@ -227,14 +296,17 @@ export default function TrackingPage() {
                         key={cp.id}
                         style={{ 
                           fontSize: "12px", padding: "6px 10px", borderRadius: "6px", 
-                          background: cp.status === "visited" ? "rgba(16, 185, 129, 0.1)" : "rgba(255,255,255,0.03)",
-                          border: `1px solid ${cp.status === "visited" ? "rgba(16, 185, 129, 0.3)" : "rgba(255,255,255,0.06)"}`,
+                          background: cp.status === "visited" ? "rgba(16, 185, 129, 0.1)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.1)" : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${cp.status === "visited" ? "rgba(16, 185, 129, 0.3)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.3)" : "rgba(255,255,255,0.06)"}`,
                           display: "flex", justifyContent: "space-between", alignItems: "center"
                         }}
                       >
                         <span>#{cp.order} {cp.clientName}</span>
-                        <span style={{ color: cp.status === "visited" ? "var(--success)" : "var(--gold-primary)", fontWeight: 600 }}>
-                          {cp.status === "visited" ? "تمت الزيارة" : "قيد الانتظار"}
+                        <span style={{ 
+                          color: cp.status === "visited" ? "var(--success)" : cp.status === "skipped" ? "var(--danger)" : "var(--gold-primary)", 
+                          fontWeight: 600 
+                        }}>
+                          {cp.status === "visited" ? "✅ تمت الزيارة" : cp.status === "skipped" ? `⚠️ تعذر: ${cp.notes || ""}` : "⏳ قيد الانتظار"}
                         </span>
                       </div>
                     ))}
@@ -329,11 +401,11 @@ export default function TrackingPage() {
           <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--gold-primary)" }}>
-                <Navigation size={20} /> إضافة خط سير يومي جديد للمندوب
+                <Navigation size={20} /> {editingRoute ? "تعديل بيانات ومحطات خط السير" : "إضافة خط سير يومي جديد للمندوب"}
               </h3>
               <button className="modal-close" onClick={() => setIsRouteModalOpen(false)}>✕</button>
             </div>
-            <form onSubmit={handleCreateRoute}>
+            <form onSubmit={handleCreateOrUpdateRoute}>
               <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {routeMsg.error && <div className="alert alert-danger">{routeMsg.error}</div>}
                 {routeMsg.success && <div className="alert alert-success">{routeMsg.success}</div>}
@@ -446,7 +518,7 @@ export default function TrackingPage() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsRouteModalOpen(false)}>إلغاء</button>
                 <button type="submit" className="btn btn-primary" disabled={savingRoute}>
-                  {savingRoute ? "جاري الحفظ..." : "حفظ وإسناد خط السير"}
+                  {savingRoute ? "جاري الحفظ..." : editingRoute ? "حفظ التعديلات" : "حفظ وإسناد خط السير"}
                 </button>
               </div>
             </form>

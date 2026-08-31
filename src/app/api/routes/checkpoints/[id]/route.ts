@@ -52,6 +52,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     data: { status: newRouteStatus }
   });
 
+  // If skipped / unable to reach, notify admins
+  if (status === "skipped") {
+    try {
+      const { createAdminNotification } = await import("@/lib/notifications");
+      await createAdminNotification({
+        type: "warning",
+        category: "task",
+        title: `⚠️ تعذر زيارة عميل: ${checkpoint.clientName}`,
+        body: `أفاد المندوب ${auth.name} بتعذر الوصول للعميل "${checkpoint.clientName}". السبب: ${notes || "لم يُحدد"}`,
+        link: "/tracking"
+      });
+    } catch {}
+  }
+
   return NextResponse.json({
     success: true,
     checkpoint: updatedCheckpoint,
