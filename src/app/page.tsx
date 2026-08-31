@@ -336,9 +336,9 @@ export default function LoginPage() {
         </div>
 
         <div id="androidHint" style={{ display: 'none', background: 'rgba(61, 220, 132, 0.1)', border: '1px solid rgba(61, 220, 132, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>📱 جاري تحميل تطبيق ARCO HR (APK v1.2.0):</strong><br />
-          1. سيبدأ تحميل ملف التثبيت المباشر <strong>(ARCO-HR-v1.2.0.apk)</strong> على هاتفك الآن.<br />
-          2. بعد اكتمال التحميل، افتح الملف من الإشعارات أو مدير الملفات واضغط <strong>"تثبيت" (Install)</strong>.
+          <strong>📱 تثبيت تطبيق ARCO HR الجديد (APK v1.2.0):</strong><br />
+          1. ⚠️ <strong>الخطوة الأولى:</strong> احذف التطبيق القديم من هاتفك (إلغاء التثبيت).<br />
+          2. 📥 <strong>الخطوة الثانية:</strong> افتح ملف <strong>(ARCO-HR-v1.2.0.apk)</strong> واضغط <strong>"تثبيت" (Install)</strong>.
         </div>
 
         <div id="iosHint" style={{ display: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>

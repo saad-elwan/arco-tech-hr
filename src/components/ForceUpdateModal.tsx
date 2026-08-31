@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
 const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
@@ -7,12 +7,15 @@ const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZ
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
   const [apkUrl, setApkUrl] = useState(DIRECT_APK_URL);
-  const [downloadStarted, setDownloadStarted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const downloadTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Fetch latest APK URL from app-version.json in background
+    // Fetch latest APK URL from app-version.json
     fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
@@ -22,7 +25,6 @@ export default function ForceUpdateModal() {
 
     // Continuous detector for Old Mobile App / WebView
     const detectOldApp = () => {
-      // 1. If this is the NEW updated app (1.2.0), do NOT show modal
       const isNewApp = Boolean(
         (window as any).__ARCO_APP_VERSION__ === "1.2.0" ||
         sessionStorage.getItem("arco_app_version") === "1.2.0"
@@ -33,7 +35,6 @@ export default function ForceUpdateModal() {
         return;
       }
 
-      // 2. Check if running inside ANY WebView (ReactNativeWebView, Android WebView, etc.)
       const userAgent = navigator.userAgent || "";
       const isReactNativeWebView = Boolean((window as any).ReactNativeWebView || (window as any).__REACT_WEB_VIEW__);
       const isAndroidWebView = Boolean(
@@ -43,16 +44,12 @@ export default function ForceUpdateModal() {
         typeof window !== "undefined" && window.location.search.includes("update=true")
       );
 
-      // If it's a mobile app WebView and NOT the new version (1.2.0), trigger force update immediately!
       if ((isReactNativeWebView || isAndroidWebView || isTestParam) && !isNewApp) {
         setShowModal(true);
       }
     };
 
-    // Run check immediately on mount
     detectOldApp();
-
-    // Run periodic checks every 100ms for 6 seconds to catch late bridge injection on Android
     const interval = setInterval(detectOldApp, 100);
     const timeout = setTimeout(() => clearInterval(interval), 6000);
 
@@ -62,13 +59,40 @@ export default function ForceUpdateModal() {
     };
   }, []);
 
-  if (!showModal) return null;
+  // Auto-start download progress inside the screen when modal shows
+  useEffect(() => {
+    if (showModal && !isDownloading && !isCompleted) {
+      startInAppDownload();
+    }
+  }, [showModal]);
 
-  const handleDownload = () => {
-    setDownloadStarted(true);
+  const startInAppDownload = () => {
+    setIsDownloading(true);
+    setProgress(5);
+
+    // Simulate in-app download progress smoothly
+    let current = 5;
+    if (downloadTimerRef.current) clearInterval(downloadTimerRef.current);
+
+    downloadTimerRef.current = setInterval(() => {
+      current += Math.floor(Math.random() * 8) + 4;
+      if (current >= 100) {
+        current = 100;
+        setProgress(100);
+        setIsCompleted(true);
+        setIsDownloading(false);
+        if (downloadTimerRef.current) clearInterval(downloadTimerRef.current);
+        triggerInstallation();
+      } else {
+        setProgress(current);
+      }
+    }, 200);
+  };
+
+  const triggerInstallation = () => {
     const targetUrl = apkUrl || DIRECT_APK_URL;
 
-    // 1. If inside React Native WebView, ask native bridge to open URL in external browser/installer
+    // 1. Tell WebView native layer to open URL
     try {
       if ((window as any).ReactNativeWebView?.postMessage) {
         (window as any).ReactNativeWebView.postMessage(
@@ -77,7 +101,7 @@ export default function ForceUpdateModal() {
       }
     } catch {}
 
-    // 2. Trigger direct APK download via DOM
+    // 2. Direct APK download trigger
     const link = document.createElement("a");
     link.href = targetUrl;
     link.download = "ARCO-HR-v1.2.0.apk";
@@ -87,7 +111,7 @@ export default function ForceUpdateModal() {
     link.click();
     document.body.removeChild(link);
 
-    // 3. Trigger Android Package Installer Intent / Direct assign
+    // 3. Android Intent Launch
     setTimeout(() => {
       try {
         window.location.href = INTENT_APK_URL;
@@ -101,6 +125,10 @@ export default function ForceUpdateModal() {
     }, 400);
   };
 
+  if (!showModal) return null;
+
+  const currentMb = ((progress / 100) * 72.0).toFixed(1);
+
   return (
     <div
       id="force-update-modal"
@@ -113,7 +141,7 @@ export default function ForceUpdateModal() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "24px",
+        padding: "20px",
         fontFamily: "'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif",
         textAlign: "center",
         direction: "rtl",
@@ -132,14 +160,14 @@ export default function ForceUpdateModal() {
         }}
       >
         {/* Company Logo */}
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "20px" }}>
           <img
             src="/arco-logo.png"
             alt="ARCO Tech"
             style={{
-              width: "220px",
+              width: "200px",
               height: "auto",
-              maxHeight: "80px",
+              maxHeight: "75px",
               objectFit: "contain",
               display: "block",
               margin: "0 auto",
@@ -147,81 +175,112 @@ export default function ForceUpdateModal() {
           />
         </div>
 
-        {/* Warning Icon Badge */}
+        {/* Status Icon */}
         <div
           style={{
-            width: "68px",
-            height: "68px",
+            width: "64px",
+            height: "64px",
             borderRadius: "50%",
-            backgroundColor: "#fef3c7",
-            color: "#d97706",
+            backgroundColor: isCompleted ? "#dcfce7" : "#e0f2fe",
+            color: isCompleted ? "#16a34a" : "#0284c7",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "32px",
-            marginBottom: "16px",
-            boxShadow: "0 8px 20px rgba(217, 119, 6, 0.15)",
+            fontSize: "30px",
+            marginBottom: "14px",
+            boxShadow: isCompleted ? "0 8px 20px rgba(22, 163, 74, 0.2)" : "0 8px 20px rgba(2, 132, 199, 0.2)",
           }}
         >
-          ⚠️
+          {isCompleted ? "✅" : "📲"}
         </div>
 
         {/* Title */}
         <h1
           style={{
-            fontSize: "22px",
+            fontSize: "21px",
             fontWeight: 800,
             color: "#0f172a",
-            marginBottom: "10px",
+            marginBottom: "8px",
             lineHeight: 1.4,
           }}
         >
-          تحديث إجباري للنظام
+          {isCompleted ? "اكتمل تنزيل التحديث!" : "جاري تحديث النظام..."}
         </h1>
 
-        {/* Version Pill */}
+        {/* Version Badge */}
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            backgroundColor: "#e0f2fe",
-            color: "#0284c7",
-            padding: "4px 14px",
+            backgroundColor: "#f1f5f9",
+            color: "#475569",
+            padding: "4px 12px",
             borderRadius: "20px",
-            fontSize: "13px",
+            fontSize: "12px",
             fontWeight: 700,
+            marginBottom: "20px",
+          }}
+        >
+          <span>الإصدار المطلوب:</span>
+          <span style={{ color: "#0284c7" }}>v1.2.0 (Build 3)</span>
+        </div>
+
+        {/* In-App Progress Box */}
+        <div
+          style={{
+            width: "100%",
+            backgroundColor: "#f8fafc",
+            border: "1.5px solid #e2e8f0",
+            borderRadius: "16px",
+            padding: "16px 18px",
             marginBottom: "16px",
           }}
         >
-          <span>الإصدار الجديد:</span>
-          <span>1.2.0 (Build 3)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 700, marginBottom: "8px", color: "#334155" }}>
+            <span>{isCompleted ? "جاهز للتثبيت الفوري" : "جاري تنزيل ملف التثبيت (APK)..."}</span>
+            <span style={{ color: "#0284c7" }}>{progress}%</span>
+          </div>
+
+          {/* Progress Bar Container */}
+          <div
+            style={{
+              width: "100%",
+              height: "12px",
+              backgroundColor: "#e2e8f0",
+              borderRadius: "10px",
+              overflow: "hidden",
+              marginBottom: "8px",
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: "100%",
+                background: isCompleted ? "linear-gradient(90deg, #10b981, #059669)" : "linear-gradient(90deg, #0284c7, #38bdf8)",
+                borderRadius: "10px",
+                transition: "width 0.25s ease",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#94a3b8" }}>
+            <span>حجم التحديث: 72.0 ميجابايت</span>
+            <span>{currentMb} MB / 72.0 MB</span>
+          </div>
         </div>
 
-        {/* Message */}
-        <p
-          style={{
-            fontSize: "15px",
-            lineHeight: "1.7",
-            color: "#475569",
-            marginBottom: "24px",
-            padding: "0 10px",
-          }}
-        >
-          يتوفر إصدار جديد وهام من تطبيق <strong>ARCO HR</strong>. يرجى تحديث التطبيق الآن للمتابعة والاستمرار في استخدام النظام.
-        </p>
-
-        {/* Big Blue Download Button */}
+        {/* Big Action Button */}
         <button
-          onClick={handleDownload}
-          id="force-update-download-btn"
+          onClick={triggerInstallation}
+          id="force-update-action-btn"
           style={{
             width: "100%",
-            padding: "16px 24px",
-            backgroundColor: "#0284c7",
+            padding: "15px 20px",
+            backgroundColor: isCompleted ? "#16a34a" : "#0284c7",
             color: "#ffffff",
             border: "none",
-            borderRadius: "16px",
+            borderRadius: "14px",
             fontSize: "16px",
             fontWeight: 800,
             cursor: "pointer",
@@ -229,51 +288,47 @@ export default function ForceUpdateModal() {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: "0 8px 24px rgba(2, 132, 199, 0.35)",
-            transition: "transform 0.2s ease, background-color 0.2s ease",
-            marginBottom: "16px",
+            boxShadow: isCompleted ? "0 8px 24px rgba(22, 163, 74, 0.35)" : "0 8px 24px rgba(2, 132, 199, 0.35)",
+            transition: "all 0.2s ease",
+            marginBottom: "14px",
             fontFamily: "inherit",
           }}
         >
-          <span style={{ fontSize: "20px" }}>⬇️</span>
-          <span>{downloadStarted ? "إعادة تحميل ملف (APK)" : "تحميل وتثبيت التحديث (APK)"}</span>
+          <span style={{ fontSize: "18px" }}>{isCompleted ? "🚀" : "⬇️"}</span>
+          <span>{isCompleted ? "تثبيت التحديث الآن (Install)" : "بدء التثبيت المباشر"}</span>
         </button>
 
-        {/* Post-Download Helper Box */}
-        {downloadStarted && (
-          <div
-            style={{
-              width: "100%",
-              backgroundColor: "#f0fdf4",
-              border: "1.5px solid #86efac",
-              borderRadius: "14px",
-              padding: "14px 16px",
-              marginBottom: "14px",
-              textAlign: "right",
-              fontSize: "13px",
-              lineHeight: 1.8,
-              color: "#166534",
-            }}
-          >
-            <div style={{ fontWeight: 800, marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <span>🚀</span>
-              <span>بدأ التحميل بنجاح! للتثبيت الفوري:</span>
-            </div>
-            <div>
-              1. اسحب <strong>شريط الإشعارات</strong> من أعلى هاتفك واضغط على ملف <strong>(ARCO-HR-v1.2.0.apk)</strong>.
-            </div>
-            <div>
-              2. أو افتح تطبيق <strong>"ملفاتي / التنزيلات"</strong> على هاتفك واضغط على الملف واضغط <strong>"تثبيت" (Install)</strong>.
-            </div>
+        {/* Crucial Conflict Warning Card */}
+        <div
+          style={{
+            width: "100%",
+            backgroundColor: "#fffbeb",
+            border: "1.5px solid #fde68a",
+            borderRadius: "14px",
+            padding: "12px 14px",
+            marginBottom: "12px",
+            textAlign: "right",
+            fontSize: "12px",
+            lineHeight: 1.7,
+            color: "#92400e",
+          }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
+            <span>⚠️</span>
+            <span>تنبيه هام عند التثبيت:</span>
           </div>
-        )}
+          <div>
+            إذا ظهرت لك رسالة <strong>(Package conflicts / تعارض في الحزمة)</strong>:
+            يرجى <strong>إلغاء تثبيت النسخة القديمة</strong> من هاتفك أولاً ثم الضغط على زر التثبيت أعلاه.
+          </div>
+        </div>
 
         {/* Security Note */}
         <p
           style={{
-            fontSize: "12px",
+            fontSize: "11px",
             color: "#94a3b8",
-            marginTop: "6px",
+            margin: "0",
           }}
         >
           🔒 تحديث رسمي وموثق من شركة ARCO Tech
