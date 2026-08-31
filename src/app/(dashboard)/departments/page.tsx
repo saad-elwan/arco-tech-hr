@@ -141,13 +141,13 @@ export default function DepartmentsPage() {
           ) : (
             <table>
               <thead>
-<tr>
-                    <th>اسم القسم</th>
-                    <th>مشرف القسم</th>
-                    <th>عدد الموظفين</th>
-                    <th>تاريخ الإنشاء</th>
-                    <th style={{ textAlign: "left" }}>خيارات</th>
-                  </tr>
+                <tr>
+                  <th>اسم القسم</th>
+                  <th>مشرف القسم</th>
+                  <th>عدد الموظفين</th>
+                  <th>تاريخ الإنشاء</th>
+                  <th style={{ textAlign: "left" }}>خيارات</th>
+                </tr>
               </thead>
               <tbody>
                 {departments.map((dept) => (
@@ -160,17 +160,19 @@ export default function DepartmentsPage() {
                         <span style={{ fontWeight: 600, fontSize: 15 }}>{dept.name}</span>
                       </div>
                     </td>
-<td>
-                        <span className="badge badge-gold">
-                          {dept._count?.employees || 0} موظف
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <User size={14} color="var(--gold-primary)" />
+                        <span style={{ fontWeight: 600, color: dept.supervisor?.name ? "var(--text-primary)" : "var(--text-muted)" }}>
+                          {dept.supervisor?.name || "لم يتم تعيين"}
                         </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <User size={14} color="var(--gold-primary)" />
-                          <span>{dept.supervisor?.name || "لم يتم تعيين"}</span>
-                        </div>
-                      </td>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-gold">
+                        {dept._count?.employees || 0} موظف
+                      </span>
+                    </td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
                       {new Date(dept.createdAt).toLocaleDateString('ar-EG')}
                     </td>
@@ -180,15 +182,15 @@ export default function DepartmentsPage() {
                           className="btn btn-ghost btn-sm btn-icon"
                           style={{ color: 'var(--gold-primary)' }}
                           onClick={() => openEdit(dept)}
-                          title="تعديل اسم القسم"
+                          title="تعديل بيانات القسم"
                         >
                           <Edit2 size={14} />
                         </button>
                         <button
                           className="btn btn-ghost btn-sm btn-icon"
-                          style={{ color: dept._count?.employees > 0 ? 'var(--text-muted)' : 'var(--danger)', cursor: dept._count?.employees > 0 ? 'not-allowed' : 'pointer' }}
+                          style={{ color: 'var(--danger)' }}
                           onClick={() => handleDelete(dept)}
-                          title={dept._count?.employees > 0 ? "لا يمكن حذف قسم به موظفون" : "حذف القسم"}
+                          title="حذف القسم"
                         >
                           <Trash2 size={14} />
                         </button>

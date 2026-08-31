@@ -140,22 +140,13 @@ export default function LoginPage() {
         WebkitBackdropFilter: "blur(20px)",
         animation: "slideIn 0.4s ease" 
       }}>
-        {/* Unclipped Official Logo */}
+        {/* Transparent Official Logo */}
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <div style={{ 
-            background: "#ffffff", 
-            padding: "16px 20px", 
-            borderRadius: "16px", 
-            display: "inline-block", 
-            width: "100%", 
-            boxShadow: "0 8px 25px rgba(0,0,0,0.3)" 
-          }}>
-            <img 
-              src="/arco-logo.svg" 
-              alt="Arco Tech For Management Sys" 
-              style={{ width: "100%", height: "auto", maxHeight: "85px", objectFit: "contain", display: "block", margin: "0 auto" }} 
-            />
-          </div>
+          <img 
+            src="/arco-logo-dark.svg" 
+            alt="Arco Tech For Management Sys" 
+            style={{ width: "100%", height: "auto", maxHeight: "85px", objectFit: "contain", display: "block", margin: "0 auto", filter: "drop-shadow(0 4px 15px rgba(56, 189, 248, 0.2))" }} 
+          />
           <p style={{ margin: "14px 0 0", fontSize: "13px", color: "var(--gold-primary)", fontWeight: 600, letterSpacing: "0.5px" }}>
             نظام إدارة الموارد البشرية والعمليات المتكامل
           </p>

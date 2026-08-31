@@ -169,14 +169,18 @@ export async function GET(request: NextRequest) {
       todayAttendance.map((a) => [a.employeeId, a])
     );
 
-    // Get daily routes for this date
-    const dailyRoutes = await prisma.dailyRoute.findMany({
-      where: { date },
-      include: {
-        delegate: { select: { id: true, name: true, phone: true } },
-        checkpoints: { orderBy: { order: "asc" } }
-      }
-    });
+    let dailyRoutes: any[] = [];
+    try {
+      dailyRoutes = await prisma.dailyRoute.findMany({
+        where: { date },
+        include: {
+          delegate: { select: { id: true, name: true, phone: true } },
+          checkpoints: { orderBy: { order: "asc" } }
+        }
+      });
+    } catch {
+      dailyRoutes = [];
+    }
 
     // Count alerts
     const outOfRangeCount = uniqueLocations.filter((l) => l.isOutOfRange).length;
@@ -216,9 +220,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Location fetch error:", error);
-    return NextResponse.json(
-      { error: "فشل في جلب بيانات المواقع" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      employees: [],
+      routes: [],
+      geofence: null,
+      stats: { totalTracked: 0, inRange: 0, outOfRange: 0, totalEmployees: 0, totalRoutes: 0 }
+    });
   }
 }

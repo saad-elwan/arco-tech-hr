@@ -8,15 +8,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit") || "20");
+  try {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "20");
 
-  const messages = await prisma.voiceMessage.findMany({
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+    const messages = await prisma.voiceMessage.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
 
-  return NextResponse.json(messages);
+    return NextResponse.json(messages || []);
+  } catch (err) {
+    console.error("Voice GET error:", err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -25,21 +30,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   }
 
-  const body = await request.json();
-  const { audioData, duration } = body;
+  try {
+    const body = await request.json();
+    const { audioData, duration } = body;
 
-  if (!audioData) {
-    return NextResponse.json({ error: "بيانات الصوت مطلوبة" }, { status: 400 });
-  }
-
-  const voiceMsg = await prisma.voiceMessage.create({
-    data: {
-      senderId: auth.id,
-      senderName: auth.name,
-      audioData,
-      duration: duration ? parseFloat(duration) : 0,
+    if (!audioData) {
+      return NextResponse.json({ error: "بيانات الصوت مطلوبة" }, { status: 400 });
     }
-  });
 
-  return NextResponse.json({ success: true, message: voiceMsg });
+    const voiceMsg = await prisma.voiceMessage.create({
+      data: {
+        senderId: auth.id,
+        senderName: auth.name,
+        audioData,
+        duration: duration ? parseFloat(duration) : 0,
+      }
+    });
+
+    return NextResponse.json({ success: true, message: voiceMsg });
+  } catch (err: any) {
+    console.error("Voice POST error:", err);
+    return NextResponse.json({ error: "فشل في حفظ البث الصوتي" }, { status: 500 });
+  }
 }

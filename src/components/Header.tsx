@@ -330,7 +330,15 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>
                 <button 
-                  onClick={handleActivateAllPermissions}
+                  onClick={() => {
+                    playNotificationSound();
+                    setToastNotif({
+                      title: "🔔 تجربة الإشعار الصوتي والمنبثق",
+                      desc: "نظام إشعارات Arco Tech يعمل بنجاح على هذا الجهاز.",
+                      link: "/dashboard"
+                    });
+                    setTimeout(() => setToastNotif(null), 5000);
+                  }}
                   style={{
                     background: "rgba(212, 175, 55, 0.15)",
                     border: "1px solid rgba(212, 175, 55, 0.3)",
