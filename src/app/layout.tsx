@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ForceUpdateModal from "@/components/ForceUpdateModal";
 
 export const metadata: Metadata = {
   title: "نظام إدارة الموارد البشرية",
@@ -43,7 +44,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ForceUpdateModal />
+        {children}
+      </body>
     </html>
   );
 }
