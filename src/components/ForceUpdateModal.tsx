@@ -8,65 +8,57 @@ export default function ForceUpdateModal() {
   const [apkUrl, setApkUrl] = useState(DEFAULT_APK_URL);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Check if running inside ANY React Native WebView
-      const isWebView = Boolean(
-        (window as any).ReactNativeWebView
+    if (typeof window === "undefined") return;
+
+    // Fetch latest APK URL from app-version.json in background
+    fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.apkUrl) setApkUrl(data.apkUrl);
+      })
+      .catch(() => {});
+
+    // Continuous detector for Old Mobile App / WebView
+    const detectOldApp = () => {
+      // 1. If this is the NEW updated app (1.2.0), do NOT show modal
+      const isNewApp = Boolean(
+        (window as any).__ARCO_APP_VERSION__ === "1.2.0" ||
+        sessionStorage.getItem("arco_app_version") === "1.2.0"
       );
 
-      if (!isWebView) return;
+      if (isNewApp) {
+        setShowModal(false);
+        return;
+      }
 
-      // Check if the new updated app injected its version
-      // The new app sets window.__ARCO_APP_VERSION__ before page load
-      const checkVersion = () => {
-        const appVersion = (window as any).__ARCO_APP_VERSION__;
-        const sessionVersion = sessionStorage.getItem("arco_app_version");
-        
-        // If no version is set, this is the OLD app that doesn't inject version
-        if (!appVersion && !sessionVersion) {
-          // Fetch the latest APK URL
-          fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
-            .then(r => r.json())
-            .then(data => {
-              if (data.apkUrl) setApkUrl(data.apkUrl);
-            })
-            .catch(() => {});
-          setShowModal(true);
-          return;
-        }
+      // 2. Check if running inside ANY WebView (ReactNativeWebView, Android WebView, etc.)
+      const userAgent = navigator.userAgent || "";
+      const isReactNativeWebView = Boolean((window as any).ReactNativeWebView || (window as any).__REACT_WEB_VIEW__);
+      const isAndroidWebView = Boolean(
+        /;\s*wv|Android.*Version\/[0-9.]+|WebView/i.test(userAgent)
+      );
+      const isTestParam = Boolean(
+        typeof window !== "undefined" && window.location.search.includes("update=true")
+      );
 
-        // If version IS set, check if it meets minimum
-        const currentVersion = appVersion || sessionVersion || "0.0.0";
-        fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" })
-          .then(r => r.json())
-          .then(data => {
-            if (data.apkUrl) setApkUrl(data.apkUrl);
-            if (data.forceUpdate && data.minRequiredVersion) {
-              const isOutdated = compareVersions(currentVersion, data.minRequiredVersion);
-              if (isOutdated) {
-                setShowModal(true);
-              }
-            }
-          })
-          .catch(() => {});
-      };
+      // If it's a mobile app WebView and NOT the new version (1.2.0), trigger force update immediately!
+      if ((isReactNativeWebView || isAndroidWebView || isTestParam) && !isNewApp) {
+        setShowModal(true);
+      }
+    };
 
-      // Small delay to allow injected JS to run first
-      setTimeout(checkVersion, 400);
-    }
+    // Run check immediately on mount
+    detectOldApp();
+
+    // Run periodic checks every 100ms for 6 seconds to catch late bridge injection on Android
+    const interval = setInterval(detectOldApp, 100);
+    const timeout = setTimeout(() => clearInterval(interval), 6000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, []);
-
-  const compareVersions = (current: string, target: string): boolean => {
-    const cParts = current.split(".").map(p => parseInt(p, 10) || 0);
-    const tParts = target.split(".").map(p => parseInt(p, 10) || 0);
-    for (let i = 0; i < Math.max(cParts.length, tParts.length); i++) {
-      const c = cParts[i] || 0;
-      const t = tParts[i] || 0;
-      if (c < t) return true;
-      if (c > t) return false;
-    }
-    return false;
-  };
 
   if (!showModal) return null;
 
@@ -79,7 +71,13 @@ export default function ForceUpdateModal() {
         );
       }
     } catch {}
-    window.location.href = targetUrl;
+    
+    // Open APK download link
+    try {
+      window.location.assign(targetUrl);
+    } catch {
+      window.location.href = targetUrl;
+    }
   };
 
   return (
@@ -89,7 +87,7 @@ export default function ForceUpdateModal() {
         position: "fixed",
         inset: 0,
         backgroundColor: "#ffffff",
-        zIndex: 999999,
+        zIndex: 999999999,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
