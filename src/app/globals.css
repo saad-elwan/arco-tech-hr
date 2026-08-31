@@ -1569,56 +1569,131 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* =========================================================
+   COMPREHENSIVE MOBILE RESPONSIVE ENGINE (MAX-WIDTH: 768px)
+   ========================================================= */
 @media screen and (max-width: 768px) {
-  body {
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
-  }
-  
-  .layout, .main-content, .page-container, .dashboard-container {
+  html, body {
     width: 100% !important;
     max-width: 100vw !important;
+    overflow-x: hidden !important;
+    position: relative;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Force all wrapper containers strictly into mobile viewport */
+  .layout, .main-content, .page-container, .dashboard-container, main, #__next {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
     padding-left: 12px !important;
     padding-right: 12px !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
   }
 
-  .grid, .grid-2, .grid-3, .grid-4, .stat-grid, .stats-grid {
+  .header {
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Grid layouts collapse smoothly */
+  .grid, .grid-2, .grid-3, .grid-4, .stat-grid, .stats-grid, .charts-grid, .form-row, .form-row-3 {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
     width: 100% !important;
   }
 
-  .card, .table-container, .panel, .login-card {
+  /* Stat cards responsive */
+  .stat-card {
+    width: 100% !important;
+    padding: 16px 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* All cards, panels, containers strictly fit inside screen */
+  .card, .panel, .login-card, .box, .widget {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Table containers never push screen width */
+  .table-wrapper, .table-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  table {
+    width: 100% !important;
+    min-width: 500px !important;
+  }
+
+  /* Page Header and Action Buttons */
+  .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .page-header > div {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .btn, .btn-group .btn {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Filter bars and inputs */
+  .filter-bar, .search-bar-wrapper {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .form-control, input, select, textarea {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
 
-  .table-container {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: block !important;
-    width: 100% !important;
+  /* Modals full width bottom sheet */
+  .modal-overlay {
+    padding: 8px !important;
   }
 
-  table {
+  .modal, .modal-lg {
     width: 100% !important;
-    min-width: 460px;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 
-  .page-header {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-
-  .page-header .btn, .btn-group .btn {
+  /* Map container responsive */
+  .leaflet-container, .map-wrapper {
     width: 100% !important;
-    justify-content: center !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   img, video {
