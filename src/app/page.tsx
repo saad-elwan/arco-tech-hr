@@ -255,17 +255,25 @@ export default function LoginPage() {
         
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
           <button
-            onClick={() => {
+            type="button"
+            onClick={async () => {
+              let apkUrl = "https://expo.dev/accounts/arcotechcos-team/projects/arco/builds/940ec600-de05-4dfa-88fd-709f83832b87";
+              try {
+                const res = await fetch("/app-version.json?t=" + Date.now(), { cache: "no-store" });
+                const data = await res.json();
+                if (data.apkUrl) apkUrl = data.apkUrl;
+              } catch {}
+              
               const isAndroid = /Android/.test(navigator.userAgent);
-              if (isAndroid) {
+              if (document.getElementById('androidHint')) {
                 document.getElementById('androidHint')!.style.display = 'block';
-                document.getElementById('iosHint')!.style.display = 'none';
-              } else {
-                document.getElementById('androidHint')!.style.display = 'none';
-                document.getElementById('iosHint')!.style.display = 'none';
-                const event = new Event('beforeinstallprompt');
-                window.dispatchEvent(event);
               }
+              if (document.getElementById('iosHint')) {
+                document.getElementById('iosHint')!.style.display = 'none';
+              }
+              
+              // Open APK download page
+              window.open(apkUrl, "_blank", "noopener,noreferrer");
             }}
             className="btn btn-primary"
             style={{ 
@@ -277,13 +285,15 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontWeight: 700
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.953.958c0 .529.427.958.953.958a.96.96 0 0 0 .954-.958.96.96 0 0 0-.954-.958zm-11.046 0a.96.96 0 0 0-.954.958c0 .529.427.958.954.958a.96.96 0 0 0 .953-.958.96.96 0 0 0-.953-.958zm11.4-5.772 1.997-3.466a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.024 3.513A12.26 12.26 0 0 0 12 8.07c-1.862 0-3.618.406-5.132 1.131L4.844 5.688a.416.416 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.466C2.688 11.667.463 15.473.463 19.745h23.074c0-4.272-2.225-8.078-5.66-10.176z"/></svg>
-            تطبيق Android
+            تحميل تطبيق Android (APK)
           </button>
           <button
+            type="button"
             onClick={() => {
               document.getElementById('iosHint')!.style.display = 'block';
               document.getElementById('androidHint')!.style.display = 'none';
@@ -298,7 +308,8 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontWeight: 700
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -307,10 +318,10 @@ export default function LoginPage() {
         </div>
 
         <div id="androidHint" style={{ display: 'none', background: 'rgba(61, 220, 132, 0.1)', border: '1px solid rgba(61, 220, 132, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
-          <strong>📱 لتثبيت التطبيق على أجهزة Android:</strong><br />
-          1. اضغط على القائمة <strong>(⋮)</strong> في أعلى المتصفح<br />
-          2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> أو <strong>"Install app"</strong><br />
-          3. اضغط <strong>"إضافة"</strong>
+          <strong>📱 جاري فتح صفحة تحميل أحدث تطبيق (APK v1.2.0):</strong><br />
+          1. اضغط على <strong>"Download"</strong> أو <strong>"Install"</strong> في صفحة Expo<br />
+          2. بعد اكتمال التحميل، افتح الملف واضغط <strong>"تثبيت" (Install)</strong><br />
+          3. امنح التطبيق صلاحيات <strong>الموقع والإشعارات</strong> ليعمل بكفاءة في الخلفية.
         </div>
 
         <div id="iosHint" style={{ display: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 13, lineHeight: 1.8, textAlign: 'right' }}>
