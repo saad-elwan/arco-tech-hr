@@ -276,13 +276,22 @@ export default function LoginPage() {
               link.href = apkUrl;
               link.download = "ARCO-HR-v1.2.0.apk";
               link.target = "_blank";
+              link.rel = "noopener noreferrer";
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
 
-              try {
-                window.location.href = apkUrl;
-              } catch {}
+              setTimeout(() => {
+                try {
+                  window.location.href = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
+                } catch {
+                  try {
+                    window.location.assign(apkUrl);
+                  } catch {
+                    window.location.href = apkUrl;
+                  }
+                }
+              }, 400);
             }}
             className="btn btn-primary"
             style={{ 

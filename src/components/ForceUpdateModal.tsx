@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const DEFAULT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
+const DIRECT_APK_URL = "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk";
+const INTENT_APK_URL = "intent://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
 
 export default function ForceUpdateModal() {
   const [showModal, setShowModal] = useState(false);
-  const [apkUrl, setApkUrl] = useState(DEFAULT_APK_URL);
+  const [apkUrl, setApkUrl] = useState(DIRECT_APK_URL);
+  const [downloadStarted, setDownloadStarted] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -63,7 +65,10 @@ export default function ForceUpdateModal() {
   if (!showModal) return null;
 
   const handleDownload = () => {
-    const targetUrl = apkUrl || DEFAULT_APK_URL;
+    setDownloadStarted(true);
+    const targetUrl = apkUrl || DIRECT_APK_URL;
+
+    // 1. If inside React Native WebView, ask native bridge to open URL in external browser/installer
     try {
       if ((window as any).ReactNativeWebView?.postMessage) {
         (window as any).ReactNativeWebView.postMessage(
@@ -71,21 +76,29 @@ export default function ForceUpdateModal() {
         );
       }
     } catch {}
-    
-    // Direct APK file download link
+
+    // 2. Trigger direct APK download via DOM
     const link = document.createElement("a");
     link.href = targetUrl;
     link.download = "ARCO-HR-v1.2.0.apk";
     link.target = "_blank";
+    link.rel = "noopener noreferrer";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    try {
-      window.location.assign(targetUrl);
-    } catch {
-      window.location.href = targetUrl;
-    }
+    // 3. Trigger Android Package Installer Intent / Direct assign
+    setTimeout(() => {
+      try {
+        window.location.href = INTENT_APK_URL;
+      } catch {
+        try {
+          window.location.assign(targetUrl);
+        } catch {
+          window.location.href = targetUrl;
+        }
+      }
+    }, 400);
   };
 
   return (
@@ -119,7 +132,7 @@ export default function ForceUpdateModal() {
         }}
       >
         {/* Company Logo */}
-        <div style={{ marginBottom: "28px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <img
             src="/arco-logo.png"
             alt="ARCO Tech"
@@ -137,16 +150,16 @@ export default function ForceUpdateModal() {
         {/* Warning Icon Badge */}
         <div
           style={{
-            width: "72px",
-            height: "72px",
+            width: "68px",
+            height: "68px",
             borderRadius: "50%",
             backgroundColor: "#fef3c7",
             color: "#d97706",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "34px",
-            marginBottom: "20px",
+            fontSize: "32px",
+            marginBottom: "16px",
             boxShadow: "0 8px 20px rgba(217, 119, 6, 0.15)",
           }}
         >
@@ -159,7 +172,7 @@ export default function ForceUpdateModal() {
             fontSize: "22px",
             fontWeight: 800,
             color: "#0f172a",
-            marginBottom: "12px",
+            marginBottom: "10px",
             lineHeight: 1.4,
           }}
         >
@@ -178,7 +191,7 @@ export default function ForceUpdateModal() {
             borderRadius: "20px",
             fontSize: "13px",
             fontWeight: 700,
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}
         >
           <span>الإصدار الجديد:</span>
@@ -191,7 +204,7 @@ export default function ForceUpdateModal() {
             fontSize: "15px",
             lineHeight: "1.7",
             color: "#475569",
-            marginBottom: "32px",
+            marginBottom: "24px",
             padding: "0 10px",
           }}
         >
@@ -223,15 +236,44 @@ export default function ForceUpdateModal() {
           }}
         >
           <span style={{ fontSize: "20px" }}>⬇️</span>
-          <span>تحميل التحديث المباشر (APK)</span>
+          <span>{downloadStarted ? "إعادة تحميل ملف (APK)" : "تحميل وتثبيت التحديث (APK)"}</span>
         </button>
+
+        {/* Post-Download Helper Box */}
+        {downloadStarted && (
+          <div
+            style={{
+              width: "100%",
+              backgroundColor: "#f0fdf4",
+              border: "1.5px solid #86efac",
+              borderRadius: "14px",
+              padding: "14px 16px",
+              marginBottom: "14px",
+              textAlign: "right",
+              fontSize: "13px",
+              lineHeight: 1.8,
+              color: "#166534",
+            }}
+          >
+            <div style={{ fontWeight: 800, marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span>🚀</span>
+              <span>بدأ التحميل بنجاح! للتثبيت الفوري:</span>
+            </div>
+            <div>
+              1. اسحب <strong>شريط الإشعارات</strong> من أعلى هاتفك واضغط على ملف <strong>(ARCO-HR-v1.2.0.apk)</strong>.
+            </div>
+            <div>
+              2. أو افتح تطبيق <strong>"ملفاتي / التنزيلات"</strong> على هاتفك واضغط على الملف واضغط <strong>"تثبيت" (Install)</strong>.
+            </div>
+          </div>
+        )}
 
         {/* Security Note */}
         <p
           style={{
             fontSize: "12px",
             color: "#94a3b8",
-            marginTop: "10px",
+            marginTop: "6px",
           }}
         >
           🔒 تحديث رسمي وموثق من شركة ARCO Tech
