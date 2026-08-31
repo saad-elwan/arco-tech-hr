@@ -44,36 +44,58 @@ export async function POST(request: NextRequest) {
   if (!isHROrAdmin(request))
     return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
 
-  const data = await request.json();
-  const {
-    name, email, phone, nationalId, role, departmentId, shiftId,
-    fingerprintId, hireDate, password, basicSalary, maxAdvanceLimit, permissions
-  } = data;
+  try {
+    const data = await request.json();
+    let {
+      name, email, phone, nationalId, role, departmentId, shiftId,
+      fingerprintId, hireDate, password, basicSalary, maxAdvanceLimit, permissions
+    } = data;
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: "الاسم والبريد وكلمة المرور مطلوبة" }, { status: 400 });
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: "اسم الموظف أو المندوب مطلوب" }, { status: 400 });
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email && email.trim()
+      ? email.toLowerCase().trim()
+      : `${cleanName.replace(/\s+/g, '').toLowerCase() || 'user' + Date.now()}@arcotech.com`;
+
+    // Check if email already in use
+    const existing = await prisma.employee.findFirst({
+      where: { email: cleanEmail }
+    });
+    if (existing) {
+      return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل لموظف آخر" }, { status: 400 });
+    }
+
+    const plainPassword = password && password.trim() ? password.trim() : "123456";
+    const hashedPw = await hashPassword(plainPassword);
+
+    const employee = await prisma.employee.create({
+      data: {
+        name: cleanName,
+        email: cleanEmail,
+        phone: phone?.trim() || null,
+        nationalId: nationalId?.trim() || null,
+        role: role || "employee",
+        departmentId: departmentId ? parseInt(departmentId) : null,
+        shiftId: shiftId ? parseInt(shiftId) : null,
+        fingerprintId: fingerprintId?.trim() || null,
+        basicSalary: basicSalary !== undefined && basicSalary !== "" ? parseFloat(basicSalary) : 0,
+        maxAdvanceLimit: maxAdvanceLimit !== undefined && maxAdvanceLimit !== "" ? parseFloat(maxAdvanceLimit) : 0,
+        hireDate: hireDate ? new Date(hireDate) : new Date(),
+        password: hashedPw,
+        permissions: permissions || "[\"/me\"]",
+      },
+      include: { department: true, shift: true },
+    });
+
+    return NextResponse.json({ ...employee, password: undefined });
+  } catch (err: any) {
+    console.error("Employee create error:", err);
+    if (err.code === "P2002") {
+      return NextResponse.json({ error: "البريد الإلكتروني أو رقم البطاقة أو معرف البصمة مسجل بالفعل" }, { status: 400 });
+    }
+    return NextResponse.json({ error: err.message || "حدث خطأ أثناء حفظ الموظف/المندوب" }, { status: 500 });
   }
-
-  const hashedPw = await hashPassword(password);
-
-  const employee = await prisma.employee.create({
-    data: {
-      name,
-      email: email.toLowerCase().trim(),
-      phone,
-      nationalId,
-      role: role || "employee",
-      departmentId: departmentId ? parseInt(departmentId) : null,
-      shiftId: shiftId ? parseInt(shiftId) : null,
-      fingerprintId,
-      basicSalary: basicSalary ? parseFloat(basicSalary) : 0,
-      maxAdvanceLimit: maxAdvanceLimit ? parseFloat(maxAdvanceLimit) : 0,
-      hireDate: hireDate ? new Date(hireDate) : new Date(),
-      password: hashedPw,
-      permissions: permissions || "[\"/me\"]",
-    },
-    include: { department: true, shift: true },
-  });
-
-  return NextResponse.json({ ...employee, password: undefined });
 }

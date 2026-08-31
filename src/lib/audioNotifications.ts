@@ -183,21 +183,23 @@ export async function showBrowserNotification(title: string, options?: { body?: 
     }
 
     if (Notification.permission === "granted") {
+      const smsTitle = title?.startsWith("💬") ? title : `💬 رسالة: ${title}`;
+
       // 1. Try Service Worker showNotification (for Android/iOS PWA Notification Shade & Lockscreen)
       if ("serviceWorker" in navigator) {
         try {
           const reg = await navigator.serviceWorker.ready || await navigator.serviceWorker.getRegistration();
           if (reg && reg.showNotification) {
-            await reg.showNotification(title, {
+            await reg.showNotification(smsTitle, {
               body: notifBody,
               icon: "/arco-logo.png",
               badge: "/arco-logo.png",
               dir: "rtl",
               lang: "ar",
-              tag: "arco-hr-" + Date.now(),
+              tag: "sms-" + Date.now(),
               renotify: true,
-              requireInteraction: false,
-              vibrate: [300, 150, 300],
+              requireInteraction: true,
+              vibrate: [250, 100, 250, 100, 250, 100, 400],
               data: { link: notifLink }
             } as any);
             return;
@@ -208,14 +210,14 @@ export async function showBrowserNotification(title: string, options?: { body?: 
       }
 
       // 2. Fallback to Window Notification API
-      const notif = new Notification(title, {
+      const notif = new Notification(smsTitle, {
         body: notifBody,
         icon: "/arco-logo.png",
         badge: "/arco-logo.png",
         dir: "rtl",
         lang: "ar",
-        tag: "arco-hr-" + Date.now(),
-        requireInteraction: false,
+        tag: "sms-" + Date.now(),
+        requireInteraction: true,
       });
 
       notif.onclick = function () {

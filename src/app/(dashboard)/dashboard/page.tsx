@@ -56,11 +56,52 @@ export default function Dashboard() {
 
   const { stats, chartData, tasksByStatus, topEmployees, recentActivity } = data;
 
+  const total = stats?.totalEmployees || 0;
+  const present = stats?.todayPresent || 0;
+  const absent = stats?.todayAbsent || 0;
+  const late = stats?.todayLate || 0;
+
+  const presentPct = total > 0 ? Math.round((present / total) * 100) : 0;
+  const absentPct = total > 0 ? Math.round((absent / total) * 100) : 0;
+  const latePct = total > 0 ? Math.round((late / total) * 100) : 0;
+
   const statCards = [
-    { label: "إجمالي الموظفين", value: stats?.totalEmployees || 0, icon: Users, color: "gold", trend: "+12%", href: "/employees" },
-    { label: "حاضر اليوم", value: stats?.todayPresent || 0, icon: UserCheck, color: "success", trend: "مستقر", href: "/attendance" },
-    { label: "غائب اليوم", value: stats?.todayAbsent || 0, icon: AlertTriangle, color: "danger", trend: "-2%", href: "/attendance" },
-    { label: "متأخر اليوم", value: stats?.todayLate || 0, icon: Clock, color: "warning", trend: "+5%", href: "/attendance" },
+    { 
+      label: "إجمالي الموظفين", 
+      value: total, 
+      icon: Users, 
+      color: "gold", 
+      trend: "100%", 
+      trendType: "up",
+      href: "/employees" 
+    },
+    { 
+      label: "حاضر اليوم", 
+      value: present, 
+      icon: UserCheck, 
+      color: "success", 
+      trend: `${presentPct}%`, 
+      trendType: presentPct >= 50 ? "up" : "down",
+      href: "/attendance" 
+    },
+    { 
+      label: "غائب اليوم", 
+      value: absent, 
+      icon: AlertTriangle, 
+      color: "danger", 
+      trend: `${absentPct}%`, 
+      trendType: absentPct > 0 ? "down" : "up",
+      href: "/attendance" 
+    },
+    { 
+      label: "متأخر اليوم", 
+      value: late, 
+      icon: Clock, 
+      color: "warning", 
+      trend: `${latePct}%`, 
+      trendType: latePct > 0 ? "down" : "up",
+      href: "/attendance" 
+    },
   ];
 
   return (
@@ -88,7 +129,7 @@ export default function Dashboard() {
                 <div className="stat-value">{stat.value}</div>
                 <div className="stat-label">{stat.label}</div>
               </div>
-              <div className={`stat-change ${stat.trend.startsWith("+") ? "up" : stat.trend.startsWith("-") ? "down" : ""}`}>
+              <div className={`stat-change ${stat.trendType === "up" ? "up" : "down"}`}>
                 {stat.trend}
               </div>
             </div>

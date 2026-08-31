@@ -27,23 +27,29 @@ function runBackgroundNotificationChecker() {
         } else if (numId > lastSeenId && !latest.isRead) {
           lastSeenId = numId;
 
-          // Dispatch native notification to Mobile Lock Screen & Status Bar
-          self.registration.showNotification(latest.title, {
-            body: latest.desc || latest.body || latest.message || "لديك إشعار وتنبيه جديد في النظام",
+          // Dispatch native SMS-style notification to Mobile Lock Screen & Status Bar
+          const smsTitle = latest.title?.startsWith("💬") ? latest.title : `💬 رسالة: ${latest.title}`;
+          const smsBody = latest.desc || latest.body || latest.message || "لديك رسالة جديدة في النظام";
+
+          self.registration.showNotification(smsTitle, {
+            body: smsBody,
             icon: "/arco-logo.png",
             badge: "/arco-logo.png",
-            vibrate: [300, 150, 300, 150, 300],
+            vibrate: [250, 100, 250, 100, 250, 100, 400],
             data: { link: latest.link || "/dashboard", id: latest.id },
-            tag: "arco-notif-" + numId,
+            tag: "sms-msg-" + numId,
             renotify: true,
             requireInteraction: true,
             dir: "rtl",
-            lang: "ar"
+            lang: "ar",
+            actions: [
+              { action: "open", title: "📩 فتح الرسالة" }
+            ]
           });
         }
       }
     } catch {}
-  }, 5000);
+  }, 4000);
 }
 
 self.addEventListener('activate', (event) => {

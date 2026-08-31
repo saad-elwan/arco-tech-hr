@@ -8,9 +8,28 @@ export async function GET(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   try {
+    // Delete any historical notifications related to Super Admin (Arco) login
+    try {
+      await prisma.notification.deleteMany({
+        where: {
+          OR: [
+            { title: { contains: "تسجيل دخول مسؤول نظام" } },
+            { body: { contains: "Arco" } },
+            { body: { contains: "arco@arcotech.com" } }
+          ]
+        }
+      });
+    } catch {}
+
     // 1. Fetch personal notifications from DB for this user
     const dbNotifs = await prisma.notification.findMany({
-      where: { employeeId: auth.id },
+      where: { 
+        employeeId: auth.id,
+        NOT: [
+          { title: { contains: "تسجيل دخول مسؤول نظام" } },
+          { body: { contains: "Arco" } }
+        ]
+      },
       orderBy: { createdAt: "desc" },
       take: 25,
     });
