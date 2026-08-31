@@ -1,16 +1,17 @@
 {
-  "latestVersion": "1.3.1",
-  "versionCode": 7,
-  "minRequiredVersion": "1.3.1",
+  "latestVersion": "1.3.2",
+  "versionCode": 8,
+  "minRequiredVersion": "1.3.2",
   "apkUrl": "https://hr-amr.vercel.app/api/download",
-  "directDownloadUrl": "https://expo.dev/artifacts/eas/RcLwdgnfvSrDofQmEnxk7VSTNYqk2pWfScbrE2eGX8c.apk",
+  "directDownloadUrl": "https://expo.dev/artifacts/eas/Ky1H21xOoL6zcX1z1Ffj7l8d6HCKLHX_h_6J4GQP51s.apk",
   "releaseDate": "2026-08-31",
   "forceUpdate": false,
-  "title": "تحديث رسمي للنظام (v1.3.1)",
-  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.3.1) مع تحسينات في العرض بملء الشاشة وشاشة البداية.",
+  "title": "تحديث رسمي للنظام (v1.3.2)",
+  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.3.2) مع دعم شاشة القفل ومسافة الأمان العلوية.",
   "features": [
-    "بقاء شاشة اللوجو الأنيقة حتى اكتمال تحميل الصفحة بالكامل",
-    "إلغاء أي وميض أبيض وجعل العرض بملء الشاشة مع التكيف التام",
-    "تتبع الموقع وتسجيل الحضور بالخلفية بشكل صامت 100%"
+    "فصل شريط الحالة (الساعة والبطارية) عن عناصر الويب ومنع التداخل",
+    "إرسال الإشعارات الصوتية مباشرة لشاشة الهاتف وشاشة القفل",
+    "تحسين زر الإشعارات وتحديد الكل كمقروء تلقائياً",
+    "بقاء شاشة اللوجو الأنيقة حتى اكتمال تحميل الصفحة بالكامل"
   ]
 }

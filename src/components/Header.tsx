@@ -175,9 +175,19 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     }
   }, []);
 
-  // Toggle notifications dropdown
+  // Toggle notifications dropdown and mark all as read
   const handleNotifsClick = () => {
-    setShowNotifs((prev) => !prev);
+    const nextState = !showNotifs;
+    setShowNotifs(nextState);
+    if (nextState) {
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }).catch(() => {});
+    }
   };
 
   // Handle individual notification click (marks as read immediately)
@@ -419,6 +429,28 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border-gold)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--gold-primary)" }}>الإشعارات الحديثة</h4>
+                <button
+                  onClick={() => {
+                    setUnreadCount(0);
+                    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+                    fetch("/api/notifications", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({}),
+                    }).catch(() => {});
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    fontFamily: "inherit"
+                  }}
+                >
+                  تحديد الكل كمقروء
+                </button>
               </div>
               <div style={{ maxHeight: "300px", overflowY: "auto", padding: "8px 0" }}>
                 {notifications.length > 0 ? notifications.map((n) => (
