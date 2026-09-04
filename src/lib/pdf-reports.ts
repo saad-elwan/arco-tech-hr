@@ -1,4 +1,8 @@
-import puppeteer from 'puppeteer';
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import path from "path";
+
+// Native PDFKit Arabic support is used instead of reshaping
 
 export interface FormalReportOptions {
   companyName: string;
@@ -16,224 +20,244 @@ export interface FormalReportOptions {
 }
 
 export async function generateFormalReportPDF(options: FormalReportOptions): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-
-  try {
-    const page = await browser.newPage();
-
-    const getStatusStyle = (val: string, colIndex: number) => {
-      if (options.statusColumnIndex !== undefined && colIndex === options.statusColumnIndex) {
-        if (val === "تم الصرف" || val === "paid") {
-          return `background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); border-radius: 4px; padding: 2px 8px; font-weight: bold;`;
-        } else {
-          return `background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; padding: 2px 8px; font-weight: bold;`;
-        }
-      }
-      return '';
-    };
-
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <title>${options.reportTitle}</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-        
-        body {
-          font-family: 'Cairo', sans-serif;
-          margin: 0;
-          padding: 20px 40px;
-          color: #e2e8f0;
-          background-color: #0f172a;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        
-        /* Glassmorphism Header */
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 30px;
-          background: rgba(30, 41, 59, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          margin-bottom: 30px;
-          backdrop-filter: blur(10px);
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-          margin: 0;
-          font-size: 24px;
-          color: #f8fafc;
-        }
-
-        .header p {
-          margin: 5px 0 0;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-        
-        .header .company-info {
-          text-align: left;
-        }
-
-        /* Summary Cards */
-        .summary-container {
-          display: flex;
-          gap: 15px;
-          margin-bottom: 30px;
-        }
-
-        .summary-card {
-          flex: 1;
-          background: rgba(30, 41, 59, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          padding: 15px 20px;
-          border-radius: 10px;
-          text-align: center;
-        }
-
-        .summary-label {
-          color: #94a3b8;
-          font-size: 13px;
-          margin-bottom: 8px;
-        }
-
-        .summary-value {
-          font-size: 20px;
-          font-weight: bold;
-          color: #38bdf8;
-        }
-
-        /* Table */
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          background: rgba(30, 41, 59, 0.4);
-          border-radius: 10px;
-          overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        th, td {
-          padding: 12px 15px;
-          text-align: right;
-          font-size: 13px;
-        }
-
-        th {
-          background-color: rgba(15, 23, 42, 0.8);
-          color: #f8fafc;
-          font-weight: 600;
-          border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        tr {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        tr:nth-child(even) {
-          background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        /* Signatures */
-        .signatures {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 50px;
-          padding: 0 40px;
-        }
-
-        .signature-box {
-          text-align: center;
-          width: 200px;
-        }
-
-        .signature-line {
-          border-bottom: 1px dashed #475569;
-          margin-bottom: 10px;
-          height: 40px;
-        }
-
-        .signature-label {
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        /* Print Specifics */
-        @page {
-          size: A4 landscape;
-          margin: 10mm;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div>
-          <h1>${options.reportTitle}</h1>
-          <p>عن الفترة: ${options.period}</p>
-        </div>
-        <div class="company-info">
-          <h2 style="margin:0; font-size:20px; color:#f8fafc;">${options.companyName}</h2>
-          <p>${new Date().toLocaleString('ar-EG')}</p>
-        </div>
-      </div>
-
-      <div class="summary-container">
-        ${options.summaryItems.map(item => \`
-          <div class="summary-card">
-            <div class="summary-label">\${item.label}</div>
-            <div class="summary-value" style="color: \${item.color || '#38bdf8'}">\${item.value}</div>
-          </div>
-        \`).join('')}
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            ${options.tableHeaders.map(header => \`<th>\${header}</th>\`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${options.tableData.map(row => \`
-            <tr>
-              \${row.map((cell, i) => \`<td style="\${getStatusStyle(String(cell), i)}">\${cell}</td>\`).join('')}
-            </tr>
-          \`).join('')}
-        </tbody>
-      </table>
-
-      ${options.signatures ? \`
-        <div class="signatures">
-          \${options.signatures.map(sig => \`
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-label">\${sig}</div>
-            </div>
-          \`).join('')}
-        </div>
-      \` : ''}
-    </body>
-    </html>
-    \`;
-
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      landscape: true,
-      printBackground: true,
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({
+      size: "A4",
+      layout: "landscape",
+      margin: 40,
+      autoFirstPage: false,
+      info: {
+        Title: options.reportTitle,
+        Author: options.companyName,
+      },
     });
 
-    return Buffer.from(pdfBuffer);
-  } finally {
-    await browser.close();
-  }
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    // Load Arabic fonts
+    let fontRegular = "Helvetica";
+    let fontBold = "Helvetica-Bold";
+    try {
+      const fontPath = path.join(process.cwd(), "public/fonts/Cairo-Regular.ttf");
+      const boldFontPath = path.join(process.cwd(), "public/fonts/Cairo-Bold.ttf");
+      if (fs.existsSync(fontPath)) {
+        doc.registerFont("Cairo", fontPath);
+        fontRegular = "Cairo";
+      }
+      if (fs.existsSync(boldFontPath)) {
+        doc.registerFont("Cairo-Bold", boldFontPath);
+        fontBold = "Cairo-Bold";
+      }
+    } catch (e) {
+      // Font loading failed, use default
+    }
+
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 40;
+    const contentWidth = pageWidth - margin * 2;
+
+    // We use PDFKit's native 'rtla' feature for Arabic text
+    const ar = (text: string) => String(text);
+
+    const colWidths = options.tableColWidths.map((w) => w * 0.65);
+    const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+    const tableRight = pageWidth - margin;
+    const rowHeight = 28;
+    const maxRowsFirstPage = Math.floor((pageHeight - 260 - 130) / rowHeight); // space for header + summary + signatures
+    const maxRowsPerPage = Math.floor((pageHeight - 80 - 60) / rowHeight); // space for mini header + footer
+
+    const textOptsRight = { align: "right", features: ['rtla'] as any };
+    const textOptsLeft = { align: "left", features: ['rtla'] as any };
+    const textOptsCenter = { align: "center", features: ['rtla'] as any };
+
+    // --- Helper: draw table header row ---
+    const drawTableHeader = (y: number) => {
+      doc.rect(tableRight - tableWidth, y, tableWidth, rowHeight).fill("#0a0a0c");
+      let x = tableRight - tableWidth;
+      doc.fill("#d4af37").font(fontBold).fontSize(10);
+      options.tableHeaders.forEach((header, i) => {
+        doc.text(ar(header), x + 5, y + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
+        x += colWidths[i];
+      });
+    };
+
+    // --- Helper: draw page footer ---
+    const drawFooter = (pageNum: number, totalPages: number) => {
+      doc.rect(0, pageHeight - 30, pageWidth, 30).fill("#1a365d");
+      doc.fill("#ffffff").font(fontRegular).fontSize(8);
+      doc.text(
+        ar(`صفحة ${pageNum} من ${totalPages} | ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`),
+        margin, pageHeight - 22, { align: "center", width: contentWidth, features: ['rtla'] as any }
+      );
+    };
+
+    // Calculate total pages
+    const totalDataRows = options.tableData.length;
+    let totalPages = 1;
+    if (totalDataRows > maxRowsFirstPage) {
+      totalPages += Math.ceil((totalDataRows - maxRowsFirstPage) / maxRowsPerPage);
+    }
+
+    // ===== PAGE 1 =====
+    doc.addPage();
+    
+    // Background
+    doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
+
+    // Header background
+    doc.rect(0, 0, pageWidth, 100).fill("#0a0a0c");
+
+    // Header text
+    doc.fill("#d4af37").font(fontBold).fontSize(22);
+    doc.text(ar(options.companyName), margin, 20, { align: "right", width: contentWidth, features: ['rtla'] as any });
+    doc.fill("#ffffff").font(fontRegular).fontSize(14);
+    doc.text(ar("نظام الإدارة المتقدم"), margin, 50, { align: "right", width: contentWidth, features: ['rtla'] as any });
+
+    // Date on left
+    doc.fontSize(10);
+    doc.text(ar(`تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}`), margin, 20, { align: "left", width: 200, features: ['rtla'] as any });
+    doc.text(ar(`الفترة: ${options.period}`), margin, 35, { align: "left", width: 200, features: ['rtla'] as any });
+
+    // Decorative line
+    doc.rect(0, 100, pageWidth, 4).fill("#d4af37");
+
+    // Report title
+    doc.fill("#0a0a0c").font(fontBold).fontSize(18);
+    doc.text(ar(options.reportTitle), margin, 130, { align: "center", width: contentWidth, features: ['rtla'] as any });
+    doc.rect(pageWidth / 2 - 100, 155, 200, 2).fill("#d4af37");
+
+    // Summary boxes - RTL order
+    const boxWidth = (contentWidth - 30) / 4;
+    const boxY = 180;
+    options.summaryItems.forEach((item, i) => {
+      const boxX = pageWidth - margin - (i + 1) * (boxWidth + 10) + 10;
+      doc.rect(boxX, boxY, boxWidth, 50).fill("#fbfbfb").stroke("#d4af37");
+      doc.fill("#0a0a0c").font(fontBold).fontSize(16);
+      doc.text(ar(String(item.value)), boxX, boxY + 5, { align: "center", width: boxWidth, features: ['rtla'] as any });
+      doc.font(fontRegular).fontSize(10);
+      doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth, features: ['rtla'] as any });
+    });
+
+    // Table on page 1
+    const tableTop = 260;
+    drawTableHeader(tableTop);
+
+    const statusLabels = options.statusLabels || {
+      active: "نشط", leave: "إجازة", inactive: "غير نشط",
+      present: "حاضر", absent: "غائب", late: "متأخر",
+      new: "جديد", in_progress: "قيد التنفيذ", completed: "مكتمل",
+    };
+
+    const rowsOnFirstPage = Math.min(totalDataRows, maxRowsFirstPage);
+    
+    for (let rowIndex = 0; rowIndex < rowsOnFirstPage; rowIndex++) {
+      const row = options.tableData[rowIndex];
+      const rowY = tableTop + (rowIndex + 1) * rowHeight;
+      const bgColor = rowIndex % 2 === 0 ? "#ffffff" : "#fdfdfd";
+      doc.rect(tableRight - tableWidth, rowY, tableWidth, rowHeight).fill(bgColor);
+
+      let x = tableRight - tableWidth;
+      doc.font(fontRegular).fontSize(9);
+      row.forEach((cell, i) => {
+        let text = String(cell);
+        if (options.statusColumnIndex === i && statusLabels) {
+          text = statusLabels[text] || text;
+        }
+        doc.fill("#2d3748");
+        doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
+        x += colWidths[i];
+      });
+    }
+
+    // Table border for page 1
+    doc.rect(tableRight - tableWidth, tableTop, tableWidth, (rowsOnFirstPage + 1) * rowHeight).stroke("#d4af37");
+
+    // If all data fits on page 1, draw signatures
+    if (totalDataRows <= maxRowsFirstPage) {
+      const sigY = pageHeight - 100;
+      doc.fill("#0a0a0c").font(fontBold).fontSize(12);
+      doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100, features: ['rtla'] as any });
+      const sigWidth = 180;
+      const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
+      signatures.forEach((sig, i) => {
+        const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
+        doc.font(fontRegular).fontSize(10);
+        doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth, features: ['rtla'] as any });
+        doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
+      });
+    }
+
+    drawFooter(1, totalPages);
+
+    // ===== ADDITIONAL PAGES =====
+    let remainingIndex = rowsOnFirstPage;
+    let currentPage = 2;
+
+    while (remainingIndex < totalDataRows) {
+      doc.addPage();
+      doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
+
+      // Mini header
+      doc.rect(0, 0, pageWidth, 50).fill("#0a0a0c");
+      doc.fill("#d4af37").font(fontBold).fontSize(14);
+      doc.text(ar(options.reportTitle + " (تابع)"), margin, 15, { align: "right", width: contentWidth, features: ['rtla'] as any });
+      doc.rect(0, 50, pageWidth, 3).fill("#d4af37");
+
+      const contTableTop = 70;
+      drawTableHeader(contTableTop);
+
+      const rowsThisPage = Math.min(maxRowsPerPage, totalDataRows - remainingIndex);
+
+      for (let ri = 0; ri < rowsThisPage; ri++) {
+        const row = options.tableData[remainingIndex + ri];
+        const rowY = contTableTop + (ri + 1) * rowHeight;
+        const bgColor = ri % 2 === 0 ? "#ffffff" : "#fdfdfd";
+        doc.rect(tableRight - tableWidth, rowY, tableWidth, rowHeight).fill(bgColor);
+
+        let x = tableRight - tableWidth;
+        doc.font(fontRegular).fontSize(9);
+        row.forEach((cell, i) => {
+          let text = String(cell);
+          if (options.statusColumnIndex === i && statusLabels) {
+            text = statusLabels[text] || text;
+          }
+          doc.fill("#2d3748");
+          doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
+          x += colWidths[i];
+        });
+      }
+
+      doc.rect(tableRight - tableWidth, contTableTop, tableWidth, (rowsThisPage + 1) * rowHeight).stroke("#d4af37");
+
+      remainingIndex += rowsThisPage;
+
+      // If this is the last page, draw signatures
+      if (remainingIndex >= totalDataRows) {
+        const lastRowBottom = contTableTop + (rowsThisPage + 1) * rowHeight;
+        if (lastRowBottom + 100 < pageHeight - 30) {
+          const sigY = lastRowBottom + 30;
+          doc.fill("#0a0a0c").font(fontBold).fontSize(12);
+          doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100, features: ['rtla'] as any });
+          const sigWidth = 180;
+          const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
+          signatures.forEach((sig, i) => {
+            const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
+            doc.font(fontRegular).fontSize(10);
+            doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth, features: ['rtla'] as any });
+            doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
+          });
+        }
+      }
+
+      drawFooter(currentPage, totalPages);
+      currentPage++;
+    }
+
+    doc.end();
+  });
 }
+
