@@ -1,7 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
+import useSWR, { mutate } from "swr";
 import dynamic from "next/dynamic";
 import { MapPin, Users, AlertTriangle, Search, Plus, Navigation, CheckCircle2, Clock, Trash2, Calendar, Edit, Edit2 } from "lucide-react";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
 
 // Dynamic import for Leaflet map to avoid SSR issues
 const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
@@ -25,26 +32,18 @@ export default function TrackingPage() {
   const [savingRoute, setSavingRoute] = useState(false);
   const [routeMsg, setRouteMsg] = useState({ error: "", success: "" });
 
-  useEffect(() => {
-    fetchLocationData();
-    fetchDelegates();
-    const interval = setInterval(fetchLocationData, 30000);
-    return () => clearInterval(interval);
-  }, [selectedDate]);
+  const { data, error, isLoading: loading } = useSWR(`/api/location?date=${selectedDate}`, fetcher, {
+    refreshInterval: 30000,
+    revalidateOnFocus: true
+  });
 
-  const fetchLocationData = async () => {
-    try {
-      const res = await fetch(`/api/location?date=${selectedDate}`);
-      if (res.ok) {
-        const jsonData = await res.json();
-        setData(jsonData);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const fetchLocationData = () => {
+    mutate(`/api/location?date=${selectedDate}`);
   };
+
+  useEffect(() => {
+    fetchDelegates();
+  }, []);
 
   const fetchDelegates = async () => {
     try {
