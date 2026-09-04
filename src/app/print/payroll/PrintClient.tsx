@@ -24,30 +24,38 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
     <>
       <style dangerouslySetInnerHTML={{__html: `
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, Tahoma, sans-serif; direction: rtl; padding: 40px; background: white; color: #333; }
-        .header { background: #1a365d; padding: 30px; margin: -40px -40px 30px -40px; text-align: center; }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 10px; }
-        .header p { color: #c9a227; font-size: 16px; }
+        html, body { 
+          font-family: Arial, Tahoma, sans-serif !important; 
+          direction: rtl !important; 
+          background-color: #ffffff !important; 
+          color: #000000 !important; 
+          padding: 20px !important;
+          margin: 0 !important;
+        }
+        .header { background-color: #1a365d !important; padding: 20px; text-align: center; border-radius: 4px; margin-bottom: 20px; }
+        .header h1 { color: #ffffff !important; font-size: 24px; margin-bottom: 8px; font-weight: bold; }
+        .header p { color: #c9a227 !important; font-size: 16px; font-weight: bold; }
         
-        .info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #666; margin-top: 20px; }
+        .info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #000000 !important; font-weight: bold; }
         
-        .summary-box { display: flex; gap: 20px; margin-bottom: 30px; }
-        .stat { border: 1px solid #ddd; padding: 15px; border-radius: 8px; flex: 1; text-align: center; background: #f9fafb; }
-        .stat-label { font-size: 12px; color: #666; margin-bottom: 5px; }
-        .stat-value { font-size: 18px; font-weight: bold; color: #1a365d; }
+        .summary-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat { border: 1px solid #ccc !important; padding: 10px; border-radius: 6px; flex: 1; text-align: center; background-color: #ffffff !important; }
+        .stat-label { font-size: 12px; color: #333333 !important; margin-bottom: 5px; font-weight: bold; }
+        .stat-value { font-size: 16px; font-weight: bold; color: #000000 !important; }
         
-        table { width: 100%; border-collapse: collapse; direction: rtl; }
-        th { background: #1a365d; color: white; padding: 12px; border: 1px solid #333; font-size: 13px; text-align: center; }
-        td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 13px; color: #333; }
+        table { width: 100%; border-collapse: collapse; direction: rtl; margin-bottom: 20px; }
+        th { background-color: #1a365d !important; color: #ffffff !important; padding: 10px; border: 1px solid #000000 !important; font-size: 12px; text-align: center; font-weight: bold; }
+        td { border: 1px solid #000000 !important; padding: 8px; text-align: center; font-size: 12px; color: #000000 !important; background-color: #ffffff !important; font-weight: bold; }
         
-        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 20px; }
+        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #333333 !important; border-top: 1px solid #000000 !important; padding-top: 10px; font-weight: bold; }
         
-        .signatures { display: flex; justify-content: space-around; margin-top: 50px; margin-bottom: 20px; }
-        .sig-box { text-align: center; width: 200px; }
-        .sig-line { border-bottom: 1px dashed #999; height: 40px; margin-bottom: 10px; }
+        .signatures { display: flex; justify-content: space-around; margin-top: 40px; margin-bottom: 10px; }
+        .sig-box { text-align: center; width: 180px; }
+        .sig-line { border-bottom: 1px dashed #000000 !important; height: 30px; margin-bottom: 10px; }
+        .sig-text { font-size: 13px; color: #000000 !important; font-weight: bold; }
         
         @media print { 
-          body { padding: 20px; } 
+          body { padding: 0 !important; margin: 0 !important; } 
           .no-print { display: none !important; }
         }
       `}} />
@@ -122,11 +130,11 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
       <div className="signatures">
         <div className="sig-box">
           <div className="sig-line"></div>
-          <div style={{ fontSize: '13px', color: '#666' }}>أعد بواسطة (الموارد البشرية)</div>
+          <div className="sig-text">أعد بواسطة (الموارد البشرية)</div>
         </div>
         <div className="sig-box">
           <div className="sig-line"></div>
-          <div style={{ fontSize: '13px', color: '#666' }}>المراجعة والاعتماد (المدير العام)</div>
+          <div className="sig-text">المراجعة والاعتماد (المدير العام)</div>
         </div>
       </div>
 
