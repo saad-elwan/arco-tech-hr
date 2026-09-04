@@ -209,7 +209,7 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: "24px", padding: "16px", background: "rgba(255,255,255,0.02)" }}>
+      <div className="card" style={{ marginBottom: "24px", padding: "16px", background: "rgba(var(--white-rgb),0.02)" }}>
         <div className="filter-bar" style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
           <div className="search-input-wrapper" style={{ flex: "1", minWidth: "250px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", padding: "8px 16px" }}>
             <Search size={16} color="var(--text-muted)" />
@@ -255,7 +255,7 @@ export default function EmployeesPage() {
               </thead>
               <tbody>
                 {employees.map((emp) => (
-                  <tr key={emp.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+                  <tr key={emp.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
                     <td style={{ padding: "16px" }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div className="employee-avatar avatar-sm" style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, var(--gold-dark), var(--gold-primary))", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
@@ -327,7 +327,7 @@ export default function EmployeesPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                 {/* Contact Info Group */}
-                <div className="card" style={{ padding: "16px", background: "rgba(255,255,255,0.02)" }}>
+                <div className="card" style={{ padding: "16px", background: "rgba(var(--white-rgb),0.02)" }}>
                   <h4 style={{ color: "var(--gold-primary)", marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><FileText size={16}/> بيانات شخصية واتصال</h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: "14px", marginTop: "16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-muted)" }}><Mail size={14} style={{display:"inline",marginRight:4}}/> البريد:</span> <strong>{selectedEmp.email || "---"}</strong></div>
@@ -337,7 +337,7 @@ export default function EmployeesPage() {
                 </div>
 
                 {/* System Info Group */}
-                <div className="card" style={{ padding: "16px", background: "rgba(255,255,255,0.02)" }}>
+                <div className="card" style={{ padding: "16px", background: "rgba(var(--white-rgb),0.02)" }}>
                   <h4 style={{ color: "var(--gold-primary)", marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Building size={16}/> البيانات الوظيفية</h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: "14px", marginTop: "16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-muted)" }}><Building size={14} style={{display:"inline",marginRight:4}}/> القسم:</span> <strong>{selectedEmp.department?.name || "---"}</strong></div>
@@ -451,7 +451,7 @@ export default function EmployeesPage() {
                   {(formData.role === "employee" || formData.role === "delegate") && (
                     <div className="form-group" style={{ gridColumn: "1 / -1" }}>
                       <label className="form-label">الصفحات المسموح للموظف برؤيتها (الصلاحيات المخصصة)</label>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", background: "rgba(var(--white-rgb),0.03)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                         {availablePermissions.map(perm => (
                           <label key={perm.id} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: perm.id === "/me" ? "not-allowed" : "pointer" }}>
                             <input 

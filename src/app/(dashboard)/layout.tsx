@@ -95,7 +95,7 @@ export default function DashboardLayout({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.8), 0 0 12px rgba(212,175,55,0.3)",
+            boxShadow: "0 8px 24px rgba(var(--black-rgb),0.8), 0 0 12px rgba(212,175,55,0.3)",
             transition: isRefreshing ? "all 0.3s ease" : "none",
           }}
         >

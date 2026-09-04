@@ -11,6 +11,7 @@ export default function TasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   // For avoiding hydration mismatch with react-beautiful-dnd
   const [isBrowser, setIsBrowser] = useState(false);
@@ -28,6 +29,7 @@ export default function TasksPage() {
     setIsBrowser(true);
     fetchTasks();
     fetchEmployees();
+    fetch('/api/me').then(res => res.json()).then(data => setCurrentUser(data.employee || data)).catch(() => {});
   }, []);
 
   const fetchTasks = async () => {
@@ -222,10 +224,10 @@ export default function TasksPage() {
 
       {/* KANBAN BOARD */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(280px, 1fr))', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '600px' }}>
+        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '600px', width: '100%', WebkitOverflowScrolling: 'touch' }}>
           
           {columns.map((col) => (
-            <div key={col.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-lg)' }}>
+            <div key={col.id} style={{ flex: '0 0 300px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-lg)' }}>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 8px' }}>
                 <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-primary)' }}>
@@ -269,7 +271,7 @@ export default function TasksPage() {
                               flexDirection: 'column',
                               gap: '12px',
                               background: snapshot.isDragging ? 'var(--bg-modal)' : 'var(--bg-card)',
-                              boxShadow: snapshot.isDragging ? '0 8px 30px rgba(0,0,0,0.5)' : 'none',
+                              boxShadow: snapshot.isDragging ? '0 8px 30px rgba(var(--black-rgb),0.5)' : 'none',
                               transform: snapshot.isDragging ? `${provided.draggableProps.style?.transform} scale(1.02)` : provided.draggableProps.style?.transform,
                               cursor: 'grab'
                             }}
@@ -299,7 +301,23 @@ export default function TasksPage() {
                               </div>
                               <button onClick={() => setSelectedTask(task)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '11px' }}>التفاصيل</button>
                             </div>
+
+                            {currentUser && (currentUser.id === task.assignedTo || currentUser.role === 'admin' || currentUser.role === 'superadmin') && (task.status === 'new' || task.status === 'in_progress') && (
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                {task.status === 'new' && (
+                                  <button onClick={() => handleUpdateStatus(task.id, 'in_progress')} className="btn btn-primary btn-sm" style={{ flex: 1, fontSize: '12px', background: 'var(--info)', borderColor: 'var(--info)', color: '#fff', padding: '6px' }}>
+                                    <Play size={14} style={{ marginLeft: '4px' }} /> قبول وبدء التنفيذ
+                                  </button>
+                                )}
+                                {task.status === 'in_progress' && (
+                                  <button onClick={() => handleUpdateStatus(task.id, 'completed')} className="btn btn-success btn-sm" style={{ flex: 1, fontSize: '12px', padding: '6px' }}>
+                                    <CheckCircle2 size={14} style={{ marginLeft: '4px' }} /> إكتمال المهمة
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
+
                         )}
                       </Draggable>
                     ))}

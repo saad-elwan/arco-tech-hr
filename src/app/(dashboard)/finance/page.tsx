@@ -309,7 +309,7 @@ export default function FinancePage() {
       </div>
 
       {/* --- Tab Toggle --- */}
-      <div style={{ display: 'flex', gap: '8px', padding: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border)', width: '100%', flexWrap: 'wrap', boxSizing: 'border-box' }} className="tabs hide-on-print">
+      <div style={{ display: 'flex', gap: '8px', padding: '4px', background: 'rgba(var(--white-rgb),0.04)', borderRadius: '12px', border: '1px solid var(--border)', width: '100%', flexWrap: 'wrap', boxSizing: 'border-box' }} className="tabs hide-on-print">
         <button
           onClick={() => setActiveTab('payroll')}
           style={{
@@ -412,7 +412,7 @@ export default function FinancePage() {
             background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
             borderRadius: '16px',
             border: '1px solid rgba(212,175,55,0.25)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.1)',
+            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(212,175,55,0.1)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
@@ -449,14 +449,14 @@ export default function FinancePage() {
                       <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                   </defs>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={65} outerRadius={88} paddingAngle={4} dataKey="value" stroke="rgba(0,0,0,0.6)" strokeWidth={2}>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={65} outerRadius={88} paddingAngle={4} dataKey="value" stroke="rgba(var(--black-rgb),0.6)" strokeWidth={2}>
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <RechartsTooltip
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'الصافي']}
-                    contentStyle={{ background: 'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(0,0,0,0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
+                    contentStyle={{ background: 'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
                     itemStyle={{ color: '#fff', fontWeight: 700 }}
                     labelStyle={{ color: '#d4af37' }}
                   />
@@ -471,7 +471,7 @@ export default function FinancePage() {
             background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
             borderRadius: '16px',
             border: '1px solid rgba(239,68,68,0.2)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(239,68,68,0.08)',
+            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(239,68,68,0.08)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
@@ -495,13 +495,13 @@ export default function FinancePage() {
                       <stop offset="100%" stopColor="#991b1b" stopOpacity={0.7}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 4" horizontal={false} stroke="rgba(255,255,255,0.04)" />
+                  <CartesianGrid strokeDasharray="2 4" horizontal={false} stroke="rgba(var(--white-rgb),0.04)" />
                   <XAxis type="number" stroke="transparent" tick={{ fill: '#666', fontSize: 10 }} tickLine={false} axisLine={false} />
                   <YAxis dataKey="name" type="category" width={80} stroke="transparent" tick={{ fill: '#bbb', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <RechartsTooltip
                     cursor={{ fill: 'rgba(239,68,68,0.06)' }}
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'إجمالي الخصم']}
-                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(239,68,68,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(0,0,0,0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
+                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(239,68,68,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
                     itemStyle={{ color: '#fff', fontWeight: 700 }}
                   />
                   <Bar dataKey="value" fill="url(#redGrad)" radius={[0, 6, 6, 0]} barSize={18} name="الخصم" />
@@ -515,7 +515,7 @@ export default function FinancePage() {
             background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
             borderRadius: '16px',
             border: '1px solid rgba(212,175,55,0.2)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.08)',
+            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(212,175,55,0.08)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
@@ -551,13 +551,13 @@ export default function FinancePage() {
                       <stop offset="100%" stopColor="#7f1d1d" stopOpacity={0.8}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                  <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="rgba(var(--white-rgb),0.04)" />
                   <XAxis dataKey="name" stroke="transparent" tick={{ fill: '#aaa', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis stroke="transparent" tick={{ fill: '#666', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <RechartsTooltip
                     cursor={{ fill: 'rgba(212,175,55,0.04)' }}
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'القيمة']}
-                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(0,0,0,0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
+                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
                     itemStyle={{ color: '#fff' }}
                     labelStyle={{ color: '#d4af37', fontWeight: 700, marginBottom:'4px' }}
                   />
@@ -607,18 +607,18 @@ export default function FinancePage() {
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم تلقائي</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم إداري</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--success)' }}>مكافآت</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي الراتب</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي راتب شهر {selectedPeriod}</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>خيارات</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((pr) => (
-                  <tr key={pr.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+                  <tr key={pr.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
                     <td style={{ padding: "16px" }}>
                       <div style={{ fontWeight: 600 }}>{pr.employee?.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{pr.employee?.department?.name || "---"}</div>
                     </td>
-                    <td style={{ padding: "16px", fontWeight: "bold" }}>{pr.basicSalary} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>ج.م</span></td>
+                    <td style={{ padding: "16px", fontWeight: "bold" }}>{pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>ج.م</span></td>
                     <td style={{ padding: "16px", fontSize: '13px' }}>
                       <span style={{color: 'var(--danger)', display: 'block'}}>{pr.absentDays} يوم غياب</span>
                       <span style={{color: 'var(--warning)', display: 'block'}}>{pr.lateDays} مرة تأخير</span>
@@ -676,7 +676,7 @@ export default function FinancePage() {
             ) : (
               <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <tr style={{ background: 'rgba(var(--white-rgb),0.02)' }}>
                     <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", width: '25%' }}>الموظف</th>
                     <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", width: '20%' }}>الراتب الأساسي (يُحفظ دائماً)</th>
                     <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", width: '20%' }}>مكافأة الشهر</th>
@@ -691,13 +691,13 @@ export default function FinancePage() {
                     const isSaved = savedEmp[emp.id];
                     
                     return (
-                      <tr key={emp.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                      <tr key={emp.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.03)" }}>
                         <td style={{ padding: "12px 16px" }}>
                           <div style={{ fontWeight: 600 }}>{emp.name}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{emp.department?.name || "بدون قسم"}</div>
                         </td>
                         <td style={{ padding: "12px 16px" }}>
-                          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(var(--black-rgb),0.2)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
                             <input 
                               type="number"
                               value={edit.basicSalary}
@@ -962,7 +962,7 @@ export default function FinancePage() {
             </div>
             <form onSubmit={handleSaveAdjustment}>
               <div className="modal-body" style={{ padding: "24px" }}>
-                <div style={{ marginBottom: "20px", padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                <div style={{ marginBottom: "20px", padding: '16px', background: 'rgba(var(--white-rgb),0.02)', borderRadius: '8px' }}>
                   <div style={{ fontWeight: "bold", fontSize: "16px", color: "var(--gold-primary)" }}>{selectedPayroll.employee?.name}</div>
                   <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>خصم تلقائي محتسب للغياب: {selectedPayroll.autoDeduction} ج.م</div>
                 </div>

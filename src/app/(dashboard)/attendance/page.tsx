@@ -124,7 +124,7 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: "24px", padding: "16px", background: "rgba(255,255,255,0.02)" }}>
+      <div className="card" style={{ marginBottom: "24px", padding: "16px", background: "rgba(var(--white-rgb),0.02)" }}>
         <div className="filter-bar" style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg-input)', padding: '8px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
             <Calendar size={18} color="var(--gold-primary)" />
@@ -167,7 +167,7 @@ export default function AttendancePage() {
               </thead>
               <tbody>
                 {filteredData.map((record) => (
-                  <tr key={record.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+                  <tr key={record.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
                     <td style={{ padding: "16px" }}>
                       <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--text-primary)" }}>{record.employee?.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{record.employee?.department?.name || 'بدون قسم'}</div>
@@ -190,7 +190,7 @@ export default function AttendancePage() {
                     </td>
                     <td style={{ padding: "16px" }}>{getStatusBadge(record.status)}</td>
                     <td style={{ padding: "16px" }}>
-                      <div className="chip" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "20px", fontSize: "12px", color: record.source === 'fingerprint' ? 'var(--gold-primary)' : record.source === 'app' ? 'var(--info)' : 'var(--text-primary)' }}>
+                      <div className="chip" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", background: "rgba(var(--white-rgb),0.05)", borderRadius: "20px", fontSize: "12px", color: record.source === 'fingerprint' ? 'var(--gold-primary)' : record.source === 'app' ? 'var(--info)' : 'var(--text-primary)' }}>
                         {record.source === 'fingerprint' ? <Activity size={14}/> : <UserCheck size={14}/>}
                         <span>{record.source === 'fingerprint' ? 'ماكينة البصمة' : record.source === 'app' ? 'تطبيق الموظف' : 'إدخال يدوي'}</span>
                       </div>
@@ -217,12 +217,12 @@ export default function AttendancePage() {
       {isSyncModalOpen && (
         <div className="modal-overlay" onClick={() => !saving && setIsSyncModalOpen(false)}>
           <div className="modal modal-lg" onClick={e => e.stopPropagation()} style={{ padding: 0, overflow: "hidden" }}>
-            <div className="modal-header" style={{ padding: "20px 24px", background: "rgba(0,0,0,0.2)" }}>
+            <div className="modal-header" style={{ padding: "20px 24px", background: "rgba(var(--black-rgb),0.2)" }}>
               <h3 className="modal-title" style={{ display: "flex", gap: 8, alignItems: "center", color: "var(--gold-primary)" }}><Fingerprint size={20}/> استيراد بيانات البصمة</h3>
               <button className="modal-close" onClick={() => setIsSyncModalOpen(false)}>✕</button>
             </div>
             
-            <div style={{ display: "flex", borderBottom: "1px solid var(--border)", background: "rgba(0,0,0,0.1)" }}>
+            <div style={{ display: "flex", borderBottom: "1px solid var(--border)", background: "rgba(var(--black-rgb),0.1)" }}>
               <button onClick={() => setSyncTab("network")} style={{ flex: 1, padding: "16px", border: "none", background: syncTab === "network" ? "rgba(212,175,55,0.1)" : "transparent", color: syncTab === "network" ? "var(--gold-primary)" : "var(--text-primary)", borderBottom: syncTab === "network" ? "2px solid var(--gold-primary)" : "2px solid transparent", cursor: "pointer", fontWeight: "bold", transition: "0.2s" }}>
                 <Wifi size={18} style={{ display: "inline", marginLeft: 8 }}/> الربط الشبكي المباشر (Webhook)
               </button>
@@ -240,14 +240,14 @@ export default function AttendancePage() {
                   
                   <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "16px", marginBottom: "16px" }}>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Server Address / API Webhook URL</div>
-                    <code style={{ display: "block", background: "rgba(0,0,0,0.5)", padding: "12px", borderRadius: "8px", color: "var(--success)", fontFamily: "monospace", fontSize: "14px", direction: "ltr", textAlign: "left" }}>
+                    <code style={{ display: "block", background: "rgba(var(--black-rgb),0.5)", padding: "12px", borderRadius: "8px", color: "var(--success)", fontFamily: "monospace", fontSize: "14px", direction: "ltr", textAlign: "left" }}>
                       http://{typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3000/api/fingerprint
                     </code>
                   </div>
                   
                   <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "16px" }}>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Header: x-api-key (للمصادقة)</div>
-                    <code style={{ display: "block", background: "rgba(0,0,0,0.5)", padding: "12px", borderRadius: "8px", color: "var(--gold-primary)", fontFamily: "monospace", fontSize: "14px", direction: "ltr", textAlign: "left" }}>
+                    <code style={{ display: "block", background: "rgba(var(--black-rgb),0.5)", padding: "12px", borderRadius: "8px", color: "var(--gold-primary)", fontFamily: "monospace", fontSize: "14px", direction: "ltr", textAlign: "left" }}>
                       HR_SECURE_TOKEN_2026
                     </code>
                   </div>

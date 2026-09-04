@@ -148,8 +148,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{
       background: "linear-gradient(180deg, var(--bg-sidebar), rgba(5,5,5,1))",
-      borderLeft: "1px solid rgba(255,255,255,0.05)",
-      boxShadow: "-10px 0 40px rgba(0,0,0,0.8)"
+      borderLeft: "1px solid rgba(var(--white-rgb),0.05)",
+      boxShadow: "-10px 0 40px rgba(var(--black-rgb),0.8)"
     }}>
       <div className="sidebar-logo" style={{ 
         padding: "28px 24px", 
@@ -210,7 +210,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                     transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
                     background: isActive ? "linear-gradient(90deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05))" : "transparent",
                     border: isActive ? "1px solid rgba(212, 175, 55, 0.3)" : "1px solid transparent",
-                    boxShadow: isActive ? "0 4px 15px rgba(0,0,0,0.2)" : "none"
+                    boxShadow: isActive ? "0 4px 15px rgba(var(--black-rgb),0.2)" : "none"
                   }}
                 >
                   <span className="nav-icon" style={{ 
@@ -233,13 +233,13 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
       <div className="sidebar-footer" style={{ 
         padding: "16px 20px", 
-        background: "rgba(0,0,0,0.3)",
-        borderTop: "1px solid rgba(255,255,255,0.05)"
+        background: "rgba(var(--black-rgb),0.3)",
+        borderTop: "1px solid rgba(var(--white-rgb),0.05)"
       }}>
         <div className="sidebar-user" style={{ padding: "12px", borderRadius: "14px" }}>
           <div className="user-avatar" style={{ 
             width: 40, height: 40, 
-            boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
+            boxShadow: "0 4px 10px rgba(var(--black-rgb),0.5)"
           }}>
             {user?.name?.charAt(0) || "م"}
           </div>

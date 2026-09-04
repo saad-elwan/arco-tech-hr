@@ -252,7 +252,7 @@ export default function TrackingPage() {
                 <div 
                   key={rt.id} 
                   className="card"
-                  style={{ padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid var(--border-gold)" }}
+                  style={{ padding: "16px", background: "rgba(var(--white-rgb),0.02)", border: "1px solid var(--border-gold)" }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
                     <div>
@@ -301,8 +301,8 @@ export default function TrackingPage() {
                         key={cp.id}
                         style={{ 
                           fontSize: "12px", padding: "6px 10px", borderRadius: "6px", 
-                          background: cp.status === "visited" ? "rgba(16, 185, 129, 0.1)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.1)" : "rgba(255,255,255,0.03)",
-                          border: `1px solid ${cp.status === "visited" ? "rgba(16, 185, 129, 0.3)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.3)" : "rgba(255,255,255,0.06)"}`,
+                          background: cp.status === "visited" ? "rgba(16, 185, 129, 0.1)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.1)" : "rgba(var(--white-rgb),0.03)",
+                          border: `1px solid ${cp.status === "visited" ? "rgba(16, 185, 129, 0.3)" : cp.status === "skipped" ? "rgba(239, 68, 68, 0.3)" : "rgba(var(--white-rgb),0.06)"}`,
                           display: "flex", justifyContent: "space-between", alignItems: "center"
                         }}
                       >
@@ -367,7 +367,7 @@ export default function TrackingPage() {
             </thead>
             <tbody>
               {filteredEmployees.map((emp: any) => (
-                <tr key={emp.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <tr key={emp.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)" }}>
                   <td style={{ padding: "16px" }}>
                     <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>{emp.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{emp.phone || '-'}</div>
@@ -465,7 +465,7 @@ export default function TrackingPage() {
                   <div 
                     key={idx} 
                     style={{ 
-                      padding: "14px", borderRadius: "8px", background: "rgba(255,255,255,0.02)", 
+                      padding: "14px", borderRadius: "8px", background: "rgba(var(--white-rgb),0.02)", 
                       border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "10px" 
                     }}
                   >

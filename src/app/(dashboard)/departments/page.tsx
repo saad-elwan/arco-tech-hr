@@ -151,7 +151,7 @@ export default function DepartmentsPage() {
               </thead>
               <tbody>
                 {departments.map((dept) => (
-                  <tr key={dept.id} onMouseOver={e => e.currentTarget.style.background = 'rgba(212,175,55,0.04)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "0.2s" }}>
+                  <tr key={dept.id} onMouseOver={e => e.currentTarget.style.background = 'rgba(212,175,55,0.04)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)", transition: "0.2s" }}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ width: 38, height: 38, borderRadius: "10px", background: "rgba(212,175,55,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>

@@ -15,7 +15,7 @@ function createCustomIcon(isOutOfRange: boolean) {
       width:34px; height:34px; border-radius:50% 50% 50% 0;
       background:${color}; transform:rotate(-45deg);
       border:3px solid #fff;
-      box-shadow:0 2px 8px rgba(0,0,0,0.4);
+      box-shadow:0 2px 8px rgba(var(--black-rgb),0.4);
     "></div>`,
     iconSize: [34, 34],
     iconAnchor: [17, 34],
@@ -31,7 +31,7 @@ function createCheckpointIcon(status: string, order: number) {
     html: `<div style="
       width:30px; height:30px; border-radius:50%;
       background:${bg}; border:2px solid #000;
-      box-shadow:0 2px 10px rgba(0,0,0,0.5);
+      box-shadow:0 2px 10px rgba(var(--black-rgb),0.5);
       display:flex; align-items:center; justify-content:center;
       color:#000; font-weight:800; font-size:12px;
     ">${order}</div>`,

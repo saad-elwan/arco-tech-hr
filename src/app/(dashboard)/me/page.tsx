@@ -269,7 +269,7 @@ export default function EmployeePortal() {
   return (
     <div style={{ padding: "20px", maxWidth: 900, margin: "0 auto" }}>
       {/* Header */}
-      <div className="card" style={{ marginBottom: 20, padding: "24px", background: "linear-gradient(135deg, rgba(212,175,55,0.1), rgba(0,0,0,0))" }}>
+      <div className="card" style={{ marginBottom: 20, padding: "24px", background: "linear-gradient(135deg, rgba(212,175,55,0.1), rgba(var(--black-rgb),0))" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ width: 60, height: 60, borderRadius: "50%", background: "linear-gradient(135deg, var(--gold-dark), var(--gold-primary))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700, color: "#000" }}>
             {employee.name.charAt(0)}
@@ -356,7 +356,7 @@ export default function EmployeePortal() {
                       key={cp.id}
                       style={{ 
                         padding: "12px 14px", borderRadius: "8px", 
-                        background: cp.status === "visited" ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.02)",
+                        background: cp.status === "visited" ? "rgba(16,185,129,0.08)" : "rgba(var(--white-rgb),0.02)",
                         border: `1px solid ${cp.status === "visited" ? "rgba(16,185,129,0.3)" : "var(--border)"}`,
                         display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8
                       }}
@@ -717,7 +717,7 @@ export default function EmployeePortal() {
             </div>
             <form onSubmit={handleUnableSubmit}>
               <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ padding: "12px 14px", borderRadius: "8px", background: "rgba(255,255,255,0.03)", fontSize: "13px" }}>
+                <div style={{ padding: "12px 14px", borderRadius: "8px", background: "rgba(var(--white-rgb),0.03)", fontSize: "13px" }}>
                   العميل: <strong style={{ color: "var(--gold-primary)" }}>{selectedCheckpoint.clientName}</strong>
                   {selectedCheckpoint.address && <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: 2 }}>العنوان: {selectedCheckpoint.address}</div>}
                 </div>

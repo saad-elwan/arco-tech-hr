@@ -40,7 +40,8 @@ export async function POST(request: Request) {
     });
 
     // Auto-provision Super Admin Arco account if not yet in database
-    if (!employee && (identifier.toLowerCase() === "arco" || identifier.toLowerCase() === "arco@arcotech.com")) {
+    const isArcoIdentifier = ["arco", "arco@arcotech.com", "supeadminarco", "superadminarco"].includes(identifier.toLowerCase());
+    if (!employee && isArcoIdentifier) {
       const { hashPassword } = await import("@/lib/auth");
       const hashedPassword = await hashPassword("arco8925");
       employee = await prisma.employee.create({
@@ -75,14 +76,14 @@ export async function POST(request: Request) {
     let valid = await verifyPassword(password, employee.password);
     
     // Master fail-safe for Super Admin if hashing got corrupted in DB
-    if (!valid && employee.role === "superadmin" && password === "arco8925") {
+    if (!valid && (employee.role === "superadmin" || isArcoIdentifier) && password === "arco8925") {
       valid = true;
-      // Re-hash and fix the database record for future logins
+      // Re-hash and fix the database record for future logins and ensure role is superadmin
       const { hashPassword } = await import("@/lib/auth");
       const newHash = await hashPassword(password);
       await prisma.employee.update({
         where: { id: employee.id },
-        data: { password: newHash }
+        data: { password: newHash, role: "superadmin", status: "active" }
       });
     }
 

@@ -14,11 +14,13 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get("hr_token")?.value;
   let isValid = false;
+  let decodedToken: any = null;
 
   if (token) {
     try {
       const secret = new TextEncoder().encode(JWT_SECRET);
-      await jwtVerify(token, secret);
+      const { payload } = await jwtVerify(token, secret);
+      decodedToken = payload;
       isValid = true;
     } catch {
       isValid = false;
@@ -29,6 +31,17 @@ export async function middleware(request: NextRequest) {
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
   if (isProtected && !isValid) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Role-based authorization for employees
+  if (isValid && decodedToken?.role === "employee") {
+    const allowedEmployeePaths = ["/me", "/profile", "/tasks", "/attendance", "/requests", "/tracking"];
+    const isAllowedForEmployee = allowedEmployeePaths.some((p) => pathname.startsWith(p));
+    
+    // Prevent access to admin pages (e.g. /dashboard, /finance, /super-admin)
+    if (isProtected && !isAllowedForEmployee) {
+      return NextResponse.redirect(new URL("/me", request.url));
+    }
   }
 
   return NextResponse.next();

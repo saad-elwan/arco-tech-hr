@@ -278,7 +278,7 @@ export default function SuperAdminPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ display: "flex", gap: "6px", padding: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "12px", border: "1px solid var(--border)", alignSelf: "flex-start" }}>
+      <div style={{ display: "flex", gap: "6px", padding: "4px", background: "rgba(var(--white-rgb),0.04)", borderRadius: "12px", border: "1px solid var(--border)", alignSelf: "flex-start" }}>
         <button
           onClick={() => setActiveTab("telemetry")}
           style={{
@@ -907,7 +907,7 @@ export default function SuperAdminPage() {
                 {userActionMsg.error && <div className="alert alert-danger">{userActionMsg.error}</div>}
                 {userActionMsg.success && <div className="alert alert-success">{userActionMsg.success}</div>}
 
-                <div style={{ padding: "12px", borderRadius: "8px", background: "rgba(255,255,255,0.03)", fontSize: "13px" }}>
+                <div style={{ padding: "12px", borderRadius: "8px", background: "rgba(var(--white-rgb),0.03)", fontSize: "13px" }}>
                   الحساب: <strong style={{ color: "var(--gold-primary)" }}>{selectedUser.name}</strong> ({selectedUser.email})
                 </div>
 

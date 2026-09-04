@@ -118,7 +118,7 @@ export default function LoginPage() {
           border: "1px solid rgba(212, 175, 55, 0.25)",
           borderRadius: "24px",
           padding: "32px 24px",
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.1)",
+          boxShadow: "0 20px 60px rgba(var(--black-rgb), 0.8), 0 0 30px rgba(212, 175, 55, 0.1)",
           boxSizing: "border-box",
         }}
       >
@@ -198,7 +198,7 @@ export default function LoginPage() {
                 width: "100%",
                 padding: "13px 16px",
                 backgroundColor: "rgba(10, 10, 10, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(var(--white-rgb), 0.1)",
                 borderRadius: "12px",
                 color: "#F5F5F5",
                 fontSize: "14px",
@@ -233,7 +233,7 @@ export default function LoginPage() {
                   width: "100%",
                   padding: "13px 44px 13px 16px",
                   backgroundColor: "rgba(10, 10, 10, 0.8)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  border: "1px solid rgba(var(--white-rgb), 0.1)",
                   borderRadius: "12px",
                   color: "#F5F5F5",
                   fontSize: "14px",
@@ -349,7 +349,7 @@ export default function LoginPage() {
               flex: '1 1 120px', 
               justifyContent: 'center', 
               background: '#000', 
-              borderColor: 'rgba(255,255,255,0.2)', 
+              borderColor: 'rgba(var(--white-rgb),0.2)', 
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
@@ -373,7 +373,7 @@ export default function LoginPage() {
           2. اسمح بتثبيت التطبيقات إذا طلب هاتفك ذلك.
         </div>
 
-        <div id="iosHint" style={{ display: 'none', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '12px', fontSize: '12px', color: '#ccc', marginBottom: '14px', lineHeight: 1.6 }}>
+        <div id="iosHint" style={{ display: 'none', background: 'rgba(var(--white-rgb),0.05)', border: '1px solid rgba(var(--white-rgb),0.1)', padding: '12px', borderRadius: '12px', fontSize: '12px', color: '#ccc', marginBottom: '14px', lineHeight: 1.6 }}>
           <strong>📱 لمستخدمي iPhone (PWA):</strong><br/>
           1. افتح الرابط في متصفح <strong>Safari</strong>.<br/>
           2. اضغط على زر <strong>مشاركة (Share)</strong> بالأسفل.<br/>

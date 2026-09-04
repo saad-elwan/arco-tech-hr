@@ -63,6 +63,7 @@ model Employee {
   maxAdvanceLimit Float            @default(0)
   pendingOvertime Float            @default(0) // New: Pending overtime hours
   permissions     String?          @default("[\"/me\"]")
+  fcmToken        String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   department      Department?      @relation(fields: [departmentId], references: [id])

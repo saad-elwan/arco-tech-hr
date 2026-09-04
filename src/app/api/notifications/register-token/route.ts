@@ -1,34 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getAuthFromRequest } from "@/lib/middleware";
-import { ensureDatabaseSchema } from "@/lib/ensureSchema";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getAuthFromRequest } from '@/lib/middleware';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    await ensureDatabaseSchema();
-    const auth = getAuthFromRequest(request);
-    const body = await request.json();
-    const { token, employeeId, platform } = body;
-
-    const targetEmployeeId = auth?.id || employeeId;
-
-    if (!token || !targetEmployeeId) {
-      return NextResponse.json({ error: "الرمز ومعرف الموظف مطلوبان" }, { status: 400 });
+    const auth = getAuthFromRequest(request as any);
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Upsert push token
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "DevicePushToken" ("employeeId", "token", "platform", "updatedAt")
-       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-       ON CONFLICT ("token") DO UPDATE SET "employeeId" = $1, "updatedAt" = CURRENT_TIMESTAMP;`,
-      targetEmployeeId,
-      token,
-      platform || "android"
-    );
+    const body = await request.json();
+    const { token } = body;
 
-    return NextResponse.json({ success: true, message: "تم تسجيل جهازك لاستقبال الإشعارات بنجاح" });
-  } catch (err: any) {
-    console.error("Register token error:", err);
-    return NextResponse.json({ error: err.message || "خطأ في التسجيل" }, { status: 500 });
+    if (!token) {
+      return NextResponse.json({ error: 'Token is required' }, { status: 400 });
+    }
+
+    await prisma.employee.update({
+      where: { id: auth.id },
+      data: { fcmToken: token }
+    });
+
+    return NextResponse.json({ success: true, message: 'Token registered successfully' });
+  } catch (error) {
+    console.error('Error registering token:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

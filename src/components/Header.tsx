@@ -334,7 +334,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
       borderBottom: "1px solid rgba(212, 175, 55, 0.15)",
-      boxShadow: "0 4px 30px rgba(0, 0, 0, 0.5)"
+      boxShadow: "0 4px 30px rgba(var(--black-rgb), 0.5)"
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {onMenuClick && (
@@ -381,13 +381,13 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               alignItems: "center",
               gap: 10,
               padding: "8px 16px",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(var(--white-rgb),0.03)",
+              border: "1px solid rgba(var(--white-rgb),0.1)",
               borderRadius: "20px",
               width: "280px",
               transition: "all 0.3s",
               boxShadow: showSearchDropdown ? "0 0 15px rgba(212, 175, 55, 0.15)" : "none",
-              borderColor: showSearchDropdown ? "rgba(212, 175, 55, 0.4)" : "rgba(255,255,255,0.1)"
+              borderColor: showSearchDropdown ? "rgba(212, 175, 55, 0.4)" : "rgba(var(--white-rgb),0.1)"
             }}>
               <Search size={16} color="var(--text-muted)" />
               <input 
@@ -462,7 +462,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           alignItems: "center",
           gap: 8,
           padding: "6px 14px",
-          background: "linear-gradient(90deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0))",
+          background: "linear-gradient(90deg, rgba(212, 175, 55, 0.1), rgba(var(--black-rgb),0))",
           border: "1px solid rgba(212, 175, 55, 0.2)",
           borderRadius: "20px",
           fontSize: 12,
@@ -482,7 +482,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <button 
           onClick={toggleTheme}
           style={{
-            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(var(--white-rgb),0.05)", border: "1px solid rgba(var(--white-rgb),0.1)",
             width: 40, height: 40, borderRadius: "50%",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "all 0.3s", color: "var(--text-primary)"
@@ -498,8 +498,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             className="btn-icon" 
             onClick={handleNotifsClick}
             style={{
-              background: showNotifs ? "rgba(212, 175, 55, 0.1)" : "rgba(255,255,255,0.05)",
-              border: showNotifs ? "1px solid rgba(212, 175, 55, 0.4)" : "1px solid rgba(255,255,255,0.1)",
+              background: showNotifs ? "rgba(212, 175, 55, 0.1)" : "rgba(var(--white-rgb),0.05)",
+              border: showNotifs ? "1px solid rgba(212, 175, 55, 0.4)" : "1px solid rgba(var(--white-rgb),0.1)",
               width: 40, height: 40, borderRadius: "50%",
               position: "relative", cursor: "pointer", transition: "all 0.3s"
             }}
@@ -603,7 +603,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             border: "1.5px solid var(--gold-primary)",
             borderRadius: "16px",
             padding: "16px 20px",
-            boxShadow: "0 15px 40px rgba(0,0,0,0.6), 0 0 25px rgba(212, 175, 55, 0.35)",
+            boxShadow: "0 15px 40px rgba(var(--black-rgb),0.6), 0 0 25px rgba(212, 175, 55, 0.35)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
             cursor: "pointer",

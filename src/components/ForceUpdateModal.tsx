@@ -117,7 +117,7 @@ export default function ForceUpdateModal() {
           border: "1.5px solid rgba(212, 175, 55, 0.35)",
           borderRadius: "24px",
           padding: "28px 22px",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(212, 175, 55, 0.2)",
+          boxShadow: "0 25px 60px rgba(var(--black-rgb),0.9), 0 0 35px rgba(212, 175, 55, 0.2)",
         }}
       >
         {/* Logo */}
@@ -216,7 +216,7 @@ export default function ForceUpdateModal() {
             style={{
               width: "100%",
               height: "6px",
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(var(--white-rgb), 0.1)",
               borderRadius: "6px",
               overflow: "hidden",
               marginBottom: "14px",

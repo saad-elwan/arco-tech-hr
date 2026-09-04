@@ -254,7 +254,7 @@ export default function EvaluationsPage() {
             <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>إجمالي التقييمات</div>
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{totalEvals}</div>
           </div>
-          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(var(--white-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity size={24} style={{ color: 'var(--text-primary)' }} />
           </div>
         </div>

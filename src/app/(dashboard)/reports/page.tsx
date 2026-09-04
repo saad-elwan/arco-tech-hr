@@ -220,7 +220,7 @@ export default function ReportsPage() {
           </thead>
           <tbody>
             {reportData.map((r: any) => (
-              <tr key={r.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={r.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.04)" }}>
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{r.employee?.name}</td>
                 <td style={{ padding: "12px 16px", color: "var(--text-muted)", fontSize: 13 }}>{r.employee?.department?.name || "-"}</td>
                 <td style={{ padding: "12px 16px" }}>{r.date}</td>
@@ -250,7 +250,7 @@ export default function ReportsPage() {
           </thead>
           <tbody>
             {reportData.map((e: any) => (
-              <tr key={e.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={e.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.04)" }}>
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{e.name}</td>
                 <td style={{ padding: "12px 16px", color: "var(--text-muted)" }}>{e.department?.name || "-"}</td>
                 <td style={{ padding: "12px 16px", color: "var(--text-muted)" }}>{e.shift?.name || "-"}</td>
@@ -280,7 +280,7 @@ export default function ReportsPage() {
           </thead>
           <tbody>
             {reportData.map((ev: any) => (
-              <tr key={ev.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={ev.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.04)" }}>
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{ev.employee?.name}</td>
                 <td style={{ padding: "12px 16px", color: "var(--text-muted)" }}>{ev.employee?.department?.name || "-"}</td>
                 <td style={{ padding: "12px 16px" }}>
@@ -311,7 +311,7 @@ export default function ReportsPage() {
           </thead>
           <tbody>
             {reportData.map((t: any) => (
-              <tr key={t.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={t.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.04)" }}>
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{t.title}</td>
                 <td style={{ padding: "12px 16px", color: "var(--text-muted)" }}>{t.assignee?.name || "-"}</td>
                 <td style={{ padding: "12px 16px" }}>
