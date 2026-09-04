@@ -29,34 +29,52 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
           direction: rtl !important; 
           background-color: #ffffff !important; 
           color: #000000 !important; 
-          padding: 20px !important;
+          padding: 0 !important;
           margin: 0 !important;
+          width: 100%;
         }
-        .header { background-color: #1a365d !important; padding: 20px; text-align: center; border-radius: 4px; margin-bottom: 20px; }
-        .header h1 { color: #ffffff !important; font-size: 24px; margin-bottom: 8px; font-weight: bold; }
-        .header p { color: #c9a227 !important; font-size: 16px; font-weight: bold; }
         
-        .info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #000000 !important; font-weight: bold; }
+        .content-container {
+          padding: 20px;
+        }
+
+        .header { 
+          background-color: #1a365d !important; 
+          padding: 30px 20px; 
+          text-align: center; 
+          width: 100%;
+          margin-bottom: 40px !important; /* Space between header and data */
+        }
+        .header h1 { color: #ffffff !important; font-size: 28px; margin-bottom: 10px; font-weight: bold; }
+        .header p { color: #c9a227 !important; font-size: 18px; font-weight: bold; }
         
-        .summary-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat { border: 1px solid #ccc !important; padding: 10px; border-radius: 6px; flex: 1; text-align: center; background-color: #ffffff !important; }
-        .stat-label { font-size: 12px; color: #333333 !important; margin-bottom: 5px; font-weight: bold; }
-        .stat-value { font-size: 16px; font-weight: bold; color: #000000 !important; }
+        .info { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 15px; color: #000000 !important; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; direction: rtl; margin-bottom: 20px; }
-        th { background-color: #1a365d !important; color: #ffffff !important; padding: 10px; border: 1px solid #000000 !important; font-size: 12px; text-align: center; font-weight: bold; }
-        td { border: 1px solid #000000 !important; padding: 8px; text-align: center; font-size: 12px; color: #000000 !important; background-color: #ffffff !important; font-weight: bold; }
+        .summary-box { display: flex; gap: 15px; margin-bottom: 30px; }
+        .stat { border: 1px solid #ccc !important; padding: 15px; border-radius: 6px; flex: 1; text-align: center; background-color: #ffffff !important; }
+        .stat-label { font-size: 13px; color: #333333 !important; margin-bottom: 8px; font-weight: bold; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #000000 !important; }
         
-        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #333333 !important; border-top: 1px solid #000000 !important; padding-top: 10px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; direction: rtl; margin-bottom: 30px; }
+        th { background-color: #1a365d !important; color: #ffffff !important; padding: 12px; border: 1px solid #000000 !important; font-size: 13px; text-align: center; font-weight: bold; }
+        td { border: 1px solid #000000 !important; padding: 10px; text-align: center; font-size: 13px; color: #000000 !important; background-color: #ffffff !important; font-weight: bold; }
         
-        .signatures { display: flex; justify-content: space-around; margin-top: 40px; margin-bottom: 10px; }
-        .sig-box { text-align: center; width: 180px; }
-        .sig-line { border-bottom: 1px dashed #000000 !important; height: 30px; margin-bottom: 10px; }
-        .sig-text { font-size: 13px; color: #000000 !important; font-weight: bold; }
+        .footer { margin-top: 30px; text-align: center; font-size: 13px; color: #333333 !important; border-top: 1px solid #000000 !important; padding-top: 15px; font-weight: bold; }
+        
+        .signatures { display: flex; justify-content: space-around; margin-top: 60px; margin-bottom: 20px; }
+        .sig-box { text-align: center; width: 200px; }
+        .sig-line { border-bottom: 1px dashed #000000 !important; height: 30px; margin-bottom: 15px; }
+        .sig-text { font-size: 14px; color: #000000 !important; font-weight: bold; }
+        
+        @page {
+          size: A4 landscape;
+          margin: 10mm 0;
+        }
         
         @media print { 
-          body { padding: 0 !important; margin: 0 !important; } 
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .no-print { display: none !important; }
+          .header { margin-top: -10mm !important; } /* Pull header up to edge of paper */
         }
       `}} />
 
@@ -64,6 +82,8 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
         <h1>{companyName}</h1>
         <p>تقرير الرواتب المجمع</p>
       </div>
+      
+      <div className="content-container">
       
       <div className="info">
         <span>تاريخ الإصدار: {new Date().toLocaleDateString("ar-EG")}</span>
@@ -140,6 +160,7 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
 
       <div className="footer">
         تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية | {new Date().toLocaleString("ar-EG")}
+      </div>
       </div>
 
       <div className="no-print" style={{ textAlign: 'center', marginTop: '30px' }}>
