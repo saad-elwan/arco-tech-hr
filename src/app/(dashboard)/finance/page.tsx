@@ -619,7 +619,7 @@ function FinanceContent() {
             />
           </div>
         </div>
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           {loading ? (
             <div className="loading-spinner" style={{ padding: '40px' }}><div className="spinner"></div></div>
           ) : payrolls.length === 0 ? (
@@ -629,7 +629,7 @@ function FinanceContent() {
               <p>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير المالي.</p>
             </div>
           ) : (
-            <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse", minWidth: "1000px" }}>
               <thead>
                 <tr>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>اسـم المـوظف</th>
@@ -705,13 +705,13 @@ function FinanceContent() {
             </div>
           </div>
 
-          <div className="table-wrapper">
+          <div className="table-wrapper" style={{ overflowX: 'auto' }}>
             {empLoading ? (
               <div className="loading-spinner" style={{ padding: '40px' }}><div className="spinner"></div></div>
             ) : employees.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>لا يوجد موظفين مسجلين.</div>
             ) : (
-              <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse", minWidth: "800px" }}>
                 <thead>
                   <tr style={{ background: 'rgba(var(--white-rgb),0.02)' }}>
                     <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", width: '25%' }}>الموظف</th>
@@ -883,8 +883,8 @@ function FinanceContent() {
                 <p>لا توجد حركات نقدية مسجلة بعد في الخزينة.</p>
               </div>
             ) : (
-              <div className="table-wrapper">
-                <table>
+              <div className="table-wrapper" style={{ overflowX: 'auto' }}>
+                <table style={{ width: "100%", minWidth: "800px" }}>
                   <thead>
                     <tr>
                       <th style={{ width: "40px" }}>#</th>
@@ -1045,82 +1045,7 @@ function FinanceContent() {
       )}
       </div>
 
-      {/* --- Formal PDF Report (Hidden on Screen, Visible on Print) --- */}
-      <div className="print-only-report" dir="rtl">
-        <div className="formal-report-header">
-          <div>
-            <h2 style={{ margin: 0 }}>{companySettings?.name || "شركتي"}</h2>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>الإدارة المالية والموارد البشرية</div>
-          </div>
-          <div style={{ textAlign: 'left' }}>
-            <div>تاريخ الإصدار: {new Date().toLocaleDateString('ar-EG')}</div>
-            <div>مسير شهر: <span dir="ltr">{selectedPeriod}</span></div>
-          </div>
-        </div>
-
-        <div className="formal-report-title">
-          مسير الرواتب المعتمد للموظفين
-        </div>
-
-        <div className="formal-report-summary" style={{ marginBottom: '10px' }}>
-          <div>إجمالي المستحقات<br/>{(totalNetSalaries).toLocaleString('ar-EG')} ج.م</div>
-          <div>إجمالي الخصومات<br/>{(totalDeductions).toLocaleString('ar-EG')} ج.م</div>
-          <div>إجمالي المكافآت<br/>{(totalBonuses).toLocaleString('ar-EG')} ج.م</div>
-        </div>
-
-        <table className="formal-table">
-          <thead>
-            <tr>
-              <th style={{ width: '40px', textAlign: 'center' }}>م</th>
-              <th>اسم الموظف</th>
-              <th style={{ textAlign: 'center' }}>الراتب الأساسي</th>
-              <th style={{ textAlign: 'center' }}>إجمالي الخصم (تلقائي+إداري)</th>
-              <th style={{ textAlign: 'center' }}>مكافآت</th>
-              <th style={{ textAlign: 'center' }}>صافي الراتب</th>
-              <th style={{ textAlign: 'center' }}>الحالة</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((pr, idx) => {
-              const totalDed = pr.autoDeduction + pr.manualDeduction;
-              return (
-              <tr key={pr.id}>
-                <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                <td>{pr.employee?.name}</td>
-                <td style={{ textAlign: 'center' }}>{pr.basicSalary}</td>
-                <td style={{ textAlign: 'center' }}>{totalDed.toFixed(2)}</td>
-                <td style={{ textAlign: 'center' }}>{pr.bonus.toFixed(2)}</td>
-                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{pr.netSalary.toFixed(2)} ج.م</td>
-                <td style={{ textAlign: 'center' }}>{pr.status === 'paid' ? 'تم الصرف' : 'مستحق'}</td>
-              </tr>
-            )})}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '30px' }}>لا يوجد سجلات لهذا الشهر</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        <div className="signatures-area" style={{ marginTop: '40px' }}>
-          <div className="signature-box">
-            مدير الموارد البشرية
-            <div className="signature-line"></div>
-          </div>
-          <div className="signature-box">
-            المدير المالي
-            <div className="signature-line"></div>
-          </div>
-          <div className="signature-box">
-            الختم الرسمي
-            <div className="signature-line" style={{ borderTop: 'none' }}></div>
-          </div>
-          <div className="signature-box">
-            المدير العام
-            <div className="signature-line"></div>
-          </div>
-        </div>
-      </div>
+      {/* --- Print functionality relies on PDF API route --- */}
     </>
   );
 }

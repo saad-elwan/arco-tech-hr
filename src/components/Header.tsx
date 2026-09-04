@@ -95,17 +95,11 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
   }, [user]);
 
-  // Auto-request Notification permission on user interaction
+  // Auto-request Notification permission immediately on load
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       if (Notification.permission === "default") {
-        const reqPerm = () => {
-          Notification.requestPermission().catch(() => {});
-          window.removeEventListener("click", reqPerm);
-          window.removeEventListener("touchstart", reqPerm);
-        };
-        window.addEventListener("click", reqPerm, { once: true });
-        window.addEventListener("touchstart", reqPerm, { once: true });
+        Notification.requestPermission().catch(() => {});
       }
     }
   }, []);

@@ -29,20 +29,28 @@ export async function GET(request: NextRequest) {
     where: { date: { startsWith: period } }
   });
 
-  const GRACE_END_MINUTES = 525; // 08:45
+  const company = await prisma.company.findFirst();
+  const defaultStartTime = company?.workStartTime || "08:00";
+  const defaultEndTime = company?.workEndTime || "17:00";
+  const lateThreshold = company?.lateThresholdMin || 15;
   
   const payrollsWithHours = payrolls.map(pr => {
     const empRecords = attendances.filter(a => a.employeeId === pr.employeeId);
     let totalWorkedMinutes = 0;
     let totalLateMinutes = 0;
     
+    // Fallback to default if no shift
+    const startStr = defaultStartTime; // Should ideally come from pr.employee.shift if included
+    const [sh, sm] = startStr.split(':').map(Number);
+    const graceEndMinutes = (sh * 60 + sm) + lateThreshold;
+    
     empRecords.forEach(r => {
       let checkInMin = 0;
       if (r.checkIn) {
         const [h, m] = r.checkIn.split(':').map(Number);
         checkInMin = h * 60 + m;
-        if (checkInMin > GRACE_END_MINUTES) {
-          totalLateMinutes += (checkInMin - GRACE_END_MINUTES);
+        if (checkInMin > graceEndMinutes) {
+          totalLateMinutes += (checkInMin - graceEndMinutes);
         }
       }
       
@@ -91,12 +99,17 @@ export async function POST(request: NextRequest) {
   for (const emp of employees) {
     const basicSalary = emp.basicSalary || 0;
     const dayWage = basicSalary / 30; // standard 30 day divisor
-    const dailyWorkHours = 8;
+    const startStr = emp.shift?.startTime || defaultStartTime;
+    const endStr = emp.shift?.endTime || defaultEndTime;
+    const [sh, sm] = startStr.split(':').map(Number);
+    const [eh, em] = endStr.split(':').map(Number);
+    
+    const workStartMinutes = sh * 60 + sm;
+    const workEndMinutes = eh * 60 + em;
+    const dailyWorkHours = (workEndMinutes - workStartMinutes) / 60;
+    const graceEndMinutes = workStartMinutes + lateThreshold;
+    
     const minuteWage = dayWage / (dailyWorkHours * 60);
-
-    // Standard work start 08:30 (510 min) + 15 min grace = 08:45 (525 min)
-    const WORK_START_MINUTES = 510;
-    const GRACE_END_MINUTES = 525;
 
     const currentMonth = new Date().toISOString().substring(0, 7);
     const today = new Date().getDate();
@@ -124,9 +137,9 @@ export async function POST(request: NextRequest) {
         const checkInMin = ch * 60 + cm;
         
         // Late calculation
-        if (checkInMin > GRACE_END_MINUTES) {
+        if (checkInMin > graceEndMinutes) {
           lateDays++;
-          const delay = checkInMin - GRACE_END_MINUTES;
+          const delay = checkInMin - graceEndMinutes;
           const penalized = delay * 2; // خصم الدقيقة بـ 2 دقيقة
           totalLateMinutes += delay;
           totalPenalizedMinutes += penalized;
@@ -137,10 +150,16 @@ export async function POST(request: NextRequest) {
           const [outH, outM] = r.checkOut.split(":").map(Number);
           const outMin = outH * 60 + outM;
           const workedMins = outMin - checkInMin;
-          const expectedMins = dailyWorkHours * 60; // 8 hours * 60 = 480 mins
+          const expectedMins = dailyWorkHours * 60;
           if (workedMins < expectedMins) {
             totalUnfulfilledMinutes += (expectedMins - workedMins);
           }
+        } else {
+          // If no checkout, assume they didn't fulfill the rest of the day after check-in
+          const expectedMins = dailyWorkHours * 60;
+          // Optionally deduct full day, but for now just add half day penalty or similar.
+          // Let's add 4 hours unfulfilled penalty for missing checkout.
+          totalUnfulfilledMinutes += (expectedMins / 2);
         }
       }
     }
