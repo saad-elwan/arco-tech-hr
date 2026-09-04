@@ -480,21 +480,22 @@ function FinanceContent() {
           {/* Analytics Section Header */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '12px',
-            padding: '14px 20px',
-            background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.02) 100%)',
-            border: '1px solid rgba(212,175,55,0.2)',
-            borderRadius: '12px',
-            marginBottom: '16px'
+            padding: '16px 24px',
+            background: 'linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0.02) 100%)',
+            border: '1px solid rgba(212,175,55,0.3)',
+            borderRadius: '16px',
+            marginBottom: '20px',
+            boxShadow: '0 4px 20px rgba(212,175,55,0.05)'
           }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'8px', background:'rgba(212,175,55,0.15)', color:'#d4af37' }}>
-              <Activity size={18} />
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'40px', height:'40px', borderRadius:'10px', background:'rgba(212,175,55,0.2)', color:'var(--gold-primary)' }}>
+              <Activity size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '15px', color: '#d4af37', letterSpacing:'0.5px' }}>لوحة التحليلات المالية</div>
-              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>بيانات حية بناءً على مسير شهر {selectedPeriod}</div>
+              <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)', letterSpacing:'0.5px' }}>لوحة التحليلات المالية</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>بيانات حية بناءً على مسير شهر {selectedPeriod}</div>
             </div>
             <div style={{ marginRight: 'auto', display:'flex', gap:'8px' }}>
-              <span style={{ padding:'4px 10px', borderRadius:'20px', background:'rgba(212,175,55,0.1)', color:'#d4af37', fontSize:'11px', fontWeight:600, border:'1px solid rgba(212,175,55,0.2)' }}>
+              <span style={{ padding:'6px 14px', borderRadius:'20px', background:'rgba(212,175,55,0.15)', color:'var(--gold-primary)', fontSize:'12px', fontWeight:700, border:'1px solid rgba(212,175,55,0.3)' }}>
                 {payrolls.length} موظف
               </span>
             </div>
@@ -503,24 +504,24 @@ function FinanceContent() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
           
           {/* Department Pie Chart */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
-            borderRadius: '16px',
-            border: '1px solid rgba(212,175,55,0.25)',
-            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(212,175,55,0.1)',
+          <div className="card" style={{
+            background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 1) 0%, rgba(var(--bg-card-rgb), 0.6) 100%)',
+            borderRadius: '20px',
+            border: '1px solid var(--border-gold)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
           }}>
             {/* Glow accent */}
-            <div style={{ position:'absolute', top:0, right:0, width:'100px', height:'100px', background:'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)', pointerEvents:'none' }} />
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'32px', height:'32px', borderRadius:'8px', background:'rgba(212,175,55,0.15)', color:'#d4af37', flexShrink:0 }}>
-                <PieIcon size={16} />
+            <div style={{ position:'absolute', top:"-20px", right:"-20px", width:'100px', height:'100px', background:'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)', pointerEvents:'none', filter: 'blur(15px)' }} />
+            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'10px', background:'rgba(212,175,55,0.15)', color:'var(--gold-primary)', flexShrink:0 }}>
+                <PieIcon size={18} />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: '#fff' }}>توزيع التكلفة على الأقسام</div>
-                <div style={{ fontSize: '11px', color: '#777', marginTop:'2px' }}>Cost Center Distribution</div>
+                <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>توزيع التكلفة على الأقسام</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop:'2px' }}>Cost Center Distribution</div>
               </div>
             </div>
             <div style={{ width: '100%', height: 260 }}>
@@ -544,41 +545,41 @@ function FinanceContent() {
                       <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                   </defs>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={65} outerRadius={88} paddingAngle={4} dataKey="value" stroke="rgba(var(--black-rgb),0.6)" strokeWidth={2}>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={65} outerRadius={88} paddingAngle={6} dataKey="value" stroke="rgba(var(--bg-card-rgb),1)" strokeWidth={3}>
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <RechartsTooltip
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'الصافي']}
-                    contentStyle={{ background: 'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
-                    itemStyle={{ color: '#fff', fontWeight: 700 }}
-                    labelStyle={{ color: '#d4af37' }}
+                    contentStyle={{ background: 'rgba(var(--bg-card-rgb), 0.95)', backdropFilter:'blur(16px)', border:'1px solid var(--border-gold)', borderRadius:'12px', boxShadow:'0 8px 32px rgba(0,0,0,0.1)', color:'var(--text-primary)', fontSize:'13px', padding:'12px 16px' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 800 }}
+                    labelStyle={{ color: 'var(--gold-primary)', fontWeight: 700 }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '11px', color: '#aaa', paddingTop: '8px' }} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)', paddingTop: '12px', fontWeight: 600 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Top Deductions */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
-            borderRadius: '16px',
+          <div className="card" style={{
+            background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 1) 0%, rgba(var(--bg-card-rgb), 0.6) 100%)',
+            borderRadius: '20px',
             border: '1px solid rgba(239,68,68,0.2)',
-            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(239,68,68,0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
           }}>
-            <div style={{ position:'absolute', top:0, left:0, width:'100px', height:'100px', background:'radial-gradient(circle, rgba(239,68,68,0.06) 0%, transparent 70%)', pointerEvents:'none' }} />
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'32px', height:'32px', borderRadius:'8px', background:'rgba(239,68,68,0.15)', color:'#ef4444', flexShrink:0 }}>
-                <TrendingDown size={16} />
+            <div style={{ position:'absolute', top:"-20px", left:"-20px", width:'100px', height:'100px', background:'radial-gradient(circle, rgba(239,68,68,0.1) 0%, transparent 70%)', pointerEvents:'none', filter: 'blur(15px)' }} />
+            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'10px', background:'rgba(239,68,68,0.15)', color:'var(--danger)', flexShrink:0 }}>
+                <TrendingDown size={18} />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: '#fff' }}>أعلى 5 استقطاعات</div>
-                <div style={{ fontSize: '11px', color: '#777', marginTop:'2px' }}>Top Deductions This Month</div>
+                <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>أعلى 5 استقطاعات</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop:'2px' }}>Top Deductions This Month</div>
               </div>
             </div>
             <div style={{ width: '100%', height: 260 }}>
@@ -587,76 +588,77 @@ function FinanceContent() {
                   <defs>
                     <linearGradient id="redGrad" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#ef4444" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#991b1b" stopOpacity={0.7}/>
+                      <stop offset="100%" stopColor="#f87171" stopOpacity={0.8}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 4" horizontal={false} stroke="rgba(var(--white-rgb),0.04)" />
-                  <XAxis type="number" stroke="transparent" tick={{ fill: '#666', fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <YAxis dataKey="name" type="category" width={80} stroke="transparent" tick={{ fill: '#bbb', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(150,150,150,0.1)" />
+                  <XAxis type="number" stroke="transparent" tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} />
+                  <YAxis dataKey="name" type="category" width={85} stroke="transparent" tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
                   <RechartsTooltip
-                    cursor={{ fill: 'rgba(239,68,68,0.06)' }}
+                    cursor={{ fill: 'rgba(239,68,68,0.05)' }}
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'إجمالي الخصم']}
-                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(239,68,68,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
-                    itemStyle={{ color: '#fff', fontWeight: 700 }}
+                    contentStyle={{ background:'rgba(var(--bg-card-rgb), 0.95)', backdropFilter:'blur(16px)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'12px', boxShadow:'0 8px 32px rgba(0,0,0,0.1)', color:'var(--text-primary)', fontSize:'13px', padding:'12px 16px' }}
+                    itemStyle={{ color: 'var(--danger)', fontWeight: 800 }}
+                    labelStyle={{ color: 'var(--text-primary)', fontWeight: 700 }}
                   />
-                  <Bar dataKey="value" fill="url(#redGrad)" radius={[0, 6, 6, 0]} barSize={18} name="الخصم" />
+                  <Bar dataKey="value" fill="url(#redGrad)" radius={[0, 8, 8, 0]} barSize={22} name="الخصم" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
           
           {/* Total Financial Structure */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(20,20,20,0.9) 0%, rgba(10,10,12,0.95) 100%)',
-            borderRadius: '16px',
-            border: '1px solid rgba(212,175,55,0.2)',
-            boxShadow: '0 4px 24px rgba(var(--black-rgb),0.4), inset 0 1px 0 rgba(212,175,55,0.08)',
+          <div className="card" style={{
+            background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 1) 0%, rgba(var(--bg-card-rgb), 0.6) 100%)',
+            borderRadius: '20px',
+            border: '1px solid rgba(59,130,246,0.2)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
             padding: '24px',
             position: 'relative',
             overflow: 'hidden'
           }}>
-            <div style={{ position:'absolute', bottom:0, right:0, width:'120px', height:'120px', background:'radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%)', pointerEvents:'none' }} />
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'32px', height:'32px', borderRadius:'8px', background:'rgba(96,165,250,0.15)', color:'#60a5fa', flexShrink:0 }}>
-                <BarChart2 size={16} />
+            <div style={{ position:'absolute', bottom:"-20px", right:"-20px", width:'120px', height:'120px', background:'radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)', pointerEvents:'none', filter: 'blur(20px)' }} />
+            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'10px', background:'rgba(59,130,246,0.15)', color:'var(--info)', flexShrink:0 }}>
+                <BarChart2 size={18} />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: '#fff' }}>هيكل الحركات المالية</div>
-                <div style={{ fontSize: '11px', color: '#777', marginTop:'2px' }}>Financial Structure Overview</div>
+                <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>هيكل الحركات المالية</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop:'2px' }}>Financial Structure Overview</div>
               </div>
             </div>
             <div style={{ width: '100%', height: 260 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={structureData} barGap={6}>
+                <BarChart data={structureData} barGap={8}>
                   <defs>
                     <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#60a5fa" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.8}/>
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.8}/>
                     </linearGradient>
                     <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#34d399" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#065f46" stopOpacity={0.8}/>
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
                     </linearGradient>
                     <linearGradient id="goldGradBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f5d568" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#92620f" stopOpacity={0.9}/>
+                      <stop offset="0%" stopColor="#d4af37" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#f5d568" stopOpacity={0.9}/>
                     </linearGradient>
                     <linearGradient id="redGradBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f87171" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#7f1d1d" stopOpacity={0.8}/>
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#f87171" stopOpacity={0.8}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="rgba(var(--white-rgb),0.04)" />
-                  <XAxis dataKey="name" stroke="transparent" tick={{ fill: '#aaa', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="transparent" tick={{ fill: '#666', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(150,150,150,0.1)" />
+                  <XAxis dataKey="name" stroke="transparent" tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="transparent" tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
                   <RechartsTooltip
-                    cursor={{ fill: 'rgba(212,175,55,0.04)' }}
+                    cursor={{ fill: 'rgba(59,130,246,0.05)' }}
                     formatter={(value: any) => [`${Number(value).toLocaleString('ar-EG')} ج.م`, 'القيمة']}
-                    contentStyle={{ background:'rgba(5,5,8,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(212,175,55,0.35)', borderRadius:'12px', boxShadow:'0 12px 40px rgba(var(--black-rgb),0.7)', color:'#fff', fontSize:'13px', padding:'10px 14px' }}
-                    itemStyle={{ color: '#fff' }}
-                    labelStyle={{ color: '#d4af37', fontWeight: 700, marginBottom:'4px' }}
+                    contentStyle={{ background:'rgba(var(--bg-card-rgb), 0.95)', backdropFilter:'blur(16px)', border:'1px solid rgba(59,130,246,0.3)', borderRadius:'12px', boxShadow:'0 8px 32px rgba(0,0,0,0.1)', color:'var(--text-primary)', fontSize:'13px', padding:'12px 16px' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 800 }}
+                    labelStyle={{ color: 'var(--info)', fontWeight: 700, marginBottom:'4px' }}
                   />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40} maxBarSize={50}>
+                  <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={45} maxBarSize={55}>
                     {structureData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
