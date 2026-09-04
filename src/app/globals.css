@@ -251,6 +251,13 @@ body {
   border-color: var(--border-gold);
 }
 
+/* ===== UTILITIES ===== */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 .nav-item.active {
   background: linear-gradient(135deg, var(--gold-subtle-hover), var(--gold-subtle));
   color: var(--gold-primary);

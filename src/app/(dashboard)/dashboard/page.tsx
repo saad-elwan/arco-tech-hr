@@ -117,7 +117,7 @@ export default function Dashboard() {
       <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "24px", marginBottom: "30px" }}>
         {statCards.map((stat, i) => (
           <Link href={stat.href} key={i} style={{ textDecoration: "none" }}>
-            <motion.div variants={itemVariants} whileHover={{ y: -8, boxShadow: '0 12px 30px rgba(var(--black-rgb), 0.2)' }} className="card glass-panel" style={{ cursor: "pointer", padding: "24px", display: 'flex', flexDirection: 'column', gap: '16px', borderTop: `4px solid ${stat.color}` }}>
+            <motion.div variants={itemVariants} whileHover={{ y: -8, boxShadow: '0 12px 30px rgba(var(--black-rgb), 0.2)' }} className="card glass-panel stat-card" style={{ cursor: "pointer", padding: "24px", display: 'flex', flexDirection: 'column', gap: '16px', borderTop: `4px solid ${stat.color}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <stat.icon size={24} style={{ color: stat.color }} />

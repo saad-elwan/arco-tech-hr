@@ -330,11 +330,11 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   return (
     <header className="header" style={{
-      background: "rgba(10, 10, 10, 0.8)",
+      background: "var(--bg-card)",
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(212, 175, 55, 0.15)",
-      boxShadow: "0 4px 30px rgba(var(--black-rgb), 0.5)"
+      borderBottom: "1px solid var(--border-gold)",
+      boxShadow: "0 4px 30px rgba(var(--black-rgb), 0.1)"
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {onMenuClick && (
