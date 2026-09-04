@@ -21,36 +21,45 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
   }, []);
 
   return (
-    <div className="print-container" style={{ direction: 'rtl', fontFamily: 'Cairo, sans-serif', padding: '20px', backgroundColor: '#fff', color: '#000', minHeight: '100vh' }}>
+    <>
       <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          body { background: #fff !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .print-container { padding: 0 !important; }
-          .no-print { display: none !important; }
-          @page { size: landscape; margin: 15mm; }
-        }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-        th { background-color: #f3f4f6 !important; font-weight: bold; color: #111827; }
-        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #111827; padding-bottom: 15px; margin-bottom: 20px; }
-        .summary-box { display: flex; gap: 20px; margin-bottom: 20px; }
-        .stat { border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; flex: 1; text-align: center; background: #f9fafb !important; }
-        .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
-        .stat-value { font-size: 18px; font-weight: bold; color: #111827; }
-        .signatures { display: flex; justify-content: space-around; margin-top: 50px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Tahoma, sans-serif; direction: rtl; padding: 40px; background: white; color: #333; }
+        .header { background: #1a365d; padding: 30px; margin: -40px -40px 30px -40px; text-align: center; }
+        .header h1 { color: white; font-size: 28px; margin-bottom: 10px; }
+        .header p { color: #c9a227; font-size: 16px; }
+        
+        .info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #666; margin-top: 20px; }
+        
+        .summary-box { display: flex; gap: 20px; margin-bottom: 30px; }
+        .stat { border: 1px solid #ddd; padding: 15px; border-radius: 8px; flex: 1; text-align: center; background: #f9fafb; }
+        .stat-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #1a365d; }
+        
+        table { width: 100%; border-collapse: collapse; direction: rtl; }
+        th { background: #1a365d; color: white; padding: 12px; border: 1px solid #333; font-size: 13px; text-align: center; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 13px; color: #333; }
+        
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 20px; }
+        
+        .signatures { display: flex; justify-content: space-around; margin-top: 50px; margin-bottom: 20px; }
         .sig-box { text-align: center; width: 200px; }
-        .sig-line { border-bottom: 1px solid #000; height: 40px; margin-bottom: 10px; }
+        .sig-line { border-bottom: 1px dashed #999; height: 40px; margin-bottom: 10px; }
+        
+        @media print { 
+          body { padding: 20px; } 
+          .no-print { display: none !important; }
+        }
       `}} />
 
       <div className="header">
-        <div>
-          <h1 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>تقرير رواتب الموظفين</h1>
-          <p style={{ margin: '5px 0 0', color: '#4b5563' }}>عن الفترة: {period}</p>
-        </div>
-        <div style={{ textAlign: 'left' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', color: '#111827' }}>{companyName}</h2>
-          <p style={{ margin: '5px 0 0', color: '#4b5563' }}>{new Date().toLocaleString('ar-EG')}</p>
-        </div>
+        <h1>{companyName}</h1>
+        <p>تقرير الرواتب المجمع</p>
+      </div>
+      
+      <div className="info">
+        <span>تاريخ الإصدار: {new Date().toLocaleDateString("ar-EG")}</span>
+        <span>الفترة: {period}</span>
       </div>
 
       <div className="summary-box">
@@ -95,10 +104,10 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
               <td>{pr.basicSalary.toFixed(2)}</td>
               <td>{pr.absentDays}</td>
               <td>{pr.lateDays}</td>
-              <td style={{ color: '#10b981' }}>{pr.bonus.toFixed(2)}</td>
-              <td style={{ color: '#ef4444' }}>{pr.manualDeduction.toFixed(2)}</td>
-              <td style={{ color: '#ef4444' }}>{pr.autoDeduction.toFixed(2)}</td>
-              <td style={{ fontWeight: 'bold' }}>{pr.netSalary.toFixed(2)}</td>
+              <td style={{ color: '#10b981', fontWeight: 'bold' }}>{pr.bonus.toFixed(2)}</td>
+              <td style={{ color: '#ef4444', fontWeight: 'bold' }}>{pr.manualDeduction.toFixed(2)}</td>
+              <td style={{ color: '#ef4444', fontWeight: 'bold' }}>{pr.autoDeduction.toFixed(2)}</td>
+              <td style={{ fontWeight: 'bold', color: '#1a365d' }}>{pr.netSalary.toFixed(2)}</td>
               <td style={{ 
                 color: pr.status === 'paid' ? '#10b981' : '#f59e0b',
                 fontWeight: 'bold'
@@ -113,19 +122,23 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
       <div className="signatures">
         <div className="sig-box">
           <div className="sig-line"></div>
-          <div>أعد بواسطة (الموارد البشرية)</div>
+          <div style={{ fontSize: '13px', color: '#666' }}>أعد بواسطة (الموارد البشرية)</div>
         </div>
         <div className="sig-box">
           <div className="sig-line"></div>
-          <div>المراجعة والاعتماد (المدير العام)</div>
+          <div style={{ fontSize: '13px', color: '#666' }}>المراجعة والاعتماد (المدير العام)</div>
         </div>
       </div>
 
+      <div className="footer">
+        تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية | {new Date().toLocaleString("ar-EG")}
+      </div>
+
       <div className="no-print" style={{ textAlign: 'center', marginTop: '30px' }}>
-        <button onClick={() => window.print()} style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
+        <button onClick={() => window.print()} style={{ padding: '10px 20px', background: '#1a365d', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
           طباعة التقرير مرة أخرى
         </button>
       </div>
-    </div>
+    </>
   );
 }
