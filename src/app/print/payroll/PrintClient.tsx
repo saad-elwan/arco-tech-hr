@@ -38,17 +38,16 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
           padding: 20px;
         }
 
-        .header { 
-          background-color: #1a365d !important; 
-          padding: 30px 20px; 
-          text-align: center; 
-          width: 100%;
-          margin-bottom: 40px !important; /* Space between header and data */
+        .report-title-section {
+          text-align: center;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #000000 !important;
+          padding-bottom: 15px;
         }
-        .header h1 { color: #ffffff !important; font-size: 28px; margin-bottom: 10px; font-weight: bold; }
-        .header p { color: #c9a227 !important; font-size: 18px; font-weight: bold; }
+        .report-title-section h1 { font-size: 24px; font-weight: bold; color: #000000 !important; margin-bottom: 5px; }
+        .report-title-section h2 { font-size: 18px; font-weight: bold; color: #333333 !important; margin-bottom: 15px; }
         
-        .info { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 15px; color: #000000 !important; font-weight: bold; }
+        .info-row { display: flex; justify-content: space-between; font-size: 14px; color: #000000 !important; font-weight: bold; }
         
         .summary-box { display: flex; gap: 15px; margin-bottom: 30px; }
         .stat { border: 1px solid #ccc !important; padding: 15px; border-radius: 6px; flex: 1; text-align: center; background-color: #ffffff !important; }
@@ -56,7 +55,7 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
         .stat-value { font-size: 18px; font-weight: bold; color: #000000 !important; }
         
         table { width: 100%; border-collapse: collapse; direction: rtl; margin-bottom: 30px; }
-        th { background-color: #1a365d !important; color: #ffffff !important; padding: 12px; border: 1px solid #000000 !important; font-size: 13px; text-align: center; font-weight: bold; }
+        th { background-color: #f3f4f6 !important; color: #000000 !important; padding: 12px; border: 1px solid #000000 !important; font-size: 13px; text-align: center; font-weight: bold; }
         td { border: 1px solid #000000 !important; padding: 10px; text-align: center; font-size: 13px; color: #000000 !important; background-color: #ffffff !important; font-weight: bold; }
         
         .footer { margin-top: 30px; text-align: center; font-size: 13px; color: #333333 !important; border-top: 1px solid #000000 !important; padding-top: 15px; font-weight: bold; }
@@ -68,27 +67,25 @@ export default function PrintClient({ payrolls, period, companyName, totalNet, t
         
         @page {
           size: A4 landscape;
-          margin: 10mm 0;
+          margin: 10mm;
         }
         
         @media print { 
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .no-print { display: none !important; }
-          .header { margin-top: -10mm !important; } /* Pull header up to edge of paper */
         }
       `}} />
 
-      <div className="header">
-        <h1>{companyName}</h1>
-        <p>تقرير الرواتب المجمع</p>
-      </div>
-      
       <div className="content-container">
-      
-      <div className="info">
-        <span>تاريخ الإصدار: {new Date().toLocaleDateString("ar-EG")}</span>
-        <span>الفترة: {period}</span>
-      </div>
+        
+        <div className="report-title-section">
+          <h1>{companyName}</h1>
+          <h2>تقرير الرواتب المجمع</h2>
+          <div className="info-row">
+            <span>الفترة: {period}</span>
+            <span>تاريخ الإصدار: {new Date().toLocaleDateString("ar-EG")}</span>
+          </div>
+        </div>
 
       <div className="summary-box">
         <div className="stat">
