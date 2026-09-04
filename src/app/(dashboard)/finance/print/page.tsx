@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import PrintClient from "./PrintClient";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'تقرير الرواتب',
 };
