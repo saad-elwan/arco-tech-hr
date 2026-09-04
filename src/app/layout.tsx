@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ForceUpdateModal from "@/components/ForceUpdateModal";
 import FirebaseInitializer from "@/components/FirebaseInitializer";
+import WebUpdateNotifier from "@/components/WebUpdateNotifier";
 
 export const metadata: Metadata = {
   title: "نظام إدارة الموارد البشرية",
@@ -50,6 +51,7 @@ export default function RootLayout({
       </head>
       <body>
         <ForceUpdateModal />
+        <WebUpdateNotifier />
         <FirebaseInitializer />
         {children}
       </body>
