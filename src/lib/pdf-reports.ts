@@ -187,39 +187,39 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       </div>
 
       <div class="summary-container">
-        ${options.summaryItems.map(item => \`
+        ${options.summaryItems.map(item => `
           <div class="summary-card">
-            <div class="summary-label">\${item.label}</div>
-            <div class="summary-value" style="color: \${item.color || '#38bdf8'}">\${item.value}</div>
+            <div class="summary-label">${item.label}</div>
+            <div class="summary-value" style="color: ${item.color || '#38bdf8'}">${item.value}</div>
           </div>
-        \`).join('')}
+        `).join('')}
       </div>
 
       <table>
         <thead>
           <tr>
-            ${options.tableHeaders.map(header => \`<th>\${header}</th>\`).join('')}
+            ${options.tableHeaders.map(header => `<th>${header}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
-          ${options.tableData.map(row => \`
+          ${options.tableData.map(row => `
             <tr>
-              \${row.map((cell, i) => \`<td style="\${getStatusStyle(String(cell), i)}">\${cell}</td>\`).join('')}
+              ${row.map((cell, i) => `<td style="${getStatusStyle(String(cell), i)}">${cell}</td>`).join('')}
             </tr>
-          \`).join('')}
+          `).join('')}
         </tbody>
       </table>
 
-      ${options.signatures ? \`
+      ${options.signatures ? `
         <div class="signatures">
-          \${options.signatures.map(sig => \`
+          ${options.signatures.map(sig => `
             <div class="signature-box">
               <div class="signature-line"></div>
-              <div class="signature-label">\${sig}</div>
+              <div class="signature-label">${sig}</div>
             </div>
-          \`).join('')}
+          `).join('')}
         </div>
-      \` : ''}
+      ` : ''}
     </body>
     </html>
     \`;
