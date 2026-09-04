@@ -60,20 +60,23 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     const margin = 40;
     const contentWidth = pageWidth - margin * 2;
 
-    // Reshape Arabic text
-    const ar = (text: string) => reshape(text) || text;
+    // Reshape and reverse Arabic text for PDFKit
+    const ar = (text: string) => {
+      const reshaped = reshape(String(text)) || String(text);
+      return reshaped.split('').reverse().join('');
+    };
 
     // Background
     doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
 
     // Header background
-    doc.rect(0, 0, pageWidth, 100).fill("#1a365d");
+    doc.rect(0, 0, pageWidth, 100).fill("#0a0a0c");
 
     // Header text
-    doc.fill("#ffffff").font(fontBold).fontSize(22);
+    doc.fill("#d4af37").font(fontBold).fontSize(22);
     doc.text(ar(options.companyName), margin, 20, { align: "right", width: contentWidth });
-    doc.font(fontRegular).fontSize(14);
-    doc.text(ar("نظام إدارة الموارد البشرية"), margin, 50, { align: "right", width: contentWidth });
+    doc.fill("#ffffff").font(fontRegular).fontSize(14);
+    doc.text(ar("نظام الإدارة المتقدم"), margin, 50, { align: "right", width: contentWidth });
 
     // Date on left
     doc.fontSize(10);
@@ -81,20 +84,20 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     doc.text(ar(`الفترة: ${options.period}`), margin, 35, { align: "left", width: 200 });
 
     // Decorative line
-    doc.rect(0, 100, pageWidth, 4).fill("#c9a227");
+    doc.rect(0, 100, pageWidth, 4).fill("#d4af37");
 
     // Report title
-    doc.fill("#1a365d").font(fontBold).fontSize(18);
+    doc.fill("#0a0a0c").font(fontBold).fontSize(18);
     doc.text(ar(options.reportTitle), margin, 130, { align: "center", width: contentWidth });
-    doc.rect(pageWidth / 2 - 100, 155, 200, 2).fill("#c9a227");
+    doc.rect(pageWidth / 2 - 100, 155, 200, 2).fill("#d4af37");
 
     // Summary boxes - RTL order
     const boxWidth = (contentWidth - 30) / 4;
     const boxY = 180;
     options.summaryItems.forEach((item, i) => {
       const boxX = pageWidth - margin - (i + 1) * (boxWidth + 10) + 10;
-      doc.rect(boxX, boxY, boxWidth, 50).fill("#f7fafc").stroke("#e2e8f0");
-      doc.fill("#1a365d").font(fontBold).fontSize(16);
+      doc.rect(boxX, boxY, boxWidth, 50).fill("#fbfbfb").stroke("#d4af37");
+      doc.fill("#0a0a0c").font(fontBold).fontSize(16);
       doc.text(ar(String(item.value)), boxX, boxY + 5, { align: "center", width: boxWidth });
       doc.font(fontRegular).fontSize(10);
       doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth });
@@ -108,9 +111,9 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     const tableRight = pageWidth - margin;
 
     // Table header
-    doc.rect(tableRight - tableWidth, tableTop, tableWidth, rowHeight).fill("#1a365d");
+    doc.rect(tableRight - tableWidth, tableTop, tableWidth, rowHeight).fill("#0a0a0c");
     let x = tableRight - tableWidth;
-    doc.fill("#ffffff").font(fontBold).fontSize(10);
+    doc.fill("#d4af37").font(fontBold).fontSize(10);
     options.tableHeaders.forEach((header, i) => {
       doc.text(ar(header), x + 5, tableTop + 8, { width: colWidths[i] - 10, align: "center" });
       x += colWidths[i];
@@ -125,7 +128,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
 
     options.tableData.forEach((row, rowIndex) => {
       const rowY = tableTop + (rowIndex + 1) * rowHeight;
-      const bgColor = rowIndex % 2 === 0 ? "#ffffff" : "#f7fafc";
+      const bgColor = rowIndex % 2 === 0 ? "#ffffff" : "#fdfdfd";
       doc.rect(tableRight - tableWidth, rowY, tableWidth, rowHeight).fill(bgColor);
 
       x = tableRight - tableWidth;
@@ -142,11 +145,11 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     });
 
     // Table border
-    doc.rect(tableRight - tableWidth, tableTop, tableWidth, (options.tableData.length + 1) * rowHeight).stroke("#e2e8f0");
+    doc.rect(tableRight - tableWidth, tableTop, tableWidth, (options.tableData.length + 1) * rowHeight).stroke("#d4af37");
 
     // Signatures
     const sigY = pageHeight - 100;
-    doc.fill("#1a365d").font(fontBold).fontSize(12);
+    doc.fill("#0a0a0c").font(fontBold).fontSize(12);
     doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
 
     const sigWidth = 180;

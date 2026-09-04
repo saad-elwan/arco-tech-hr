@@ -136,7 +136,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '30px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '24px', marginBottom: '30px' }}>
         
         {/* AREA CHART - MONTHLY ATTENDANCE */}
         <motion.div variants={itemVariants} className="card glass-panel" style={{ padding: '24px' }}>
@@ -214,7 +214,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '24px' }}>
         
         {/* RECENT ACTIVITY TIMELINE */}
         <motion.div variants={itemVariants} className="card glass-panel" style={{ padding: '24px' }}>

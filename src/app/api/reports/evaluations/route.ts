@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
+  const exportType = searchParams.get("export") || "pdf";
   const period = searchParams.get("period");
   const employeeId = searchParams.get("employeeId");
   const departmentId = searchParams.get("departmentId");
@@ -59,6 +60,23 @@ export async function GET(request: NextRequest) {
     `${evalRecord.tasksScore || 0}%`,
     evalRecord.manualScore !== null && evalRecord.manualScore !== undefined ? `${evalRecord.manualScore}%` : "-",
   ]);
+
+  if (exportType === "excel") {
+    const BOM = "\uFEFF";
+    let csvContent = "م,اسم الموظف,القسم,التقييم العام,الحضور,المهام,التقييم الإداري\n";
+    
+    tableData.forEach((row) => {
+      csvContent += row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+    
+    return new NextResponse(BOM + csvContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="evaluations_report_${period}.csv"`,
+      },
+    });
+  }
 
   const pdfBuffer = await generateFormalReportPDF({
     companyName,

@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
+  const exportType = searchParams.get("export") || "pdf";
   const departmentId = searchParams.get("departmentId");
   const status = searchParams.get("status");
 
@@ -54,6 +55,26 @@ export async function GET(request: NextRequest) {
     `${record.basicSalary?.toLocaleString("ar-EG") || 0} ج.م`,
     record.status,
   ]);
+
+  if (exportType === "excel") {
+    const BOM = "\uFEFF";
+    let csvContent = "م,الاسم,البريد الإلكتروني,القسم,الوردية,تاريخ التعيين,الراتب الأساسي,الحالة\n";
+    const statusMap: Record<string, string> = { active: "نشط", leave: "إجازة", inactive: "غير نشط" };
+    
+    tableData.forEach((row) => {
+      const formattedRow = [...row];
+      formattedRow[7] = statusMap[String(formattedRow[7])] || formattedRow[7];
+      csvContent += formattedRow.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+    
+    return new NextResponse(BOM + csvContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="employees_report_${new Date().toISOString().split("T")[0]}.csv"`,
+      },
+    });
+  }
 
   const pdfBuffer = await generateFormalReportPDF({
     companyName,

@@ -64,11 +64,11 @@
 
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --bg-card: rgba(var(--white-rgb), 0.85);
+  --bg-card: rgba(var(--black-rgb), 0.95);
   --bg-card-hover: rgba(248, 250, 252, 0.95);
   --bg-input: rgba(241, 245, 249, 0.8);
-  --bg-sidebar: rgba(var(--white-rgb), 0.98);
-  --bg-modal: rgba(var(--white-rgb), 0.98);
+  --bg-sidebar: rgba(var(--black-rgb), 0.98);
+  --bg-modal: rgba(var(--black-rgb), 0.98);
   
   --gold-primary: #b38b22;
   --gold-light: #d4af37;

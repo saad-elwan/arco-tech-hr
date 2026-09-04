@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
+  const exportType = searchParams.get("export") || "pdf";
   const month = searchParams.get("month");
   const employeeId = searchParams.get("employeeId");
   const departmentId = searchParams.get("departmentId");
@@ -81,6 +82,27 @@ export async function GET(request: NextRequest) {
     record.checkOut || "---",
     record.status,
   ]);
+
+  if (exportType === "excel") {
+    const BOM = "\uFEFF";
+    let csvContent = "م,اسم الموظف,القسم,التاريخ,وقت الحضور,وقت الانصراف,الحالة\n";
+    const statusMap: Record<string, string> = { present: "حاضر", late: "متأخر", absent: "غائب" };
+    
+    tableData.forEach((row) => {
+      const formattedRow = [...row];
+      // translate status
+      formattedRow[6] = statusMap[String(formattedRow[6])] || formattedRow[6];
+      csvContent += formattedRow.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+    
+    return new NextResponse(BOM + csvContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="attendance_report_${period}.csv"`,
+      },
+    });
+  }
 
   const pdfBuffer = await generateFormalReportPDF({
     companyName,

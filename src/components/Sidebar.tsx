@@ -147,7 +147,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{
-      background: "linear-gradient(180deg, var(--bg-sidebar), rgba(5,5,5,1))",
+      background: "linear-gradient(180deg, var(--bg-sidebar), var(--bg-secondary))",
       borderLeft: "1px solid rgba(var(--white-rgb),0.05)",
       boxShadow: "-10px 0 40px rgba(var(--black-rgb),0.8)"
     }}>

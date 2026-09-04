@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Banknote, Calculator, Search, TrendingDown, TrendingUp, Edit2, AlertCircle, Download, PieChart as PieIcon, BarChart2, Activity, Users, Save, UserCog, CheckCircle2, XCircle, Wallet, ArrowDownLeft, ArrowUpRight, Plus, Minus, History, ShieldAlert } from "lucide-react";
+import { Banknote, Calculator, Search, TrendingDown, TrendingUp, Edit2, AlertCircle, Download, PieChart as PieIcon, BarChart2, Activity, Users, Save, UserCog, CheckCircle2, XCircle, Wallet, ArrowDownLeft, ArrowUpRight, Plus, Minus, History, ShieldAlert, FileText, FileSpreadsheet } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 export default function FinancePage() {
@@ -292,8 +292,11 @@ export default function FinancePage() {
               style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)" }}
             />
           </div>
-          <button className="btn btn-ghost" onClick={() => window.print()} title="تصدير الشاشة كملف PDF" style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-            <Download size={18} /> تقرير PDF
+          <button className="btn btn-ghost" onClick={() => window.open(`/api/reports/payroll?period=${selectedPeriod}&export=pdf`, '_blank')} title="تصدير تقرير PDF" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}>
+            <FileText size={18} /> تقرير PDF
+          </button>
+          <button className="btn btn-ghost" onClick={() => window.open(`/api/reports/payroll?period=${selectedPeriod}&export=excel`, '_blank')} title="تصدير تقرير Excel" style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}>
+            <FileSpreadsheet size={18} /> تقرير Excel
           </button>
           {activeTab === 'payroll' && (
             <button 
@@ -603,11 +606,12 @@ export default function FinancePage() {
                 <tr>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>اسـم المـوظف</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>الراتب الأساسي</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>تأخير / غياب</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم تلقائي</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>ساعات الحضور</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>ساعات التأخير</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم غياب/تأخير</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم إداري</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--success)' }}>مكافآت</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي راتب شهر {selectedPeriod}</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي راتب شهر {selectedPeriod.split('-').reverse().join('-')}</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>خيارات</th>
                 </tr>
               </thead>
@@ -618,12 +622,17 @@ export default function FinancePage() {
                       <div style={{ fontWeight: 600 }}>{pr.employee?.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{pr.employee?.department?.name || "---"}</div>
                     </td>
-                    <td style={{ padding: "16px", fontWeight: "bold" }}>{pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>ج.م</span></td>
-                    <td style={{ padding: "16px", fontSize: '13px' }}>
-                      <span style={{color: 'var(--danger)', display: 'block'}}>{pr.absentDays} يوم غياب</span>
-                      <span style={{color: 'var(--warning)', display: 'block'}}>{pr.lateDays} مرة تأخير</span>
+                    <td style={{ padding: "16px", fontWeight: "bold", color: "var(--gold-primary)" }}>{pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>ج.م</span></td>
+                    <td style={{ padding: "16px", color: 'var(--info)', fontWeight: "bold" }}>
+                      {pr.attendedHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "bold" }}>-{pr.autoDeduction.toFixed(2)}</td>
+                    <td style={{ padding: "16px", color: 'var(--warning)', fontWeight: "bold" }}>
+                      {pr.lateHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
+                    </td>
+                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "bold" }}>
+                      <div>-{pr.autoDeduction.toFixed(2)}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: "normal" }}>({pr.absentDays} أيام غياب)</div>
+                    </td>
                     <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "bold" }}>-{pr.manualDeduction.toFixed(2)}</td>
                     <td style={{ padding: "16px", color: 'var(--success)', fontWeight: "bold" }}>+{pr.bonus.toFixed(2)}</td>
                     <td style={{ padding: "16px" }}>

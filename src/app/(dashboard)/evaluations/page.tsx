@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Star, TrendingUp, Calendar, AlertCircle, Plus, CheckCircle, Activity, Target, Download } from "lucide-react";
+import { Star, TrendingUp, Calendar, AlertCircle, Plus, CheckCircle, Activity, Target, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Cell } from "recharts";
 
 export default function EvaluationsPage() {
@@ -197,11 +197,19 @@ export default function EvaluationsPage() {
           </div>
           <button 
             className="btn btn-ghost" 
-            onClick={() => window.print()}
-            title="تصدير الشاشة كملف PDF"
-            style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}
+            onClick={() => window.open(`/api/reports/evaluations?period=${selectedPeriod}&export=pdf`, '_blank')}
+            title="تصدير تقرير PDF"
+            style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}
           >
-            <Download size={18} /> تقرير PDF
+            <FileText size={18} /> تقرير PDF
+          </button>
+          <button 
+            className="btn btn-ghost" 
+            onClick={() => window.open(`/api/reports/evaluations?period=${selectedPeriod}&export=excel`, '_blank')}
+            title="تصدير تقرير Excel"
+            style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}
+          >
+            <FileSpreadsheet size={18} /> تقرير Excel
           </button>
           <button 
             className="btn btn-ghost" 

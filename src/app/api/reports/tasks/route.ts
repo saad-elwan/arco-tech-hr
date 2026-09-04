@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
+  const exportType = searchParams.get("export") || "pdf";
   const employeeId = searchParams.get("employeeId");
 
   let whereClause: any = {};
@@ -46,6 +47,26 @@ export async function GET(request: NextRequest) {
     record.priority,
     record.status,
   ]);
+
+  if (exportType === "excel") {
+    const BOM = "\uFEFF";
+    let csvContent = "م,عنوان المهمة,الوصف,المكلف,الأولوية,الحالة\n";
+    const statusMap: Record<string, string> = { completed: "مكتملة", in_progress: "قيد التنفيذ", new: "جديدة", overdue: "متأخرة" };
+    
+    tableData.forEach((row) => {
+      const formattedRow = [...row];
+      formattedRow[5] = statusMap[String(formattedRow[5])] || formattedRow[5];
+      csvContent += formattedRow.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+    
+    return new NextResponse(BOM + csvContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="tasks_report_${new Date().toISOString().split("T")[0]}.csv"`,
+      },
+    });
+  }
 
   const pdfBuffer = await generateFormalReportPDF({
     companyName,
