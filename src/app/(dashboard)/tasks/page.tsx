@@ -1,17 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Filter, Clock, CheckCircle, AlertCircle, Calendar, Trash2, Edit2, Play, CheckCircle2, ChevronDown, User, Activity, PieChart as PieChartIcon } from "lucide-react";
+import { Plus, Filter, Clock, CheckCircle, AlertCircle, Calendar, Trash2, Edit2, Play, CheckCircle2, ChevronDown, User, Activity, PieChart as PieChartIcon, GripVertical } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   
+  // For avoiding hydration mismatch with react-beautiful-dnd
+  const [isBrowser, setIsBrowser] = useState(false);
+
   // Form State
   const [formData, setFormData] = useState({
     title: "",
@@ -22,14 +25,15 @@ export default function TasksPage() {
   });
 
   useEffect(() => {
+    setIsBrowser(true);
     fetchTasks();
     fetchEmployees();
-  }, [statusFilter]);
+  }, []);
 
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/tasks${statusFilter ? `?status=${statusFilter}` : ''}`);
+      const res = await fetch(`/api/tasks`);
       const data = await res.json();
       if (Array.isArray(data)) setTasks(data);
     } finally {
@@ -73,7 +77,9 @@ export default function TasksPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok) fetchTasks();
+      if (res.ok) {
+        // Only fetch if necessary, but optimistic update handles the UI instantly
+      }
     } catch (e) {
       console.error(e);
     }
@@ -87,6 +93,27 @@ export default function TasksPage() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination, draggableId } = result;
+
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    const newStatus = destination.droppableId;
+    const taskId = parseInt(draggableId.replace("task-", ""));
+
+    // Optimistic UI update
+    const newTasks = [...tasks];
+    const taskIndex = newTasks.findIndex(t => t.id === taskId);
+    if (taskIndex > -1) {
+      newTasks[taskIndex].status = newStatus;
+      setTasks(newTasks);
+    }
+
+    // API update
+    handleUpdateStatus(taskId, newStatus);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -126,15 +153,24 @@ export default function TasksPage() {
     { name: 'متأخرة', value: stats.overdue, color: '#ef4444' },
   ].filter(d => d.value > 0);
 
+  const columns = [
+    { id: 'new', title: 'مهام جديدة', icon: AlertCircle, color: 'var(--text-muted)' },
+    { id: 'in_progress', title: 'قيد التنفيذ', icon: Clock, color: 'var(--info)' },
+    { id: 'overdue', title: 'متأخرة', icon: AlertCircle, color: 'var(--danger)' },
+    { id: 'completed', title: 'مكتملة', icon: CheckCircle2, color: 'var(--success)' }
+  ];
+
+  if (!isBrowser) return null;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 0 }}>
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Activity style={{ color: 'var(--gold-primary)' }} /> لوحة قيادة المهام
+            <Activity style={{ color: 'var(--gold-primary)' }} /> لوحة إدارة المهام (Kanban)
           </h1>
-          <p className="page-subtitle">تحليلات وإدارة شاملة لجميع مهام الموظفين</p>
+          <p className="page-subtitle">اسحب وأفلت المهام لتغيير حالتها ومتابعة الإنجاز</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)} style={{ boxShadow: '0 0 15px rgba(212, 175, 55, 0.3)' }}>
           <Plus size={18} /> تكليف بمهمة جديدة
@@ -142,192 +178,142 @@ export default function TasksPage() {
       </div>
 
       {/* Analytics Dashboard */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-        <div className="card glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+        <div className="card glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>إجمالي المهام</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{stats.total}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>إجمالي المهام</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{stats.total}</div>
           </div>
-          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Activity size={24} style={{ color: 'var(--gold-primary)' }} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Activity size={20} style={{ color: 'var(--gold-primary)' }} />
           </div>
         </div>
         
-        <div className="card glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="card glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>نسبة الإنجاز</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--success)' }}>{completionRate}%</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>نسبة الإنجاز</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--success)' }}>{completionRate}%</div>
           </div>
-          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CheckCircle size={24} style={{ color: 'var(--success)' }} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle size={20} style={{ color: 'var(--success)' }} />
           </div>
         </div>
 
-        <div className="card glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="card glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>قيد التنفيذ</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--info)' }}>{stats.inProgress}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>قيد التنفيذ</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--info)' }}>{stats.inProgress}</div>
           </div>
-          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Clock size={24} style={{ color: 'var(--info)' }} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={20} style={{ color: 'var(--info)' }} />
           </div>
         </div>
 
-        <div className="card glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="card glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>مهام متأخرة</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--danger)' }}>{stats.overdue}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>مهام متأخرة</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--danger)' }}>{stats.overdue}</div>
           </div>
-          <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AlertCircle size={24} style={{ color: 'var(--danger)' }} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AlertCircle size={20} style={{ color: 'var(--danger)' }} />
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
-        
-        {/* Main Content Area */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Tabs Filter */}
-          <div className="tabs" style={{ margin: 0, padding: '10px', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
-            <button className={`tab ${statusFilter === '' ? 'active' : ''}`} onClick={() => setStatusFilter('')}>الكل</button>
-            <button className={`tab ${statusFilter === 'new' ? 'active' : ''}`} onClick={() => setStatusFilter('new')}>الجديدة</button>
-            <button className={`tab ${statusFilter === 'in_progress' ? 'active' : ''}`} onClick={() => setStatusFilter('in_progress')}>قيد التنفيذ</button>
-            <button className={`tab ${statusFilter === 'completed' ? 'active' : ''}`} onClick={() => setStatusFilter('completed')}>مكتملة</button>
-          </div>
-
-          {/* Tasks Grid */}
-          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
-            {loading ? (
-              <div style={{ gridColumn: '1 / -1', minHeight: '300px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div className="spinner"></div>
-              </div>
-            ) : tasks.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
-                <AlertCircle size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 16px' }} />
-                <h3 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>لا توجد مهام حالياً</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>لم يتم العثور على أي مهام تطابق معايير البحث المحددة.</p>
-              </div>
-            ) : tasks.map((task) => (
-              <div className="card glass-panel" key={task.id} style={{ display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <h3 style={{ margin: '0 0 8px', fontSize: '16px', color: 'var(--text-primary)' }}>
-                      {task.title}
-                    </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', backgroundColor: 'var(--bg-tertiary)', border: `1px solid ${getPriorityColor(task.priority)}` }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: getPriorityColor(task.priority) }}></span>
-                        أولوية {task.priority === 'high' ? 'عالية' : task.priority === 'low' ? 'منخفضة' : 'متوسطة'}
-                      </span>
-                    </div>
-                  </div>
-                  {getStatusBadge(task.status)}
-                </div>
-                
-                <div style={{ padding: '20px', flex: 1 }}>
-                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6, minHeight: '44px' }}>
-                    {task.description || 'لا يوجد وصف متاح'}
-                  </p>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div className="employee-avatar avatar-sm" style={{ border: '1px solid var(--gold-primary)' }}>
-                        {task.assignee?.name?.charAt(0) || 'U'}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>المكلف بالتنفيذ</div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{task.assignee?.name || 'غير محدد'}</div>
-                      </div>
-                    </div>
-                    
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>تاريخ النشر</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
-                        {new Date(task.createdAt).toLocaleDateString('ar-EG')}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottomLeftRadius: 'var(--radius-lg)', borderBottomRightRadius: 'var(--radius-lg)' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {task.status !== 'completed' && task.status !== 'in_progress' && (
-                      <button onClick={() => handleUpdateStatus(task.id, 'in_progress')} className="btn btn-info btn-sm" title="بدء التنفيذ">
-                        <Play size={14} />
-                      </button>
-                    )}
-                    {task.status !== 'completed' && (
-                      <button onClick={() => handleUpdateStatus(task.id, 'completed')} className="btn btn-success btn-sm" title="إكمال المهمة">
-                        <CheckCircle size={14} />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setSelectedTask(task)} className="btn btn-ghost btn-sm" style={{ color: 'var(--text-secondary)' }}>التفاصيل</button>
-                    <button onClick={() => handleDeleteTask(task.id)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '6px' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Side Panel for Analytics */}
-        <div className="card glass-panel" style={{ padding: '24px', position: 'sticky', top: '24px' }}>
-          <h3 style={{ fontSize: '16px', color: 'var(--text-primary)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <PieChartIcon size={18} style={{ color: 'var(--gold-primary)' }} /> توزيع المهام
-          </h3>
+      {/* KANBAN BOARD */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(280px, 1fr))', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '600px' }}>
           
-          {stats.total > 0 ? (
-            <div style={{ height: '240px', width: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
+          {columns.map((col) => (
+            <div key={col.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-lg)' }}>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '0 8px' }}>
+                <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-primary)' }}>
+                  <col.icon size={16} color={col.color} />
+                  {col.title}
+                </h3>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '12px' }}>
+                  {tasks.filter(t => t.status === col.id).length}
+                </span>
+              </div>
+
+              <Droppable droppableId={col.id}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    style={{
+                      flex: 1,
+                      minHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      background: snapshot.isDraggingOver ? 'var(--bg-tertiary)' : 'transparent',
+                      borderRadius: 'var(--radius-md)',
+                      transition: 'background 0.2s ease',
+                      padding: '4px'
+                    }}
                   >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {tasks.filter(t => t.status === col.id).map((task, index) => (
+                      <Draggable key={task.id} draggableId={`task-${task.id}`} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="card glass-panel"
+                            style={{
+                              ...provided.draggableProps.style,
+                              padding: '16px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '12px',
+                              background: snapshot.isDragging ? 'var(--bg-modal)' : 'var(--bg-card)',
+                              boxShadow: snapshot.isDragging ? '0 8px 30px rgba(0,0,0,0.5)' : 'none',
+                              transform: snapshot.isDragging ? `${provided.draggableProps.style?.transform} scale(1.02)` : provided.draggableProps.style?.transform,
+                              cursor: 'grab'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                                {task.title}
+                              </h4>
+                              <button onClick={() => handleDeleteTask(task.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}>
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', backgroundColor: 'var(--bg-tertiary)', border: `1px solid ${getPriorityColor(task.priority)}` }}>
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: getPriorityColor(task.priority) }}></span>
+                                {task.priority === 'high' ? 'عالية' : task.priority === 'low' ? 'منخفضة' : 'متوسطة'}
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="employee-avatar avatar-sm" style={{ border: '1px solid var(--gold-primary)', width: 24, height: 24, fontSize: 10 }}>
+                                  {task.assignee?.name?.charAt(0) || 'U'}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-primary)' }}>{task.assignee?.name || 'غير محدد'}</div>
+                              </div>
+                              <button onClick={() => setSelectedTask(task)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '11px' }}>التفاصيل</button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
                     ))}
-                  </Pie>
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', borderRadius: '8px' }}
-                    itemStyle={{ color: 'var(--text-primary)' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div style={{ height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-              لا توجد بيانات مخططات لعرضها
-            </div>
-          )}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
 
-          <div style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-            <h4 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>نظرة سريعة</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>نسبة الإنجاز:</span>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--success)' }}>{completionRate}%</span>
-              </div>
-              <div style={{ width: '100%', backgroundColor: 'var(--bg-tertiary)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{ width: `${completionRate}%`, backgroundColor: 'var(--success)', height: '100%' }}></div>
-              </div>
             </div>
-          </div>
+          ))}
+
         </div>
+      </DragDropContext>
 
-      </div>
 
       {/* Write/Add Task Modal */}
       {isModalOpen && (
