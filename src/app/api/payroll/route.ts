@@ -199,6 +199,9 @@ export async function POST(request: NextRequest) {
     const unfulfilledDeduction = totalUnfulfilledMinutes * minuteWage;
     const autoDeduction = parseFloat((absentDeduction + lateDeduction + unfulfilledDeduction).toFixed(2));
     
+    // Mid-month net salary should only give them what they earned for the elapsed days
+    const proRataBasic = (basicSalary / 30) * elapsedDays;
+    
     // Default manual values
     let prevBonus = 0;
     let prevManualDeduction = 0;
@@ -221,7 +224,7 @@ export async function POST(request: NextRequest) {
       prevNotes = existing.notes || "";
     }
 
-    const netSalary = Math.max(0, parseFloat((earnedBasicSalary - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)));
+    const netSalary = Math.max(0, parseFloat((proRataBasic - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)));
 
     const attendedHours = parseFloat((totalWorkedMinutes / 60).toFixed(2));
     const lateHours = parseFloat((totalLateMinutes / 60).toFixed(2));
