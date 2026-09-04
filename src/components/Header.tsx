@@ -140,7 +140,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     reportPresence();
-    const presenceInterval = setInterval(reportPresence, 30000);
+    // Reduce presence reporting to every 60 seconds to save Vercel bandwidth
+    const presenceInterval = setInterval(reportPresence, 60000);
     return () => clearInterval(presenceInterval);
   }, [user]);
 
@@ -188,7 +189,9 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     checkNotifs();
-    const interval = setInterval(checkNotifs, 4000);
+    // Reduce notifications polling to every 30 seconds to save Vercel bandwidth (Fast Origin Transfer limit)
+    // 30 seconds is a good balance between "real-time" and saving server costs.
+    const interval = setInterval(checkNotifs, 30000);
     return () => clearInterval(interval);
   }, []);
 
