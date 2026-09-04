@@ -95,11 +95,21 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
   }, [user]);
 
-  // Auto-request Notification permission immediately on load
+  // Auto-request Notification & Location permissions immediately on load
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "default") {
+    if (typeof window !== "undefined") {
+      // 1. Notifications
+      if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission().catch(() => {});
+      }
+      
+      // 2. Location (Trigger browser prompt for accurate tracking)
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          () => console.log("Location permission granted on load"),
+          () => console.warn("Location permission denied on load"),
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
       }
     }
   }, []);
