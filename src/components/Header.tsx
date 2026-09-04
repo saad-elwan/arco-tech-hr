@@ -145,6 +145,40 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     return () => clearInterval(presenceInterval);
   }, [user]);
 
+  // Overtime Prompts Polling (Admin Only)
+  const [overtimePrompts, setOvertimePrompts] = useState<any[]>([]);
+  useEffect(() => {
+    if (!isAdminUser) return;
+    const checkOvertimePrompts = async () => {
+      try {
+        const res = await fetch("/api/attendance/overtime-prompt");
+        if (res.ok) {
+          const d = await res.json();
+          if (d.prompts && d.prompts.length > 0) {
+            setOvertimePrompts(d.prompts);
+            playNotificationSound();
+          } else {
+            setOvertimePrompts([]);
+          }
+        }
+      } catch {}
+    };
+    checkOvertimePrompts();
+    const otInterval = setInterval(checkOvertimePrompts, 60000); // Check every minute
+    return () => clearInterval(otInterval);
+  }, [isAdminUser]);
+
+  const handleOvertimeAction = async (attendanceId: number, action: 'checkout' | 'overtime') => {
+    try {
+      await fetch("/api/attendance/overtime-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attendanceId, action })
+      });
+      setOvertimePrompts(prev => prev.filter(p => p.attendanceId !== attendanceId));
+    } catch {}
+  };
+
   // Real-time Notifications Polling (every 4 seconds)
   const seenNotifIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoadRef = useRef(true);
@@ -495,13 +529,13 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     onMouseOut={(e) => e.currentTarget.style.background = n.isRead === false ? "rgba(212, 175, 55, 0.08)" : "transparent"}
                   >
                     <div style={{ marginTop: 2 }}>
-                      {n.type === "danger" ? <AlertTriangle size={16} color="var(--danger)" /> :
-                       n.type === "warning" ? <AlertTriangle size={16} color="var(--warning)" /> :
-                       <Info size={16} color="var(--info)" />}
+                      {n.type === "danger" ? <Bell size={16} color="var(--danger)" /> :
+                       n.type === "warning" ? <Bell size={16} color="var(--warning)" /> :
+                       <Bell size={16} color="var(--info)" />}
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{n.title}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{n.desc}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{n.desc || n.body || n.message}</div>
                     </div>
                   </div>
                 )) : (
