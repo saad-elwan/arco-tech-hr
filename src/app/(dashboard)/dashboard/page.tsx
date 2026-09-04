@@ -1,40 +1,33 @@
 "use client";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Users, Clock, AlertTriangle, UserCheck, CheckCircle, AlertCircle, FileText, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { DashboardData, Evaluation, Attendance } from "@/types";
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) throw new Error("Unauthorized");
+    throw new Error("Failed to fetch");
+  }
+  return res.json();
+};
+
 export default function Dashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { data, error, isLoading } = useSWR<DashboardData>("/api/dashboard", fetcher, { 
+    refreshInterval: 15000, // Real-time polling every 15s
+    revalidateOnFocus: true
+  });
 
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(async (res) => {
-        if (!res.ok) {
-          // If 401, middleware will redirect — just stop loading
-          setLoading(false);
-          return;
-        }
-        const data = await res.json();
-        // If employee role, redirect to their own portal
-        if (data?.role === "employee") {
-          router.replace("/me");
-          return;
-        }
-        setData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [router]);
+  if (data?.role === "employee") {
+    router.replace("/me");
+    return null;
+  }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-spinner">
         <div className="spinner"></div>
@@ -43,7 +36,7 @@ export default function Dashboard() {
   }
 
   // Handle case where data is missing or failed
-  if (!data || data.error) {
+  if (error || !data || data.error) {
     return (
       <div style={{ textAlign: "center", padding: "50px", color: "var(--danger)" }}>
         <h2>حدث خطأ في تحميل البيانات</h2>
