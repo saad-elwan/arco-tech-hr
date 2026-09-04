@@ -340,3 +340,75 @@ export async function PUT(request: NextRequest) {
 
   return NextResponse.json(updated);
 }
+// Bulk approve payrolls
+export async function PATCH(request: NextRequest) {
+  if (!(await canAccessFinance(request))) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+
+  const { period, action } = await request.json();
+  if (!period || action !== "approve_all") {
+    return NextResponse.json({ error: "بيانات غير صالحة" }, { status: 400 });
+  }
+
+  // Get all drafts for this period
+  const drafts = await prisma.payroll.findMany({
+    where: { period, status: "draft" },
+    include: { employee: true }
+  });
+
+  if (drafts.length === 0) {
+    return NextResponse.json({ success: true, count: 0, message: "لا يوجد رواتب مسودة" });
+  }
+
+  let totalNetSalary = 0;
+  for (const draft of drafts) {
+    totalNetSalary += draft.netSalary;
+  }
+
+  // Update all to paid
+  await prisma.payroll.updateMany({
+    where: { period, status: "draft" },
+    data: { status: "paid" }
+  });
+
+  // Record in treasury
+  try {
+    const treasury = await prisma.treasury.findUnique({ where: { id: 1 } });
+    if (treasury) {
+      await prisma.treasury.update({
+        where: { id: 1 },
+        data: {
+          balance: treasury.balance - totalNetSalary,
+          totalWithdrawals: treasury.totalWithdrawals + totalNetSalary,
+        }
+      });
+    }
+    await prisma.treasuryTransaction.create({
+      data: {
+        type: "salary_payment",
+        amount: totalNetSalary,
+        description: `صرف جماعي لرواتب شهر ${period} لعدد ${drafts.length} موظف`,
+        referenceId: `payroll_bulk_${period}`,
+        performedBy: "الإدارة المالية",
+      }
+    });
+  } catch (treasuryErr) {
+    console.error("Treasury record error:", treasuryErr);
+  }
+
+  // Send notifications to all
+  for (const draft of drafts) {
+    const parts: string[] = [];
+    if (draft.bonus > 0) parts.push(`مكافأة: ${draft.bonus} ج.م`);
+    if (draft.autoDeduction > 0) parts.push(`خصومات: ${draft.autoDeduction} ج.م`);
+    await createNotification({
+      employeeId: draft.employeeId,
+      type: "success",
+      category: "payroll",
+      title: `💰 تم صرف راتب شهر ${period}`,
+      body: `صافي الراتب المصروف: ${draft.netSalary.toLocaleString("ar-EG")} ج.م${parts.length > 0 ? " — " + parts.join(" | ") : ""}`,
+      link: "/me",
+    });
+  }
+
+  return NextResponse.json({ success: true, count: drafts.length, totalPaid: totalNetSalary });
+}

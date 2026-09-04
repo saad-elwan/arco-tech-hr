@@ -21,12 +21,16 @@ function FinanceContent() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<'payroll' | 'manual' | 'treasury'>('payroll');
 
-  // Modal logic
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
   const [formData, setFormData] = useState({ basicSalary: "", bonus: 0, manualDeduction: 0, notes: "", status: "draft" });
   const [saving, setSaving] = useState(false);
   const [companySettings, setCompanySettings] = useState<any>(null);
+
+  // Enterprise Features State
+  const [approving, setApproving] = useState(false);
+  const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState<any>(null);
 
   // Manual tab state
   const [employees, setEmployees] = useState<any[]>([]);
@@ -221,6 +225,29 @@ function FinanceContent() {
     }
   };
 
+  const handleApproveAll = async () => {
+    if(!confirm("هل أنت متأكد من اعتماد وصرف كافة الرواتب المسودة؟ لا يمكن التراجع عن هذه الخطوة وسيتم قفل التعديلات وتحديث الخزينة.")) return;
+    setApproving(true);
+    try {
+      const res = await fetch("/api/payroll", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period: selectedPeriod, action: "approve_all" }),
+      });
+      if (res.ok) {
+        alert("تم اعتماد وصرف جميع الرواتب بنجاح!");
+        fetchPayrolls();
+      } else {
+        const data = await res.json();
+        alert(data.error || "حدث خطأ");
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      setApproving(false);
+    }
+  };
+
   const openEditModal = (payroll: any) => {
     setSelectedPayroll(payroll);
     setFormData({
@@ -263,6 +290,7 @@ function FinanceContent() {
   const totalNetSalaries = payrolls.reduce((acc, curr) => acc + (curr.netSalary || 0), 0);
   const totalBonuses = payrolls.reduce((acc, curr) => acc + (curr.bonus || 0), 0);
   const totalDeductions = payrolls.reduce((acc, curr) => acc + (curr.autoDeduction || 0) + (curr.manualDeduction || 0), 0);
+  const hasDrafts = payrolls.some(p => p.status === 'draft');
 
   // --- Enterprise Analytics Computations ---
   
@@ -327,14 +355,26 @@ function FinanceContent() {
             <FileSpreadsheet size={18} /> تقرير Excel
           </button>
           {activeTab === 'payroll' && (
-            <button 
-              className="btn btn-primary" 
-              onClick={handleCalculateAll} 
-              disabled={calculating}
-              style={{ boxShadow: '0 0 15px rgba(212, 175, 55, 0.3)', whiteSpace: 'nowrap' }}
-            >
-              <Calculator size={18} /> {calculating ? "جاري احتساب الرواتب..." : "حساب رواتب الشهر تلقائياً"}
-            </button>
+            <>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleCalculateAll} 
+                disabled={calculating}
+                style={{ boxShadow: '0 0 15px rgba(212, 175, 55, 0.3)', whiteSpace: 'nowrap' }}
+              >
+                <Calculator size={18} /> {calculating ? "جاري احتساب الرواتب..." : "حساب رواتب الشهر تلقائياً"}
+              </button>
+              {hasDrafts && (
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleApproveAll} 
+                  disabled={approving || calculating}
+                  style={{ background: 'var(--success)', color: '#fff', border: 'none', boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)', whiteSpace: 'nowrap' }}
+                >
+                  <CheckCircle2 size={18} /> {approving ? "جاري الصرف..." : "صرف الرواتب"}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -717,44 +757,47 @@ function FinanceContent() {
               <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير المالي.</p>
             </div>
           ) : (
-            <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse", minWidth: "1000px" }}>
+            <table style={{ width: "100%", textAlign: "right", borderCollapse: "separate", borderSpacing: "0 8px", minWidth: "1000px" }}>
               <thead>
-                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>اسـم المـوظف</th>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>الراتب الأساسي</th>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>ساعات الحضور</th>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>ساعات التأخير</th>
-                  <th style={{ padding: "16px", color: 'var(--danger)', fontSize: "13px", whiteSpace: "nowrap" }}>خصم غياب/تأخير</th>
-                  <th style={{ padding: "16px", color: 'var(--danger)', fontSize: "13px", whiteSpace: "nowrap" }}>خصم إداري</th>
-                  <th style={{ padding: "16px", color: 'var(--success)', fontSize: "13px", whiteSpace: "nowrap" }}>مكافآت</th>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>صافي راتب شهر {selectedPeriod.split('-').reverse().join('-')}</th>
-                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap", textAlign: "center" }}>خيارات</th>
+                <tr style={{ background: "transparent" }}>
+                  <th style={{ padding: "0 16px 12px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>اسـم المـوظف</th>
+                  <th style={{ padding: "0 16px 12px", color: "var(--success)", fontSize: "13px", whiteSpace: "nowrap" }}>الاستحقاقات (Earnings)</th>
+                  <th style={{ padding: "0 16px 12px", color: "var(--danger)", fontSize: "13px", whiteSpace: "nowrap" }}>الاستقطاعات (Deductions)</th>
+                  <th style={{ padding: "0 16px 12px", color: "var(--gold-primary)", fontSize: "13px", whiteSpace: "nowrap" }}>صافي الراتب (Net Pay)</th>
+                  <th style={{ padding: "0 16px 12px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap", textAlign: "center" }}>إجراءات</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((pr) => (
-                  <tr key={pr.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", transition: "background 0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
-                    <td style={{ padding: "16px" }}>
+                  <tr 
+                    key={pr.id} 
+                    onClick={() => { setSelectedPayslip(pr); setIsPayslipModalOpen(true); }}
+                    style={{ background: "rgba(255,255,255,0.02)", transition: "all 0.2s", cursor: "pointer" }} 
+                    onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} 
+                    onMouseOut={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'}
+                  >
+                    <td style={{ padding: "16px", borderRadius: "0 12px 12px 0", borderRight: pr.status === 'paid' ? "4px solid var(--success)" : "4px solid var(--gold-dark)" }}>
                       <div style={{ fontWeight: 700, fontSize: "15px", color: "var(--text-primary)" }}>{pr.employee?.name}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', background: "rgba(255,255,255,0.05)", display: "inline-block", padding: "2px 8px", borderRadius: "4px" }}>
                         {pr.employee?.department?.name || "---"}
                       </div>
                     </td>
-                    <td style={{ padding: "16px", fontWeight: "700", color: "var(--gold-primary)", fontSize: "15px" }}>
-                      {pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'11px', opacity:0.7}}>ج.م</span>
+                    <td style={{ padding: "16px" }}>
+                      <div style={{ color: 'var(--success)', fontWeight: "700", fontSize: "15px" }}>
+                        +{((pr.employee?.basicSalary || pr.basicSalary) + (pr.bonus || 0)).toFixed(2)} ج.م
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        الأساسي: {pr.employee?.basicSalary || pr.basicSalary} | المكافآت: {pr.bonus}
+                      </div>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--info)', fontWeight: "700", fontSize: "15px" }}>
-                      {pr.attendedHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
+                    <td style={{ padding: "16px" }}>
+                      <div style={{ color: 'var(--danger)', fontWeight: "700", fontSize: "15px" }}>
+                        -{((pr.autoDeduction || 0) + (pr.manualDeduction || 0)).toFixed(2)} ج.م
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        تلقائي: {pr.autoDeduction} | يدوي: {pr.manualDeduction}
+                      </div>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--warning)', fontWeight: "700", fontSize: "15px" }}>
-                      {pr.lateHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
-                    </td>
-                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "700", fontSize: "15px" }}>
-                      <div>-{pr.autoDeduction.toFixed(2)}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: "normal" }}>({pr.absentDays} أيام غياب)</div>
-                    </td>
-                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "700", fontSize: "15px" }}>-{pr.manualDeduction.toFixed(2)}</td>
-                    <td style={{ padding: "16px", color: 'var(--success)', fontWeight: "700", fontSize: "15px" }}>+{pr.bonus.toFixed(2)}</td>
                     <td style={{ padding: "16px" }}>
                       <div style={{ 
                         background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))",
@@ -765,11 +808,16 @@ function FinanceContent() {
                         {pr.netSalary.toFixed(2)} ج.م
                       </div>
                       <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '6px', color: pr.status==='paid'?'var(--success)':'var(--text-muted)', fontWeight: "600" }}>
-                        {pr.status === 'paid' ? '✅ تم الصرف' : '⏳ استحقاق'}
+                        {pr.status === 'paid' ? '✅ تم الصرف ومقفل' : '⏳ مسودة (بانتظار الصرف)'}
                       </div>
                     </td>
-                    <td style={{ padding: "16px", textAlign: "center" }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(pr)} style={{ padding: "8px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "12px", color: "var(--text-primary)" }}>
+                    <td style={{ padding: "16px", textAlign: "center", borderRadius: "12px 0 0 12px" }}>
+                      <button 
+                        className="btn btn-secondary btn-sm" 
+                        disabled={pr.status === 'paid'}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(pr); }} 
+                        style={{ padding: "8px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "12px", color: pr.status === 'paid' ? "var(--text-muted)" : "var(--text-primary)", cursor: pr.status === 'paid' ? "not-allowed" : "pointer" }}
+                      >
                         <Edit2 size={14} /> تسوية
                       </button>
                     </td>
@@ -780,6 +828,119 @@ function FinanceContent() {
           )}
         </div>
       </div>
+
+      {/* --- Detailed Payslip Modal --- */}
+      {isPayslipModalOpen && selectedPayslip && (
+        <div className="modal-overlay" onClick={() => setIsPayslipModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', background: 'var(--bg-card)', padding: '0', overflow: 'hidden' }}>
+            <div id="printable-payslip" style={{ padding: '30px', background: 'white', color: 'black' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #d4af37', paddingBottom: '20px', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ margin: '0 0 5px 0', color: '#111', fontSize: '24px' }}>قسيمة راتب (Payslip)</h2>
+                  <div style={{ color: '#555', fontSize: '14px' }}>عن شهر: {selectedPeriod.split('-').reverse().join('-')}</div>
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#111' }}>شركة التجارة والتقنية</div>
+                  <div style={{ fontSize: '12px', color: '#777' }}>نسخة رسمية معتمدة</div>
+                </div>
+              </div>
+              
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>اسم الموظف</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.name}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>القسم</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.department?.name || '---'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>الحالة</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: selectedPayslip.status === 'paid' ? '#10b981' : '#f59e0b' }}>
+                    {selectedPayslip.status === 'paid' ? 'تم الصرف' : 'مسودة'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
+                {/* Earnings */}
+                <div style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
+                  <h4 style={{ margin: '0 0 15px 0', color: '#10b981', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>الاستحقاقات</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>الراتب الأساسي</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.basicSalary} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>المكافآت</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.bonus} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
+                    <span style={{ fontWeight: 'bold' }}>الإجمالي</span>
+                    <span style={{ fontWeight: 'bold', color: '#10b981' }}>{((selectedPayslip.basicSalary) + (selectedPayslip.bonus || 0)).toFixed(2)} ج.م</span>
+                  </div>
+                </div>
+                
+                {/* Deductions */}
+                <div style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
+                  <h4 style={{ margin: '0 0 15px 0', color: '#ef4444', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>الاستقطاعات</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>غياب ותأخير</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.autoDeduction} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>خصومات إدارية</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.manualDeduction} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
+                    <span style={{ fontWeight: 'bold' }}>الإجمالي</span>
+                    <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{((selectedPayslip.autoDeduction || 0) + (selectedPayslip.manualDeduction || 0)).toFixed(2)} ج.م</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#d4af371a', border: '1px solid #d4af37', padding: '20px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#111' }}>صافي الراتب المستحق:</div>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: '#b38b22' }}>{selectedPayslip.netSalary.toFixed(2)} ج.م</div>
+              </div>
+              
+              <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div>توقيع المدير المختص</div>
+                  <div style={{ borderBottom: '1px dashed #999', width: '150px', margin: '20px auto 0' }}></div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div>توقيع الموظف بالاستلام</div>
+                  <div style={{ borderBottom: '1px dashed #999', width: '150px', margin: '20px auto 0' }}></div>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ padding: '20px', display: 'flex', gap: '10px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
+              <button 
+                className="btn btn-primary" 
+                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                onClick={() => {
+                  const printContent = document.getElementById('printable-payslip');
+                  if (printContent) {
+                    const originalContents = document.body.innerHTML;
+                    // Prepare print view
+                    document.body.innerHTML = printContent.innerHTML;
+                    document.body.style.direction = 'rtl';
+                    document.body.style.fontFamily = 'Cairo, sans-serif';
+                    window.print();
+                    // Restore
+                    document.body.innerHTML = originalContents;
+                    window.location.reload();
+                  }
+                }}
+              >
+                <FileText size={18} /> طباعة القسيمة PDF
+              </button>
+              <button className="btn btn-secondary" onClick={() => setIsPayslipModalOpen(false)}>إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
       </>)}
 
       {/* ===== TAB: MANUAL ADJUSTMENTS ===== */}
