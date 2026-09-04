@@ -488,7 +488,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
           {showNotifs && (
             <div style={{
-              position: "absolute", top: "100%", left: typeof window !== "undefined" && window.innerWidth < 768 ? "-80px" : 0, marginTop: "12px",
+              position: "absolute", top: "100%", left: typeof window !== "undefined" && window.innerWidth < 768 ? "-10px" : 0, marginTop: "12px",
               width: "min(320px, calc(100vw - 24px))", background: "var(--bg-modal)",
               borderRadius: "16px", border: "1px solid var(--border-gold)",
               boxShadow: "var(--shadow-modal)", zIndex: 100, overflow: "hidden",
