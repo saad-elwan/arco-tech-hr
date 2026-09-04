@@ -14,8 +14,6 @@ const fetcher = async (url: string) => {
 const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
 
 export default function TrackingPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // "all" | "delegate" | "outOfRange"
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);

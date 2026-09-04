@@ -147,6 +147,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   // Overtime Prompts Polling (Admin Only)
   const [overtimePrompts, setOvertimePrompts] = useState<any[]>([]);
+  const isAdminUser = user && ["admin", "superadmin", "hr"].includes(user.role?.toLowerCase());
+  
   useEffect(() => {
     if (!isAdminUser) return;
     const checkOvertimePrompts = async () => {
