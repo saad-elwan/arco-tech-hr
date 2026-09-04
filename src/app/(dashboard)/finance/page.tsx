@@ -607,7 +607,7 @@ export default function FinancePage() {
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم تلقائي</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم إداري</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--success)' }}>مكافآت</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي الراتب المتوقع</th>
+                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي الراتب</th>
                   <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>خيارات</th>
                 </tr>
               </thead>
@@ -1039,7 +1039,7 @@ export default function FinancePage() {
               <th style={{ textAlign: 'center' }}>الراتب الأساسي</th>
               <th style={{ textAlign: 'center' }}>إجمالي الخصم (تلقائي+إداري)</th>
               <th style={{ textAlign: 'center' }}>مكافآت</th>
-              <th style={{ textAlign: 'center' }}>صافي الراتب المتوقع</th>
+              <th style={{ textAlign: 'center' }}>صافي الراتب</th>
               <th style={{ textAlign: 'center' }}>الحالة</th>
             </tr>
           </thead>

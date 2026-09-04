@@ -36,7 +36,12 @@ export async function GET(request: NextRequest) {
     employees.map((e) => ({
       ...e,
       password: undefined,
-    }))
+    })),
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=5, stale-while-revalidate=10"
+      }
+    }
   );
 }
 

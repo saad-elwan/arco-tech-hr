@@ -60,6 +60,12 @@ export async function POST(request: NextRequest) {
     const WORK_START_MINUTES = 510;
     const GRACE_END_MINUTES = 525;
 
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    const today = new Date().getDate();
+    // Calculate elapsed days for mid-month calculation
+    const elapsedDays = period === currentMonth ? Math.min(30, today) : 30;
+    const earnedBasicSalary = parseFloat(((basicSalary / 30) * elapsedDays).toFixed(2));
+
     // Fetch attendance records for this month
     const records = await prisma.attendance.findMany({
       where: { employeeId: emp.id, date: { startsWith: period } },
@@ -68,15 +74,18 @@ export async function POST(request: NextRequest) {
     const presentDays = records.filter(r => r.status === "present" || r.checkIn).length;
     const absentDays = records.filter(r => r.status === "absent").length;
 
-    // Calculate total late minutes and 2x penalty after grace period
+    // Calculate total late minutes, early checkout unfulfilled hours, and 2x penalty
     let totalLateMinutes = 0;
     let totalPenalizedMinutes = 0;
+    let totalUnfulfilledMinutes = 0;
     let lateDays = 0;
 
     for (const r of records) {
       if (r.checkIn) {
         const [ch, cm] = r.checkIn.split(":").map(Number);
         const checkInMin = ch * 60 + cm;
+        
+        // Late calculation
         if (checkInMin > GRACE_END_MINUTES) {
           lateDays++;
           const delay = checkInMin - GRACE_END_MINUTES;
@@ -84,13 +93,25 @@ export async function POST(request: NextRequest) {
           totalLateMinutes += delay;
           totalPenalizedMinutes += penalized;
         }
+
+        // Unfulfilled hours (early checkout)
+        if (r.checkOut) {
+          const [outH, outM] = r.checkOut.split(":").map(Number);
+          const outMin = outH * 60 + outM;
+          const workedMins = outMin - checkInMin;
+          const expectedMins = dailyWorkHours * 60; // 8 hours * 60 = 480 mins
+          if (workedMins < expectedMins) {
+            totalUnfulfilledMinutes += (expectedMins - workedMins);
+          }
+        }
       }
     }
 
-    // Deduction: Absent days + 2x late penalty
+    // Deduction: Absent days + late penalty + unfulfilled hours
     const absentDeduction = absentDays * dayWage;
     const lateDeduction = totalPenalizedMinutes * minuteWage;
-    const autoDeduction = parseFloat((absentDeduction + lateDeduction).toFixed(2));
+    const unfulfilledDeduction = totalUnfulfilledMinutes * minuteWage;
+    const autoDeduction = parseFloat((absentDeduction + lateDeduction + unfulfilledDeduction).toFixed(2));
     
     // Default manual values
     let prevBonus = 0;
@@ -114,12 +135,12 @@ export async function POST(request: NextRequest) {
       prevNotes = existing.notes || "";
     }
 
-    const netSalary = Math.max(0, parseFloat((basicSalary - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)));
+    const netSalary = Math.max(0, parseFloat((earnedBasicSalary - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)));
 
     const payroll = await prisma.payroll.upsert({
       where: { employeeId_period: { employeeId: emp.id, period } },
       update: {
-        basicSalary,
+        basicSalary: earnedBasicSalary, // Show the pro-rata basic salary dynamically
         presentDays,
         lateDays,
         absentDays,
@@ -129,7 +150,7 @@ export async function POST(request: NextRequest) {
       create: {
         employeeId: emp.id,
         period,
-        basicSalary,
+        basicSalary: earnedBasicSalary, // Show the pro-rata basic salary dynamically
         presentDays,
         lateDays,
         absentDays,

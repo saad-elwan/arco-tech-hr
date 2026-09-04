@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
     role: auth.role,
     stats: {
       totalEmployees,
+      activeEmployees,
       todayPresent: todayAttendance,
       todayAbsent: absentToday,
       todayLate,
@@ -109,5 +110,9 @@ export async function GET(request: NextRequest) {
     tasksByStatus,
     topEmployees,
     recentActivity,
+  }, {
+    headers: {
+      "Cache-Control": "public, s-maxage=5, stale-while-revalidate=10"
+    }
   });
 }
