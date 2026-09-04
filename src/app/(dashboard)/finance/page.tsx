@@ -379,33 +379,97 @@ function FinanceContent() {
 
       {/* ===== TAB: AUTO PAYROLL ===== */}
       {activeTab === 'payroll' && (<>
-      {/* Stats Board */}
-      <div className="stat-grid">
-        <div className="card stat-card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* Stats Board - Premium Design */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "20px",
+        marginBottom: "24px"
+      }}>
+        {/* Net Salaries Card */}
+        <div className="card" style={{ 
+          padding: "24px", 
+          background: "linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(212,175,55,0.02) 100%)", 
+          border: "1px solid rgba(212,175,55,0.3)",
+          boxShadow: "0 8px 32px rgba(212,175,55,0.1)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "20px",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "rgba(212,175,55,0.1)", borderRadius: "50%", filter: "blur(20px)" }}></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
             <div>
-              <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي الرواتب الصافية</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--gold-primary)" }}>{totalNetSalaries.toLocaleString('ar-EG')} <span style={{ fontSize:'14px' }}>ج.م</span></div>
+              <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                إجمالي الرواتب الصافية
+              </div>
+              <div style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: "900", color: "var(--gold-primary)", letterSpacing: "0.5px", textShadow: "0 2px 10px rgba(212,175,55,0.2)" }}>
+                {totalNetSalaries.toLocaleString('ar-EG')} <span style={{ fontSize: '16px', fontWeight: "600", opacity: 0.8 }}>ج.م</span>
+              </div>
             </div>
-            <div className="stat-icon" style={{ background: "rgba(212, 175, 55, 0.1)", color: "var(--gold-primary)" }}><Banknote size={24} /></div>
+            <div style={{ 
+              background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05))", 
+              color: "var(--gold-primary)", width: "50px", height: "50px", borderRadius: "14px",
+              display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(212,175,55,0.3)"
+            }}>
+              <Banknote size={28} />
+            </div>
           </div>
         </div>
-        <div className="card stat-card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+        {/* Bonuses Card */}
+        <div className="card" style={{ 
+          padding: "24px", 
+          background: "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.02) 100%)", 
+          border: "1px solid rgba(16,185,129,0.3)",
+          boxShadow: "0 8px 32px rgba(16,185,129,0.1)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "20px",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "rgba(16,185,129,0.1)", borderRadius: "50%", filter: "blur(20px)" }}></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
             <div>
-              <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي المكافآت</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--success)" }}>{totalBonuses.toLocaleString('ar-EG')} <span style={{ fontSize:'14px' }}>ج.م</span></div>
+              <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px" }}>إجمالي المكافآت</div>
+              <div style={{ fontSize: "clamp(22px, 3.5vw, 28px)", fontWeight: "800", color: "var(--success)" }}>
+                {totalBonuses.toLocaleString('ar-EG')} <span style={{ fontSize: '14px', opacity: 0.8 }}>ج.م</span>
+              </div>
             </div>
-            <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.1)", color: "var(--success)" }}><TrendingUp size={24} /></div>
+            <div style={{ 
+              background: "rgba(16, 185, 129, 0.15)", color: "var(--success)", width: "46px", height: "46px", borderRadius: "12px",
+              display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(16,185,129,0.2)"
+            }}>
+              <TrendingUp size={24} />
+            </div>
           </div>
         </div>
-        <div className="card stat-card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+        {/* Deductions Card */}
+        <div className="card" style={{ 
+          padding: "24px", 
+          background: "linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.02) 100%)", 
+          border: "1px solid rgba(239,68,68,0.3)",
+          boxShadow: "0 8px 32px rgba(239,68,68,0.1)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "20px",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "rgba(239,68,68,0.1)", borderRadius: "50%", filter: "blur(20px)" }}></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
             <div>
-              <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي الخصومات (حضور/إداري)</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--danger)" }}>{totalDeductions.toLocaleString('ar-EG')} <span style={{ fontSize:'14px' }}>ج.م</span></div>
+              <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px" }}>إجمالي الخصومات (حضور/إداري)</div>
+              <div style={{ fontSize: "clamp(22px, 3.5vw, 28px)", fontWeight: "800", color: "var(--danger)" }}>
+                {totalDeductions.toLocaleString('ar-EG')} <span style={{ fontSize: '14px', opacity: 0.8 }}>ج.م</span>
+              </div>
             </div>
-            <div className="stat-icon" style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--danger)" }}><TrendingDown size={24} /></div>
+            <div style={{ 
+              background: "rgba(239,68,68,0.15)", color: "var(--danger)", width: "46px", height: "46px", borderRadius: "12px",
+              display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(239,68,68,0.2)"
+            }}>
+              <TrendingDown size={24} />
+            </div>
           </div>
         </div>
       </div>
@@ -606,73 +670,104 @@ function FinanceContent() {
         </div>
       )}
 
-      <div className="card">
-        <div className="filter-bar" style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>
-          <div className="search-input-wrapper" style={{ flex: "1", maxWidth: "400px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", padding: "8px 16px" }}>
+      <div className="card" style={{ 
+        padding: "0", 
+        borderRadius: "20px",
+        border: "1px solid var(--border-gold)",
+        background: "linear-gradient(180deg, rgba(var(--bg-card-rgb), 1) 0%, rgba(var(--bg-card-rgb), 0.6) 100%)",
+        overflow: "hidden"
+      }}>
+        <div style={{ 
+          display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", 
+          padding: "20px", borderBottom: "1px solid rgba(212,175,55,0.15)",
+          background: "rgba(212,175,55,0.03)", gap: "16px"
+        }}>
+          <h3 style={{ margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px", fontSize: "16px", fontWeight: "700" }}>
+            <div style={{ background: "rgba(212,175,55,0.1)", padding: "8px", borderRadius: "10px", color: "var(--gold-primary)" }}>
+              <Calculator size={20} />
+            </div>
+            تفاصيل مسيّر الرواتب
+          </h3>
+          
+          <div className="search-input-wrapper" style={{ flex: "1", maxWidth: "400px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", display: "flex", alignItems: "center", padding: "10px 16px" }}>
             <Search size={16} color="var(--text-muted)" />
             <input 
               type="text" 
               placeholder="ابحث عن موظف..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", width: "100%", paddingRight: "10px" }}
+              style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", width: "100%", paddingRight: "10px", fontSize: "14px" }}
             />
           </div>
         </div>
+
         <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           {loading ? (
-            <div className="loading-spinner" style={{ padding: '40px' }}><div className="spinner"></div></div>
+            <div style={{ padding: '60px', display: 'flex', justifyContent: 'center' }}><div className="spinner"></div></div>
           ) : payrolls.length === 0 ? (
-            <div className="empty-state" style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-muted)" }}>
-              <div style={{ marginBottom: "16px", color: "var(--gold-dark)", opacity: 0.5 }}><AlertCircle size={48} style={{ margin: "0 auto" }}/></div>
-              <h3 style={{ margin: "0 0 8px 0", color: "var(--text-primary)" }}>لم يتم احتساب الرواتب بعد</h3>
-              <p>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير المالي.</p>
+            <div className="empty-state" style={{ padding: "80px 20px", textAlign: "center", color: "var(--text-muted)" }}>
+              <div style={{ marginBottom: "16px", color: "var(--gold-dark)", opacity: 0.5 }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", width: "80px", height: "80px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+                  <AlertCircle size={40} />
+                </div>
+              </div>
+              <h3 style={{ margin: "0 0 8px 0", color: "var(--text-primary)", fontSize: "18px" }}>لم يتم احتساب الرواتب بعد</h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>اضغط على زر (حساب رواتب الشهر تلقائياً) للبدء في استخراج المسير المالي.</p>
             </div>
           ) : (
             <table style={{ width: "100%", textAlign: "right", borderCollapse: "collapse", minWidth: "1000px" }}>
               <thead>
-                <tr>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>اسـم المـوظف</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>الراتب الأساسي</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>ساعات الحضور</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>ساعات التأخير</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم غياب/تأخير</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--danger)' }}>خصم إداري</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)", color: 'var(--success)' }}>مكافآت</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>صافي راتب شهر {selectedPeriod.split('-').reverse().join('-')}</th>
-                  <th style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>خيارات</th>
+                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>اسـم المـوظف</th>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>الراتب الأساسي</th>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>ساعات الحضور</th>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>ساعات التأخير</th>
+                  <th style={{ padding: "16px", color: 'var(--danger)', fontSize: "13px", whiteSpace: "nowrap" }}>خصم غياب/تأخير</th>
+                  <th style={{ padding: "16px", color: 'var(--danger)', fontSize: "13px", whiteSpace: "nowrap" }}>خصم إداري</th>
+                  <th style={{ padding: "16px", color: 'var(--success)', fontSize: "13px", whiteSpace: "nowrap" }}>مكافآت</th>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap" }}>صافي راتب شهر {selectedPeriod.split('-').reverse().join('-')}</th>
+                  <th style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "13px", whiteSpace: "nowrap", textAlign: "center" }}>خيارات</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((pr) => (
-                  <tr key={pr.id} style={{ borderBottom: "1px solid rgba(var(--white-rgb),0.05)", transition: "0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+                  <tr key={pr.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", transition: "background 0.2s" }} onMouseOver={e=>e.currentTarget.style.background='rgba(212,175,55,0.05)'} onMouseOut={e=>e.currentTarget.style.background='transparent'}>
                     <td style={{ padding: "16px" }}>
-                      <div style={{ fontWeight: 600 }}>{pr.employee?.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{pr.employee?.department?.name || "---"}</div>
+                      <div style={{ fontWeight: 700, fontSize: "15px", color: "var(--text-primary)" }}>{pr.employee?.name}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', background: "rgba(255,255,255,0.05)", display: "inline-block", padding: "2px 8px", borderRadius: "4px" }}>
+                        {pr.employee?.department?.name || "---"}
+                      </div>
                     </td>
-                    <td style={{ padding: "16px", fontWeight: "bold", color: "var(--gold-primary)" }}>{pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>ج.م</span></td>
-                    <td style={{ padding: "16px", color: 'var(--info)', fontWeight: "bold" }}>
+                    <td style={{ padding: "16px", fontWeight: "700", color: "var(--gold-primary)", fontSize: "15px" }}>
+                      {pr.employee?.basicSalary || pr.basicSalary} <span style={{fontSize:'11px', opacity:0.7}}>ج.م</span>
+                    </td>
+                    <td style={{ padding: "16px", color: 'var(--info)', fontWeight: "700", fontSize: "15px" }}>
                       {pr.attendedHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--warning)', fontWeight: "bold" }}>
+                    <td style={{ padding: "16px", color: 'var(--warning)', fontWeight: "700", fontSize: "15px" }}>
                       {pr.lateHours || 0} <span style={{fontSize:'12px', color:'var(--text-muted)', fontWeight: "normal"}}>س</span>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "bold" }}>
+                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "700", fontSize: "15px" }}>
                       <div>-{pr.autoDeduction.toFixed(2)}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: "normal" }}>({pr.absentDays} أيام غياب)</div>
                     </td>
-                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "bold" }}>-{pr.manualDeduction.toFixed(2)}</td>
-                    <td style={{ padding: "16px", color: 'var(--success)', fontWeight: "bold" }}>+{pr.bonus.toFixed(2)}</td>
+                    <td style={{ padding: "16px", color: 'var(--danger)', fontWeight: "700", fontSize: "15px" }}>-{pr.manualDeduction.toFixed(2)}</td>
+                    <td style={{ padding: "16px", color: 'var(--success)', fontWeight: "700", fontSize: "15px" }}>+{pr.bonus.toFixed(2)}</td>
                     <td style={{ padding: "16px" }}>
-                      <div className="badge badge-gold" style={{ fontSize: '15px', padding: '6px 12px' }}>
+                      <div style={{ 
+                        background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))",
+                        border: "1px solid rgba(212,175,55,0.3)",
+                        color: "var(--gold-primary)",
+                        padding: "8px 14px", borderRadius: "10px", fontSize: "15px", fontWeight: "800", display: "inline-block"
+                      }}>
                         {pr.netSalary.toFixed(2)} ج.م
                       </div>
-                      <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '4px', color: pr.status==='paid'?'var(--success)':'var(--text-muted)' }}>
-                        {pr.status === 'paid' ? 'تم الصرف' : 'استحقاق'}
+                      <div style={{ fontSize: '11px', textAlign: 'center', marginTop: '6px', color: pr.status==='paid'?'var(--success)':'var(--text-muted)', fontWeight: "600" }}>
+                        {pr.status === 'paid' ? '✅ تم الصرف' : '⏳ استحقاق'}
                       </div>
                     </td>
-                    <td style={{ padding: "16px" }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(pr)}>
+                    <td style={{ padding: "16px", textAlign: "center" }}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(pr)} style={{ padding: "8px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "12px", color: "var(--text-primary)" }}>
                         <Edit2 size={14} /> تسوية
                       </button>
                     </td>
@@ -797,49 +892,101 @@ function FinanceContent() {
       {/* ===== TAB: TREASURY (الخزينة النقدية والحركات المالية) ===== */}
       {activeTab === 'treasury' && (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {/* Treasury Stats */}
-          <div className="stat-grid">
-            <div className="card stat-card" style={{ padding: "24px", background: "linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))", border: "1px solid rgba(16,185,129,0.3)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {/* Treasury Stats - Premium Design */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "20px"
+          }}>
+            {/* Balance Card */}
+            <div className="card" style={{ 
+              padding: "24px", 
+              background: "linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.02) 100%)", 
+              border: "1px solid rgba(16,185,129,0.3)",
+              boxShadow: "0 8px 32px rgba(16,185,129,0.1)",
+              backdropFilter: "blur(10px)",
+              borderRadius: "20px",
+              position: "relative",
+              overflow: "hidden"
+            }}>
+              <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "rgba(16,185,129,0.1)", borderRadius: "50%", filter: "blur(20px)" }}></div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
                 <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>الرصيد الفعلي الحالي في الخزينة</div>
-                  <div style={{ fontSize: "32px", fontWeight: "800", color: "var(--success)" }}>
-                    {(treasury?.balance || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '15px' }}>ج.م</span>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    الرصيد الفعلي الحالي في الخزينة
+                  </div>
+                  <div style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: "900", color: "var(--success)", letterSpacing: "0.5px", textShadow: "0 2px 10px rgba(16,185,129,0.2)" }}>
+                    {(treasury?.balance || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '16px', fontWeight: "600", opacity: 0.8 }}>ج.م</span>
                   </div>
                 </div>
-                <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.2)", color: "var(--success)" }}><Wallet size={28} /></div>
+                <div style={{ 
+                  background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))", 
+                  color: "var(--success)", width: "50px", height: "50px", borderRadius: "14px",
+                  display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(16,185,129,0.3)"
+                }}>
+                  <Wallet size={28} />
+                </div>
               </div>
             </div>
 
-            <div className="card stat-card" style={{ padding: "24px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            {/* Deposits Card */}
+            <div className="card" style={{ 
+              padding: "24px", 
+              background: "linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.02) 100%)", 
+              border: "1px solid rgba(59,130,246,0.2)",
+              boxShadow: "0 8px 32px rgba(59,130,246,0.05)",
+              borderRadius: "20px"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي الإيداعات النقدية</div>
-                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--info)" }}>
-                    {(treasury?.totalDeposits || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px' }}>ج.م</span>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px" }}>إجمالي الإيداعات النقدية</div>
+                  <div style={{ fontSize: "clamp(22px, 3.5vw, 28px)", fontWeight: "800", color: "var(--info)" }}>
+                    {(treasury?.totalDeposits || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px', opacity: 0.8 }}>ج.م</span>
                   </div>
                 </div>
-                <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)", color: "var(--info)" }}><ArrowDownLeft size={24} /></div>
+                <div style={{ 
+                  background: "rgba(59,130,246,0.15)", color: "var(--info)", width: "46px", height: "46px", borderRadius: "12px",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <ArrowDownLeft size={24} />
+                </div>
               </div>
             </div>
 
-            <div className="card stat-card" style={{ padding: "24px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            {/* Withdrawals Card */}
+            <div className="card" style={{ 
+              padding: "24px", 
+              background: "linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.02) 100%)", 
+              border: "1px solid rgba(239,68,68,0.2)",
+              boxShadow: "0 8px 32px rgba(239,68,68,0.05)",
+              borderRadius: "20px"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "8px" }}>إجمالي المصروفات والسحوبات</div>
-                  <div style={{ fontSize: "28px", fontWeight: "bold", color: "var(--danger)" }}>
-                    {(treasury?.totalWithdrawals || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px' }}>ج.م</span>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", marginBottom: "8px" }}>إجمالي المصروفات والسحوبات</div>
+                  <div style={{ fontSize: "clamp(22px, 3.5vw, 28px)", fontWeight: "800", color: "var(--danger)" }}>
+                    {(treasury?.totalWithdrawals || 0).toLocaleString('ar-EG')} <span style={{ fontSize: '14px', opacity: 0.8 }}>ج.م</span>
                   </div>
                 </div>
-                <div className="stat-icon" style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--danger)" }}><ArrowUpRight size={24} /></div>
+                <div style={{ 
+                  background: "rgba(239,68,68,0.15)", color: "var(--danger)", width: "46px", height: "46px", borderRadius: "12px",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <ArrowUpRight size={24} />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Quick Treasury Actions */}
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+            gap: "16px",
+            marginTop: "8px"
+          }}>
             <button 
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 setTreasuryActionType('deposit');
                 setTreasuryAmount('');
@@ -847,12 +994,28 @@ function FinanceContent() {
                 setTreasuryMsg({ error: '', success: '' });
                 setIsTreasuryModalOpen(true);
               }}
-              style={{ background: "linear-gradient(135deg, #10b981, #059669)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}
+              style={{ 
+                background: "linear-gradient(135deg, #10b981, #059669)", 
+                border: "none", 
+                color: "#fff", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                gap: "10px",
+                padding: "16px",
+                borderRadius: "14px",
+                fontSize: "15px",
+                fontWeight: "700",
+                boxShadow: "0 8px 20px rgba(16,185,129,0.3)",
+                transition: "transform 0.2s, box-shadow 0.2s"
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              <Plus size={18} /> إيداع نقدي جديد في الخزينة
+              <Plus size={20} /> إيداع نقدي جديد للخزينة
             </button>
             <button 
-              className="btn btn-secondary"
+              className="btn"
               onClick={() => {
                 setTreasuryActionType('withdrawal');
                 setTreasuryAmount('');
@@ -860,39 +1023,71 @@ function FinanceContent() {
                 setTreasuryMsg({ error: '', success: '' });
                 setIsTreasuryModalOpen(true);
               }}
-              style={{ border: "1px solid rgba(239,68,68,0.4)", color: "var(--danger)", display: "flex", alignItems: "center", gap: 8 }}
+              style={{ 
+                background: "linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))",
+                border: "1px solid rgba(239,68,68,0.4)", 
+                color: "var(--danger)", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                gap: "10px",
+                padding: "16px",
+                borderRadius: "14px",
+                fontSize: "15px",
+                fontWeight: "700",
+                transition: "all 0.2s"
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              <Minus size={18} /> سحب نقدي من الخزينة
+              <Minus size={20} /> سحب نقدي من الخزينة
             </button>
           </div>
 
           {/* Transactions Log Table */}
-          <div className="card" style={{ padding: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                <History size={20} color="var(--gold-primary)" /> سجل العمليات والحركات النقدية للخزينة
+          <div className="card" style={{ 
+            padding: "0", 
+            borderRadius: "20px",
+            border: "1px solid var(--border-gold)",
+            background: "linear-gradient(180deg, rgba(var(--bg-card-rgb), 1) 0%, rgba(var(--bg-card-rgb), 0.6) 100%)",
+            overflow: "hidden"
+          }}>
+            <div style={{ 
+              display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", 
+              padding: "20px", borderBottom: "1px solid rgba(212,175,55,0.15)",
+              background: "rgba(212,175,55,0.03)"
+            }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px", fontSize: "16px", fontWeight: "700" }}>
+                <div style={{ background: "rgba(212,175,55,0.1)", padding: "8px", borderRadius: "10px", color: "var(--gold-primary)" }}>
+                  <History size={20} />
+                </div>
+                سجل العمليات والحركات النقدية للخزينة
               </h3>
-              <span className="badge badge-gold">{transactions.length} عملية مسجلة</span>
+              <span className="badge badge-gold" style={{ padding: "6px 12px", borderRadius: "12px", fontSize: "13px" }}>
+                {transactions.length} حركة مسجلة
+              </span>
             </div>
 
             {treasuryLoading ? (
-              <div className="loading-spinner"><div className="spinner"></div></div>
+              <div style={{ padding: "40px", display: "flex", justifyContent: "center" }}><div className="spinner"></div></div>
             ) : transactions.length === 0 ? (
-              <div className="empty-state">
-                <AlertCircle size={40} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-                <p>لا توجد حركات نقدية مسجلة بعد في الخزينة.</p>
+              <div className="empty-state" style={{ padding: "60px 20px" }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", width: "80px", height: "80px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <AlertCircle size={40} style={{ color: "var(--text-muted)" }} />
+                </div>
+                <p style={{ fontSize: "15px", color: "var(--text-secondary)" }}>لا توجد حركات نقدية مسجلة بعد في الخزينة.</p>
               </div>
             ) : (
               <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-                <table style={{ width: "100%", minWidth: "800px" }}>
+                <table style={{ width: "100%", minWidth: "800px", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr>
-                      <th style={{ width: "40px" }}>#</th>
-                      <th>نوع الحركة</th>
-                      <th>المبلغ</th>
-                      <th>البيان والتفاصيل</th>
-                      <th>المنفذ</th>
-                      <th>التاريخ والوقت</th>
+                    <tr style={{ background: "rgba(0,0,0,0.2)" }}>
+                      <th style={{ width: "50px", padding: "16px", color: "var(--text-secondary)" }}>#</th>
+                      <th style={{ padding: "16px", color: "var(--text-secondary)" }}>نوع الحركة</th>
+                      <th style={{ padding: "16px", color: "var(--text-secondary)" }}>المبلغ</th>
+                      <th style={{ padding: "16px", color: "var(--text-secondary)" }}>البيان والتفاصيل</th>
+                      <th style={{ padding: "16px", color: "var(--text-secondary)" }}>المنفذ</th>
+                      <th style={{ padding: "16px", color: "var(--text-secondary)" }}>التاريخ والوقت</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -900,20 +1095,26 @@ function FinanceContent() {
                       const isDeposit = tx.type === "deposit";
                       const isSalary = tx.type === "salary_payment";
                       return (
-                        <tr key={tx.id}>
-                          <td style={{ color: "var(--text-muted)" }}>{idx + 1}</td>
-                          <td>
-                            <span className={`badge ${isDeposit ? "badge-success" : isSalary ? "badge-gold" : "badge-danger"}`}>
-                              {isDeposit ? "📥 إيداع" : isSalary ? "💰 صرف راتب" : "📤 سحب نقدي"}
+                        <tr key={tx.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.02)"} onMouseOut={(e) => e.currentTarget.style.background = "transparent"}>
+                          <td style={{ padding: "16px", color: "var(--text-muted)", textAlign: "center" }}>{idx + 1}</td>
+                          <td style={{ padding: "16px" }}>
+                            <span className={`badge ${isDeposit ? "badge-success" : isSalary ? "badge-gold" : "badge-danger"}`} style={{ padding: "6px 12px", borderRadius: "8px" }}>
+                              {isDeposit ? "📥 إيداع نقدي" : isSalary ? "💰 صرف رواتب" : "📤 سحب نقدي"}
                             </span>
                           </td>
-                          <td style={{ fontWeight: "bold", color: isDeposit ? "var(--success)" : "var(--danger)", direction: "ltr", textAlign: "right" }}>
-                            {isDeposit ? `+${tx.amount.toLocaleString('ar-EG')}` : `-${tx.amount.toLocaleString('ar-EG')}`} ج.م
+                          <td style={{ padding: "16px", fontWeight: "800", color: isDeposit ? "var(--success)" : "var(--danger)", direction: "ltr", textAlign: "right", fontSize: "15px" }}>
+                            {isDeposit ? `+${tx.amount.toLocaleString('ar-EG')}` : `-${tx.amount.toLocaleString('ar-EG')}`} <span style={{ fontSize: "11px", opacity: 0.7 }}>ج.م</span>
                           </td>
-                          <td>{tx.description}</td>
-                          <td><span className="chip" style={{ fontSize: "11px" }}>{tx.performedBy}</span></td>
-                          <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>
-                            {new Date(tx.createdAt).toLocaleString('ar-EG')}
+                          <td style={{ padding: "16px", color: "var(--text-primary)", maxWidth: "250px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={tx.description}>
+                            {tx.description}
+                          </td>
+                          <td style={{ padding: "16px" }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", background: "rgba(255,255,255,0.05)", padding: "4px 10px", borderRadius: "6px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                              {tx.performedBy}
+                            </span>
+                          </td>
+                          <td style={{ padding: "16px", color: "var(--text-muted)", fontSize: "13px" }}>
+                            {new Date(tx.createdAt).toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
                       );
