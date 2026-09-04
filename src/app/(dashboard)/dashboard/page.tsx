@@ -13,7 +13,11 @@ const fetcher = async (url: string) => {
     if (res.status === 401 || res.status === 403) throw new Error("Unauthorized");
     throw new Error("Failed to fetch");
   }
-  return res.json();
+  try {
+    return await res.json();
+  } catch (e) {
+    throw new Error("Invalid JSON response");
+  }
 };
 
 const containerVariants = {
@@ -230,8 +234,10 @@ export default function Dashboard() {
                 <div style={{ position: 'absolute', right: '-25px', top: '4px', width: '16px', height: '16px', borderRadius: '50%', background: act.status === 'late' ? 'var(--warning)' : 'var(--success)', border: '4px solid var(--bg-card)' }}></div>
                 <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>{act.employee?.name}</strong>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(act.checkIn).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{act.employee?.name || 'مستخدم غير معروف'}</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {act.checkIn ? new Date(act.checkIn).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                    </span>
                   </div>
                   <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                     {act.status === 'late' ? 'سجل حضور متأخر' : 'سجل حضور في الموعد'}
@@ -289,10 +295,10 @@ export default function Dashboard() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'var(--bg-tertiary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold-dark), var(--gold-primary))', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px' }}>
-                      {empEval.employee?.name?.charAt(0)}
+                      {(empEval.employee?.name || 'م').charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{empEval.employee?.name}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{empEval.employee?.name || 'مستخدم غير معروف'}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{empEval.employee?.department?.name || 'غير محدد'}</div>
                     </div>
                   </div>

@@ -302,7 +302,7 @@ export default function TasksPage() {
                               <button onClick={() => setSelectedTask(task)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '11px' }}>التفاصيل</button>
                             </div>
 
-                            {currentUser && (currentUser.id === task.assignedTo || currentUser.role === 'admin' || currentUser.role === 'superadmin') && (task.status === 'new' || task.status === 'in_progress') && (
+                            {currentUser?.role === 'employee' && currentUser.id === task.assignedTo && (task.status === 'new' || task.status === 'in_progress') ? (
                               <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                                 {task.status === 'new' && (
                                   <button onClick={() => handleUpdateStatus(task.id, 'in_progress')} className="btn btn-primary btn-sm" style={{ flex: 1, fontSize: '12px', background: 'var(--info)', borderColor: 'var(--info)', color: '#fff', padding: '6px' }}>
@@ -314,6 +314,12 @@ export default function TasksPage() {
                                     <CheckCircle2 size={14} style={{ marginLeft: '4px' }} /> إكتمال المهمة
                                   </button>
                                 )}
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                <span className="badge" style={{ flex: 1, textAlign: 'center', background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', padding: '6px', fontSize: '12px' }}>
+                                  {task.status === 'new' ? 'معلقة' : task.status === 'in_progress' ? 'قيد التنفيذ' : task.status === 'completed' ? 'مكتملة' : 'متأخرة'}
+                                </span>
                               </div>
                             )}
                           </div>
