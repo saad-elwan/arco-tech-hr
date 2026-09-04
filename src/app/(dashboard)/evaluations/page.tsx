@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Star, TrendingUp, Calendar, AlertCircle, Plus, CheckCircle, Activity, Target, Download } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Cell } from "recharts";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Cell } from "recharts";
 
 export default function EvaluationsPage() {
   const [user, setUser] = useState<any>(null);
@@ -341,27 +341,22 @@ export default function EvaluationsPage() {
         {/* Side Panel: Company Performance Chart */}
         <div className="card glass-panel" style={{ padding: '24px', position: 'sticky', top: '24px' }}>
           <h3 style={{ fontSize: '16px', color: 'var(--text-primary)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={18} style={{ color: 'var(--gold-primary)' }} /> تصنيف الأداء العام
+            <Activity size={18} style={{ color: 'var(--gold-primary)' }} /> تصنيف الأداء العام (Radar)
           </h3>
           
           {totalEvals > 0 ? (
-            <div style={{ height: '260px', width: '100%' }}>
+            <div style={{ height: '300px', width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: 0, left: -25, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} angle={-25} textAnchor="end" />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--text-primary)', fontSize: 12 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{ fill: 'var(--text-muted)' }} />
+                  <Radar name="الموظفين" dataKey="count" stroke="var(--gold-primary)" fill="var(--gold-primary)" fillOpacity={0.4} />
                   <RechartsTooltip 
-                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} 
                     contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', borderRadius: '8px', fontSize: '13px' }}
-                    itemStyle={{ color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--gold-primary)' }}
                   />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                </RadarChart>
               </ResponsiveContainer>
             </div>
           ) : (
