@@ -123,12 +123,17 @@ export async function POST(request: NextRequest) {
     });
 
     const presentDays = records.filter(r => r.status === "present" || r.checkIn).length;
-    const absentDays = records.filter(r => r.status === "absent").length;
+    
+    // Implicitly absent if there is no record at all for the day
+    const missingDays = Math.max(0, elapsedDays - records.length);
+    const explicitAbsentDays = records.filter(r => r.status === "absent").length;
+    const absentDays = missingDays + explicitAbsentDays;
 
     // Calculate total late minutes, early checkout unfulfilled hours, and 2x penalty
     let totalLateMinutes = 0;
     let totalPenalizedMinutes = 0;
     let totalUnfulfilledMinutes = 0;
+    let totalWorkedMinutes = 0;
     let lateDays = 0;
 
     for (const r of records) {
@@ -150,6 +155,10 @@ export async function POST(request: NextRequest) {
           const [outH, outM] = r.checkOut.split(":").map(Number);
           const outMin = outH * 60 + outM;
           const workedMins = outMin - checkInMin;
+          if (workedMins > 0) {
+            totalWorkedMinutes += workedMins;
+          }
+          
           const expectedMins = dailyWorkHours * 60;
           if (workedMins < expectedMins) {
             totalUnfulfilledMinutes += (expectedMins - workedMins);
@@ -194,6 +203,9 @@ export async function POST(request: NextRequest) {
 
     const netSalary = Math.max(0, parseFloat((earnedBasicSalary - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)));
 
+    const attendedHours = parseFloat((totalWorkedMinutes / 60).toFixed(2));
+    const lateHours = parseFloat((totalLateMinutes / 60).toFixed(2));
+
     const payroll = await prisma.payroll.upsert({
       where: { employeeId_period: { employeeId: emp.id, period } },
       update: {
@@ -201,6 +213,8 @@ export async function POST(request: NextRequest) {
         presentDays,
         lateDays,
         absentDays,
+        attendedHours,
+        lateHours,
         autoDeduction,
         netSalary,
       },
@@ -211,6 +225,8 @@ export async function POST(request: NextRequest) {
         presentDays,
         lateDays,
         absentDays,
+        attendedHours,
+        lateHours,
         autoDeduction,
         bonus: prevBonus,
         manualDeduction: prevManualDeduction,
