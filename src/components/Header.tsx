@@ -286,20 +286,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     router.push(link);
   };
 
-  // Theme Toggler
-  const [theme, setTheme] = useState("dark");
-  useEffect(() => {
-    const saved = localStorage.getItem("hr-theme") || "dark";
-    setTheme(saved);
-    document.documentElement.setAttribute("data-theme", saved);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("hr-theme", nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-  };
+  // Theme Toggler removed
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -477,20 +464,6 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           }} />
           النظام يعمل
         </div>
-
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          style={{
-            background: "rgba(var(--white-rgb),0.05)", border: "1px solid rgba(var(--white-rgb),0.1)",
-            width: 40, height: 40, borderRadius: "50%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", transition: "all 0.3s", color: "var(--text-primary)"
-          }}
-          title={theme === 'dark' ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
 
         {/* Notifications Popover */}
         <div ref={notifRef} style={{ position: "relative" }}>
