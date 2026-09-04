@@ -157,6 +157,8 @@ model Payroll {
   presentDays     Int      @default(0)
   absentDays      Int      @default(0)
   lateDays        Int      @default(0)
+  attendedHours   Float    @default(0) // New: Total attended hours
+  lateHours       Float    @default(0) // New: Total late hours
   autoDeduction   Float    @default(0)
   bonus           Float    @default(0)
   overtimeBonus   Float    @default(0) // New: financial bonus for overtime
