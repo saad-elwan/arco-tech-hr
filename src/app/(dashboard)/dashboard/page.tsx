@@ -1,7 +1,7 @@
 "use client";
 import useSWR from "swr";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Users, Clock, AlertTriangle, UserCheck, CheckCircle, AlertCircle, FileText, ChevronLeft, TrendingUp, TrendingDown, Activity, Award, Briefcase } from "lucide-react";
+import { Users, Clock, AlertTriangle, UserCheck, CheckCircle, AlertCircle, FileText, ChevronLeft, TrendingUp, TrendingDown, Activity, Award, Briefcase, PieChart as PieChartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
