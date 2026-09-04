@@ -832,59 +832,75 @@ function FinanceContent() {
       {/* --- Detailed Payslip Modal --- */}
       {isPayslipModalOpen && selectedPayslip && (
         <div className="modal-overlay" onClick={() => setIsPayslipModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', background: 'var(--bg-card)', padding: '0', overflow: 'hidden' }}>
-            <div id="printable-payslip" style={{ padding: '30px', background: 'white', color: 'black' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #d4af37', paddingBottom: '20px', marginBottom: '20px' }}>
-                <div>
-                  <h2 style={{ margin: '0 0 5px 0', color: '#111', fontSize: '24px' }}>قسيمة راتب (Payslip)</h2>
-                  <div style={{ color: '#555', fontSize: '14px' }}>عن شهر: {selectedPeriod.split('-').reverse().join('-')}</div>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '95%', background: 'var(--bg-card)', padding: '0', overflowY: 'auto', maxHeight: '90vh' }}>
+            <div id="printable-payslip" style={{ padding: '20px', background: 'white', color: 'black' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #d4af37', paddingBottom: '15px', marginBottom: '15px' }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <h2 style={{ margin: '0 0 5px 0', color: '#111', fontSize: '20px' }}>قسيمة راتب (Payslip)</h2>
+                  <div style={{ color: '#555', fontSize: '13px' }}>عن شهر: {selectedPeriod.split('-').reverse().join('-')}</div>
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#111' }}>شركة التجارة والتقنية</div>
-                  <div style={{ fontSize: '12px', color: '#777' }}>نسخة رسمية معتمدة</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#111' }}>{companySettings?.name || "اسم الشركة"}</div>
+                  <div style={{ fontSize: '11px', color: '#777' }}>نسخة رسمية معتمدة</div>
                 </div>
               </div>
               
-              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between' }}>
-                <div>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between' }}>
+                <div style={{ minWidth: '100px' }}>
                   <div style={{ fontSize: '12px', color: '#666' }}>اسم الموظف</div>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.name}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.name}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: '100px' }}>
                   <div style={{ fontSize: '12px', color: '#666' }}>القسم</div>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.department?.name || '---'}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#000' }}>{selectedPayslip.employee?.department?.name || '---'}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: '100px' }}>
                   <div style={{ fontSize: '12px', color: '#666' }}>الحالة</div>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: selectedPayslip.status === 'paid' ? '#10b981' : '#f59e0b' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', color: selectedPayslip.status === 'paid' ? '#10b981' : '#f59e0b' }}>
                     {selectedPayslip.status === 'paid' ? 'تم الصرف' : 'مسودة'}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
+              {/* Attendance Stats Section */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
+                <div style={{ flex: '1 1 calc(33.333% - 10px)', background: '#e0f2fe', border: '1px solid #bae6fd', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: '#0284c7' }}>ساعات الحضور</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#0369a1' }}>{selectedPayslip.attendedHours || 0} س</div>
+                </div>
+                <div style={{ flex: '1 1 calc(33.333% - 10px)', background: '#fef3c7', border: '1px solid #fde68a', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: '#d97706' }}>ساعات التأخير</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#b45309' }}>{selectedPayslip.lateHours || 0} س</div>
+                </div>
+                <div style={{ flex: '1 1 calc(33.333% - 10px)', background: '#fee2e2', border: '1px solid #fecaca', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: '#dc2626' }}>ساعات الغياب</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#b91c1c' }}>{(selectedPayslip.absentDays || 0) * 8} س</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
                 {/* Earnings */}
-                <div style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
+                <div style={{ flex: '1 1 250px', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
                   <h4 style={{ margin: '0 0 15px 0', color: '#10b981', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>الاستحقاقات</h4>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ color: '#4b5563', fontSize: '14px' }}>الراتب الأساسي</span>
-                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.basicSalary} ج.م</span>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>الراتب الأساسي المثبت</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedPayslip.employee?.basicSalary || selectedPayslip.basicSalary} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <span style={{ color: '#4b5563', fontSize: '14px' }}>المكافآت</span>
                     <span style={{ fontWeight: 'bold' }}>{selectedPayslip.bonus} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
-                    <span style={{ fontWeight: 'bold' }}>الإجمالي</span>
-                    <span style={{ fontWeight: 'bold', color: '#10b981' }}>{((selectedPayslip.basicSalary) + (selectedPayslip.bonus || 0)).toFixed(2)} ج.م</span>
+                    <span style={{ fontWeight: 'bold' }}>إجمالي الاستحقاقات</span>
+                    <span style={{ fontWeight: 'bold', color: '#10b981' }}>{((selectedPayslip.employee?.basicSalary || selectedPayslip.basicSalary) + (selectedPayslip.bonus || 0)).toFixed(2)} ج.م</span>
                   </div>
                 </div>
                 
                 {/* Deductions */}
-                <div style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
+                <div style={{ flex: '1 1 250px', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '15px' }}>
                   <h4 style={{ margin: '0 0 15px 0', color: '#ef4444', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>الاستقطاعات</h4>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ color: '#4b5563', fontSize: '14px' }}>غياب ותأخير</span>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>خصم الغياب والتأخير</span>
                     <span style={{ fontWeight: 'bold' }}>{selectedPayslip.autoDeduction} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -892,25 +908,25 @@ function FinanceContent() {
                     <span style={{ fontWeight: 'bold' }}>{selectedPayslip.manualDeduction} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
-                    <span style={{ fontWeight: 'bold' }}>الإجمالي</span>
+                    <span style={{ fontWeight: 'bold' }}>إجمالي الاستقطاعات</span>
                     <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{((selectedPayslip.autoDeduction || 0) + (selectedPayslip.manualDeduction || 0)).toFixed(2)} ج.م</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: '#d4af371a', border: '1px solid #d4af37', padding: '20px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#111' }}>صافي الراتب المستحق:</div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#b38b22' }}>{selectedPayslip.netSalary.toFixed(2)} ج.م</div>
+              <div style={{ background: '#d4af371a', border: '1px solid #d4af37', padding: '15px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#111' }}>صافي الراتب المستحق للصرف:</div>
+                <div style={{ fontSize: '22px', fontWeight: '900', color: '#b38b22' }}>{selectedPayslip.netSalary.toFixed(2)} ج.م</div>
               </div>
               
-              <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div>توقيع المدير المختص</div>
-                  <div style={{ borderBottom: '1px dashed #999', width: '150px', margin: '20px auto 0' }}></div>
+              <div style={{ marginTop: '30px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '20px', color: '#555' }}>
+                <div style={{ textAlign: 'center', flex: 1, minWidth: '120px' }}>
+                  <div style={{ fontSize: '12px' }}>توقيع المدير المختص</div>
+                  <div style={{ borderBottom: '1px dashed #999', width: '100%', maxWidth: '150px', margin: '20px auto 0' }}></div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div>توقيع الموظف بالاستلام</div>
-                  <div style={{ borderBottom: '1px dashed #999', width: '150px', margin: '20px auto 0' }}></div>
+                <div style={{ textAlign: 'center', flex: 1, minWidth: '120px' }}>
+                  <div style={{ fontSize: '12px' }}>توقيع الموظف بالاستلام</div>
+                  <div style={{ borderBottom: '1px dashed #999', width: '100%', maxWidth: '150px', margin: '20px auto 0' }}></div>
                 </div>
               </div>
             </div>
