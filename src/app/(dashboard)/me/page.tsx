@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, AlertCircle, DollarSign, Star, FileText, Plus, LogIn, LogOut, MapPin } from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, DollarSign, Star, FileText, Plus, LogIn, LogOut, MapPin, Play, Loader2 } from "lucide-react";
 
 export default function EmployeePortal() {
   const [data, setData] = useState<any>(null);
@@ -24,6 +24,7 @@ export default function EmployeePortal() {
   const [isUnableModalOpen, setIsUnableModalOpen] = useState(false);
   const [unableReason, setUnableReason] = useState("");
   const [savingCheckpoint, setSavingCheckpoint] = useState(false);
+  const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -592,21 +593,97 @@ export default function EmployeePortal() {
         {!data.tasks || data.tasks.length === 0 ? (
           <p style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "20px 0" }}>لا توجد مهام مسندة إليك حالياً</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {data.tasks.map((task: any) => (
-              <div key={task.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "12px 14px", borderRadius: 8, background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-                    {task.title}
+              <div key={task.id} style={{ padding: "14px 16px", borderRadius: 10, background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                      {task.title}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{task.description}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 8 }}>
+                      بواسطة: {task.assigner?.name || "الإدارة"} • تاريخ التسليم: {task.dueDate ? new Date(task.dueDate).toLocaleDateString("ar-EG") : "غير محدد"}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{task.description}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 8 }}>
-                    بواسطة: {task.assigner?.name || "الإدارة"} • تاريخ التسليم: {task.dueDate ? new Date(task.dueDate).toLocaleDateString("ar-EG") : "غير محدد"}
-                  </div>
+                  <span className={`badge ${task.status === "completed" ? "badge-success" : task.status === "in_progress" ? "badge-info" : "badge-warning"}`} style={{ flexShrink: 0, marginRight: 8 }}>
+                    {task.status === "completed" ? "✅ مكتملة" : task.status === "in_progress" ? "⏳ قيد التنفيذ" : "⏸ معلقة"}
+                  </span>
                 </div>
-                <span className={`badge ${task.status === "completed" ? "badge-success" : task.status === "in_progress" ? "badge-info" : "badge-warning"}`}>
-                  {task.status === "completed" ? "مكتملة" : task.status === "in_progress" ? "قيد التنفيذ" : "معلقة"}
-                </span>
+                {/* Task Action Button */}
+                {task.status !== "completed" && (
+                  <button
+                    disabled={updatingTaskId === task.id}
+                    onClick={async () => {
+                      setUpdatingTaskId(task.id);
+                      const nextStatus = task.status === "in_progress" ? "completed" : "in_progress";
+                      try {
+                        const res = await fetch(`/api/tasks/${task.id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ status: nextStatus }),
+                        });
+                        if (res.ok) {
+                          setData((prev: any) => ({
+                            ...prev,
+                            tasks: prev.tasks.map((t: any) =>
+                              t.id === task.id ? { ...t, status: nextStatus } : t
+                            ),
+                          }));
+                        }
+                      } catch {}
+                      setUpdatingTaskId(null);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: updatingTaskId === task.id ? "wait" : "pointer",
+                      fontFamily: "inherit",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      transition: "all 0.2s",
+                      background: task.status === "in_progress"
+                        ? "linear-gradient(135deg, #059669, #10b981)"
+                        : "linear-gradient(135deg, var(--gold-dark), var(--gold-primary))",
+                      color: "#fff",
+                      boxShadow: task.status === "in_progress"
+                        ? "0 4px 15px rgba(16, 185, 129, 0.3)"
+                        : "0 4px 15px rgba(212, 175, 55, 0.3)",
+                    }}
+                  >
+                    {updatingTaskId === task.id ? (
+                      <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                    ) : task.status === "in_progress" ? (
+                      <><CheckCircle size={16} /> إكمال المهمة وتسليمها</>
+                    ) : (
+                      <><Play size={16} /> بدء تنفيذ المهمة</>
+                    )}
+                  </button>
+                )}
+                {task.status === "completed" && (
+                  <div style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    borderRadius: 8,
+                    background: "rgba(16, 185, 129, 0.1)",
+                    border: "1px solid rgba(16, 185, 129, 0.2)",
+                    color: "var(--success)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}>
+                    <CheckCircle size={16} /> تم إكمال المهمة بنجاح ✅
+                  </div>
+                )}
               </div>
             ))}
           </div>
