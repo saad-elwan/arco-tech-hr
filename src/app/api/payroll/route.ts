@@ -113,9 +113,12 @@ export async function POST(request: NextRequest) {
 
     const currentMonth = new Date().toISOString().substring(0, 7);
     const today = new Date().getDate();
-    // Calculate elapsed days for mid-month calculation
+    // Calculate elapsed days for mid-month calculation of absences
     const elapsedDays = period === currentMonth ? Math.min(30, today) : 30;
-    const earnedBasicSalary = parseFloat(((basicSalary / 30) * elapsedDays).toFixed(2));
+    
+    // The basic salary shown in the payroll should be the FULL fixed salary.
+    // Deductions are subtracted from it based on absences up to today.
+    const earnedBasicSalary = basicSalary;
 
     // Fetch attendance records for this month
     const records = await prisma.attendance.findMany({
