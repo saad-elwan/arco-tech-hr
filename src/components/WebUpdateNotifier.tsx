@@ -14,6 +14,24 @@ export default function WebUpdateNotifier() {
     // Check version strictly for PWA / Web Users
     const checkWebVersion = async () => {
       try {
+        const userAgent = navigator.userAgent || "";
+        const isReactNativeWebView = Boolean(
+          (window as any).ReactNativeWebView || 
+          (window as any).__REACT_WEB_VIEW__ ||
+          typeof (window as any).ReactNativeWebView !== "undefined"
+        );
+        const isAndroidWebView = Boolean(
+          /;\s*wv|Android.*Version\/[0-9.]+|WebView/i.test(userAgent)
+        );
+        const isAndroidApp = Boolean(
+          /Android/i.test(userAgent) && (isReactNativeWebView || isAndroidWebView || /Version\/[0-9.]+/i.test(userAgent))
+        );
+
+        // If the user is in the APK, let ForceUpdateModal handle updates, do not show Web notifier
+        if (isAndroidApp || isReactNativeWebView) {
+          return;
+        }
+
         const res = await fetch("/app-version.json?t=" + Date.now(), {
           cache: "no-store",
           headers: { "Cache-Control": "no-cache" }
