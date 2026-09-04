@@ -2,8 +2,7 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const reshape = require("arabic-reshaper").convertArabic;
+// Native PDFKit Arabic support is used instead of reshaping
 
 export interface FormalReportOptions {
   companyName: string;
@@ -61,11 +60,8 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     const margin = 40;
     const contentWidth = pageWidth - margin * 2;
 
-    // Reshape and reverse Arabic text for PDFKit
-    const ar = (text: string) => {
-      const reshaped = reshape(String(text)) || String(text);
-      return reshaped.split('').reverse().join('');
-    };
+    // We use PDFKit's native 'rtla' feature for Arabic text
+    const ar = (text: string) => String(text);
 
     const colWidths = options.tableColWidths.map((w) => w * 0.65);
     const tableWidth = colWidths.reduce((a, b) => a + b, 0);
@@ -74,13 +70,17 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     const maxRowsFirstPage = Math.floor((pageHeight - 260 - 130) / rowHeight); // space for header + summary + signatures
     const maxRowsPerPage = Math.floor((pageHeight - 80 - 60) / rowHeight); // space for mini header + footer
 
+    const textOptsRight = { align: "right", features: ['rtla'] as any };
+    const textOptsLeft = { align: "left", features: ['rtla'] as any };
+    const textOptsCenter = { align: "center", features: ['rtla'] as any };
+
     // --- Helper: draw table header row ---
     const drawTableHeader = (y: number) => {
       doc.rect(tableRight - tableWidth, y, tableWidth, rowHeight).fill("#0a0a0c");
       let x = tableRight - tableWidth;
       doc.fill("#d4af37").font(fontBold).fontSize(10);
       options.tableHeaders.forEach((header, i) => {
-        doc.text(ar(header), x + 5, y + 8, { width: colWidths[i] - 10, align: "center" });
+        doc.text(ar(header), x + 5, y + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
         x += colWidths[i];
       });
     };
@@ -91,7 +91,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       doc.fill("#ffffff").font(fontRegular).fontSize(8);
       doc.text(
         ar(`صفحة ${pageNum} من ${totalPages} | ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`),
-        margin, pageHeight - 22, { align: "center", width: contentWidth }
+        margin, pageHeight - 22, { align: "center", width: contentWidth, features: ['rtla'] as any }
       );
     };
 
@@ -113,21 +113,21 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
 
     // Header text
     doc.fill("#d4af37").font(fontBold).fontSize(22);
-    doc.text(ar(options.companyName), margin, 20, { align: "right", width: contentWidth });
+    doc.text(ar(options.companyName), margin, 20, { align: "right", width: contentWidth, features: ['rtla'] as any });
     doc.fill("#ffffff").font(fontRegular).fontSize(14);
-    doc.text(ar("نظام الإدارة المتقدم"), margin, 50, { align: "right", width: contentWidth });
+    doc.text(ar("نظام الإدارة المتقدم"), margin, 50, { align: "right", width: contentWidth, features: ['rtla'] as any });
 
     // Date on left
     doc.fontSize(10);
-    doc.text(ar(`تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}`), margin, 20, { align: "left", width: 200 });
-    doc.text(ar(`الفترة: ${options.period}`), margin, 35, { align: "left", width: 200 });
+    doc.text(ar(`تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}`), margin, 20, { align: "left", width: 200, features: ['rtla'] as any });
+    doc.text(ar(`الفترة: ${options.period}`), margin, 35, { align: "left", width: 200, features: ['rtla'] as any });
 
     // Decorative line
     doc.rect(0, 100, pageWidth, 4).fill("#d4af37");
 
     // Report title
     doc.fill("#0a0a0c").font(fontBold).fontSize(18);
-    doc.text(ar(options.reportTitle), margin, 130, { align: "center", width: contentWidth });
+    doc.text(ar(options.reportTitle), margin, 130, { align: "center", width: contentWidth, features: ['rtla'] as any });
     doc.rect(pageWidth / 2 - 100, 155, 200, 2).fill("#d4af37");
 
     // Summary boxes - RTL order
@@ -137,9 +137,9 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       const boxX = pageWidth - margin - (i + 1) * (boxWidth + 10) + 10;
       doc.rect(boxX, boxY, boxWidth, 50).fill("#fbfbfb").stroke("#d4af37");
       doc.fill("#0a0a0c").font(fontBold).fontSize(16);
-      doc.text(ar(String(item.value)), boxX, boxY + 5, { align: "center", width: boxWidth });
+      doc.text(ar(String(item.value)), boxX, boxY + 5, { align: "center", width: boxWidth, features: ['rtla'] as any });
       doc.font(fontRegular).fontSize(10);
-      doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth });
+      doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth, features: ['rtla'] as any });
     });
 
     // Table on page 1
@@ -168,7 +168,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
           text = statusLabels[text] || text;
         }
         doc.fill("#2d3748");
-        doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center" });
+        doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
         x += colWidths[i];
       });
     }
@@ -180,13 +180,13 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
     if (totalDataRows <= maxRowsFirstPage) {
       const sigY = pageHeight - 100;
       doc.fill("#0a0a0c").font(fontBold).fontSize(12);
-      doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
+      doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100, features: ['rtla'] as any });
       const sigWidth = 180;
       const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
       signatures.forEach((sig, i) => {
         const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
         doc.font(fontRegular).fontSize(10);
-        doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
+        doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth, features: ['rtla'] as any });
         doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
       });
     }
@@ -204,7 +204,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       // Mini header
       doc.rect(0, 0, pageWidth, 50).fill("#0a0a0c");
       doc.fill("#d4af37").font(fontBold).fontSize(14);
-      doc.text(ar(options.reportTitle + " (تابع)"), margin, 15, { align: "right", width: contentWidth });
+      doc.text(ar(options.reportTitle + " (تابع)"), margin, 15, { align: "right", width: contentWidth, features: ['rtla'] as any });
       doc.rect(0, 50, pageWidth, 3).fill("#d4af37");
 
       const contTableTop = 70;
@@ -226,7 +226,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
             text = statusLabels[text] || text;
           }
           doc.fill("#2d3748");
-          doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center" });
+          doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center", features: ['rtla'] as any });
           x += colWidths[i];
         });
       }
@@ -241,13 +241,13 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
         if (lastRowBottom + 100 < pageHeight - 30) {
           const sigY = lastRowBottom + 30;
           doc.fill("#0a0a0c").font(fontBold).fontSize(12);
-          doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
+          doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100, features: ['rtla'] as any });
           const sigWidth = 180;
           const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
           signatures.forEach((sig, i) => {
             const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
             doc.font(fontRegular).fontSize(10);
-            doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
+            doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth, features: ['rtla'] as any });
             doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
           });
         }
