@@ -309,7 +309,7 @@ export default function FinancePage() {
       </div>
 
       {/* --- Tab Toggle --- */}
-      <div style={{ display: 'flex', gap: '4px', padding: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border)', width: '100%', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', scrollbarWidth: 'none' }} className="tabs hide-on-print">
+      <div style={{ display: 'flex', gap: '8px', padding: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid var(--border)', width: '100%', flexWrap: 'wrap', boxSizing: 'border-box' }} className="tabs hide-on-print">
         <button
           onClick={() => setActiveTab('payroll')}
           style={{

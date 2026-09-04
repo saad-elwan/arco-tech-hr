@@ -151,9 +151,51 @@ export default function SettingsPage() {
               نسخ احتياطي للبيانات
             </h4>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16 }}>
-              قم بتنزيل نسخة احتياطية من قاعدة البيانات (SQL / SQLite DB file) للاحتفاظ بها.
+              قم بتنزيل نسخة احتياطية من جميع جداول النظام بصيغة JSON. يرجى حفظ هذا الملف في مكان آمن.
             </p>
-            <button className="btn btn-secondary">تنزيل نسخة احتياطية (Backup)</button>
+            <a href="/api/backup" target="_blank" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              تنزيل نسخة احتياطية (Backup)
+            </a>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 300, background: 'var(--bg-secondary)', padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Database size={18} color="var(--danger)" />
+              استعادة البيانات (Restore)
+            </h4>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16 }}>
+              ارفع ملف JSON النسخة الاحتياطية لاستعادة البيانات. يتطلب هذا الإجراء صلاحيات مدير النظام (Super Admin).
+            </p>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const password = formData.get('password');
+              const file = formData.get('file');
+              if (!password || !file) {
+                alert("يرجى إرفاق الملف وإدخال كلمة المرور");
+                return;
+              }
+              if (!confirm("تحذير: استعادة النسخة الاحتياطية قد تمسح بعض البيانات الحالية! هل ترغب بالاستمرار؟")) return;
+              
+              setSaving(true);
+              try {
+                const res = await fetch("/api/backup", { method: "POST", body: formData });
+                const data = await res.json();
+                if (res.ok) alert(data.message || "تمت عملية الاستعادة بنجاح");
+                else alert(data.error || "فشل الاستعادة");
+              } catch (err) {
+                alert("حدث خطأ في الاتصال بالخادم");
+              }
+              setSaving(false);
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input type="file" name="file" accept=".json" className="form-control" required style={{ padding: '8px' }} />
+                <input type="password" name="password" className="form-control" placeholder="كلمة مرور Super Admin" required />
+                <button type="submit" className="btn btn-danger" style={{ alignSelf: 'flex-start' }} disabled={saving}>
+                  {saving ? "جاري الاستعادة..." : "استعادة النسخة الآن"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
