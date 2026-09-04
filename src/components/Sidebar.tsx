@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Building2, LayoutGrid, Users, Clock, CheckSquare, Star, RotateCcw, Building, BarChart3, Settings, LogOut, Banknote, MapPin, X, ClipboardList, User } from "lucide-react";
+import { motion } from "framer-motion";
 
 const adminNavItems = [
   {
@@ -198,33 +199,34 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
               const isActive = pathname.startsWith(item.href);
               const Icon = item.icon;
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => onClose?.()}
-                  className={`nav-item ${isActive ? "active" : ""}`}
-                  style={{
-                    padding: "12px 16px",
-                    marginBottom: "4px",
-                    borderRadius: "12px",
-                    transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                    background: isActive ? "linear-gradient(90deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05))" : "transparent",
-                    border: isActive ? "1px solid rgba(212, 175, 55, 0.3)" : "1px solid transparent",
-                    boxShadow: isActive ? "0 4px 15px rgba(var(--black-rgb),0.2)" : "none"
-                  }}
-                >
-                  <span className="nav-icon" style={{ 
-                    color: isActive ? "var(--gold-primary)" : "var(--text-secondary)",
-                    transition: "color 0.3s"
-                  }}>
-                    <Icon size={20} />
-                  </span>
-                  <span style={{ 
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? "var(--gold-light)" : "var(--text-secondary)",
-                    fontSize: "14px"
-                  }}>{item.label}</span>
-                </Link>
+                <motion.div key={item.href} whileHover={{ x: 6, scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    href={item.href}
+                    onClick={() => onClose?.()}
+                    className={`nav-item ${isActive ? "active" : ""}`}
+                    style={{
+                      padding: "12px 16px",
+                      marginBottom: "4px",
+                      borderRadius: "12px",
+                      transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                      background: isActive ? "linear-gradient(90deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05))" : "transparent",
+                      border: isActive ? "1px solid rgba(212, 175, 55, 0.3)" : "1px solid transparent",
+                      boxShadow: isActive ? "0 4px 15px rgba(var(--black-rgb),0.2)" : "none"
+                    }}
+                  >
+                    <span className="nav-icon" style={{ 
+                      color: isActive ? "var(--gold-primary)" : "var(--text-secondary)",
+                      transition: "color 0.3s"
+                    }}>
+                      <Icon size={20} />
+                    </span>
+                    <span style={{ 
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? "var(--gold-light)" : "var(--text-secondary)",
+                      fontSize: "14px"
+                    }}>{item.label}</span>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>

@@ -360,26 +360,27 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
       <div className="header-actions" style={{ gap: "20px" }}>
         
-        {/* Active Search Bar */}
+        {/* Global Search - Enhanced */}
         {user?.role !== "employee" && (
-          <div ref={searchRef} style={{ position: "relative" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "8px 16px",
-              background: "rgba(var(--white-rgb),0.03)",
-              border: "1px solid rgba(var(--white-rgb),0.1)",
-              borderRadius: "20px",
-              width: "280px",
-              transition: "all 0.3s",
-              boxShadow: showSearchDropdown ? "0 0 15px rgba(212, 175, 55, 0.15)" : "none",
-              borderColor: showSearchDropdown ? "rgba(212, 175, 55, 0.4)" : "rgba(var(--white-rgb),0.1)"
-            }}>
-              <Search size={16} color="var(--text-muted)" />
+          <div ref={searchRef} style={{ position: "relative", flex: 1, maxWidth: 400 }} className="header-search hide-on-mobile">
+            <motion.div 
+              animate={{ borderColor: showSearchDropdown ? "rgba(212, 175, 55, 0.8)" : "rgba(var(--white-rgb),0.1)" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                background: "rgba(var(--white-rgb),0.03)",
+                border: "1px solid rgba(var(--white-rgb),0.1)",
+                borderRadius: "20px",
+                padding: "8px 16px",
+                gap: "10px",
+                transition: "box-shadow 0.3s",
+                boxShadow: showSearchDropdown ? "0 0 12px rgba(212, 175, 55, 0.15)" : "none"
+              }}
+            >
+              <Search size={18} color={showSearchDropdown ? "var(--gold-primary)" : "var(--text-muted)"} style={{ transition: "color 0.3s" }} />
               <input 
                 type="text" 
-                placeholder="ابحث عن موظف، قسم، أو مهمة..." 
+                placeholder="بحث ذكي عن موظف، مهمة، أو قسم..." 
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -391,12 +392,12 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                   border: "none",
                   outline: "none",
                   color: "var(--text-primary)",
-                  fontSize: 13,
+                  fontSize: 14,
                   width: "100%",
                   direction: "rtl"
                 }}
               />
-            </div>
+            </motion.div>
 
             {/* Search Dropdown */}
             {showSearchDropdown && searchQuery.trim().length > 0 && (

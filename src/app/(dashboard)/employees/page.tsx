@@ -1,11 +1,25 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Search, Plus, Filter, MoreVertical, Edit2, Trash2, Eye, Building, Clock, Phone, Mail, FileText, UserPlus, Fingerprint, Calendar, Users, CheckCircle, AlertTriangle } from "lucide-react";
 
 export default function EmployeesPage() {
+  return (
+    <ErrorBoundary>
+      <EmployeesContent />
+    </ErrorBoundary>
+  );
+}
+
+function EmployeesContent() {
+  const router = useRouter();
+  
   const [employees, setEmployees] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const { data, error, mutate, isLoading } = useSWR("/api/employees", fetcher, {
+    revalidateOnFocus: true,
+    keepPreviousData: true
+  });
   const [departments, setDepartments] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
 

@@ -1,6 +1,7 @@
 "use client";
 import useSWR from "swr";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Users, Clock, AlertTriangle, UserCheck, CheckCircle, AlertCircle, FileText, ChevronLeft, TrendingUp, TrendingDown, Activity, Award, Briefcase, PieChart as PieChartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -38,10 +39,19 @@ const itemVariants = {
 };
 
 export default function Dashboard() {
+  return (
+    <ErrorBoundary>
+      <DashboardContent />
+    </ErrorBoundary>
+  );
+}
+
+function DashboardContent() {
   const router = useRouter();
   const { data, error, isLoading } = useSWR<DashboardData>("/api/dashboard", fetcher, { 
     refreshInterval: 15000, 
-    revalidateOnFocus: true
+    revalidateOnFocus: true,
+    keepPreviousData: true
   });
 
   if (data?.role === "employee") {

@@ -2,8 +2,17 @@
 import { useEffect, useState } from "react";
 import { Banknote, Calculator, Search, TrendingDown, TrendingUp, Edit2, AlertCircle, Download, PieChart as PieIcon, BarChart2, Activity, Users, Save, UserCog, CheckCircle2, XCircle, Wallet, ArrowDownLeft, ArrowUpRight, Plus, Minus, History, ShieldAlert, FileText, FileSpreadsheet } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function FinancePage() {
+  return (
+    <ErrorBoundary>
+      <FinanceContent />
+    </ErrorBoundary>
+  );
+}
+
+function FinanceContent() {
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
