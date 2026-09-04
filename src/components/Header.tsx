@@ -363,17 +363,16 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         {/* Global Search - Enhanced */}
         {user?.role !== "employee" && (
           <div ref={searchRef} style={{ position: "relative", flex: 1, maxWidth: 400 }} className="header-search hide-on-mobile">
-            <motion.div 
-              animate={{ borderColor: showSearchDropdown ? "rgba(212, 175, 55, 0.8)" : "rgba(var(--white-rgb),0.1)" }}
+            <div 
               style={{
                 display: "flex",
                 alignItems: "center",
                 background: "rgba(var(--white-rgb),0.03)",
-                border: "1px solid rgba(var(--white-rgb),0.1)",
+                border: `1px solid ${showSearchDropdown ? "rgba(212, 175, 55, 0.8)" : "rgba(var(--white-rgb),0.1)"}`,
                 borderRadius: "20px",
                 padding: "8px 16px",
                 gap: "10px",
-                transition: "box-shadow 0.3s",
+                transition: "all 0.3s ease",
                 boxShadow: showSearchDropdown ? "0 0 12px rgba(212, 175, 55, 0.15)" : "none"
               }}
             >
@@ -397,7 +396,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                   direction: "rtl"
                 }}
               />
-            </motion.div>
+            </div>
 
             {/* Search Dropdown */}
             {showSearchDropdown && searchQuery.trim().length > 0 && (

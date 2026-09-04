@@ -16,10 +16,8 @@ function EmployeesContent() {
   const router = useRouter();
   
   const [employees, setEmployees] = useState<any[]>([]);
-  const { data, error, mutate, isLoading } = useSWR("/api/employees", fetcher, {
-    revalidateOnFocus: true,
-    keepPreviousData: true
-  });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [departments, setDepartments] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
 
