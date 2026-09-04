@@ -55,6 +55,25 @@ export default function EvaluationsPage() {
     } catch(e) {}
   };
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Unauthorized");
+      const blob = await res.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error(err);
+      alert("غير مصرح لك بتنزيل هذا الملف أو حدث خطأ");
+    }
+  };
+
   const fetchEvaluations = async () => {
     setLoading(true);
     try {
@@ -197,7 +216,7 @@ export default function EvaluationsPage() {
           </div>
           <button 
             className="btn btn-ghost" 
-            onClick={() => window.open(`/api/reports/evaluations?period=${selectedPeriod}&export=pdf`, '_blank')}
+            onClick={() => handleDownload(`/api/reports/evaluations?period=${selectedPeriod}&export=pdf`, `evaluations_${selectedPeriod}.pdf`)}
             title="تصدير تقرير PDF"
             style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}
           >
@@ -205,7 +224,7 @@ export default function EvaluationsPage() {
           </button>
           <button 
             className="btn btn-ghost" 
-            onClick={() => window.open(`/api/reports/evaluations?period=${selectedPeriod}&export=excel`, '_blank')}
+            onClick={() => handleDownload(`/api/reports/evaluations?period=${selectedPeriod}&export=excel`, `evaluations_${selectedPeriod}.csv`)}
             title="تصدير تقرير Excel"
             style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}
           >

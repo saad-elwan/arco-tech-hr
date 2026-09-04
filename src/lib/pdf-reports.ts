@@ -26,6 +26,7 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       size: "A4",
       layout: "landscape",
       margin: 40,
+      autoFirstPage: false,
       info: {
         Title: options.reportTitle,
         Author: options.companyName,
@@ -66,6 +67,44 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       return reshaped.split('').reverse().join('');
     };
 
+    const colWidths = options.tableColWidths.map((w) => w * 0.65);
+    const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+    const tableRight = pageWidth - margin;
+    const rowHeight = 28;
+    const maxRowsFirstPage = Math.floor((pageHeight - 260 - 130) / rowHeight); // space for header + summary + signatures
+    const maxRowsPerPage = Math.floor((pageHeight - 80 - 60) / rowHeight); // space for mini header + footer
+
+    // --- Helper: draw table header row ---
+    const drawTableHeader = (y: number) => {
+      doc.rect(tableRight - tableWidth, y, tableWidth, rowHeight).fill("#0a0a0c");
+      let x = tableRight - tableWidth;
+      doc.fill("#d4af37").font(fontBold).fontSize(10);
+      options.tableHeaders.forEach((header, i) => {
+        doc.text(ar(header), x + 5, y + 8, { width: colWidths[i] - 10, align: "center" });
+        x += colWidths[i];
+      });
+    };
+
+    // --- Helper: draw page footer ---
+    const drawFooter = (pageNum: number, totalPages: number) => {
+      doc.rect(0, pageHeight - 30, pageWidth, 30).fill("#1a365d");
+      doc.fill("#ffffff").font(fontRegular).fontSize(8);
+      doc.text(
+        ar(`صفحة ${pageNum} من ${totalPages} | ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`),
+        margin, pageHeight - 22, { align: "center", width: contentWidth }
+      );
+    };
+
+    // Calculate total pages
+    const totalDataRows = options.tableData.length;
+    let totalPages = 1;
+    if (totalDataRows > maxRowsFirstPage) {
+      totalPages += Math.ceil((totalDataRows - maxRowsFirstPage) / maxRowsPerPage);
+    }
+
+    // ===== PAGE 1 =====
+    doc.addPage();
+    
     // Background
     doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
 
@@ -103,35 +142,25 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
       doc.text(ar(item.label), boxX, boxY + 28, { align: "center", width: boxWidth });
     });
 
-    // Table
+    // Table on page 1
     const tableTop = 260;
-    const rowHeight = 28;
-    const colWidths = options.tableColWidths.map((w) => w * 0.65);
-    const tableWidth = colWidths.reduce((a, b) => a + b, 0);
-    const tableRight = pageWidth - margin;
+    drawTableHeader(tableTop);
 
-    // Table header
-    doc.rect(tableRight - tableWidth, tableTop, tableWidth, rowHeight).fill("#0a0a0c");
-    let x = tableRight - tableWidth;
-    doc.fill("#d4af37").font(fontBold).fontSize(10);
-    options.tableHeaders.forEach((header, i) => {
-      doc.text(ar(header), x + 5, tableTop + 8, { width: colWidths[i] - 10, align: "center" });
-      x += colWidths[i];
-    });
-
-    // Table rows
     const statusLabels = options.statusLabels || {
       active: "نشط", leave: "إجازة", inactive: "غير نشط",
       present: "حاضر", absent: "غائب", late: "متأخر",
       new: "جديد", in_progress: "قيد التنفيذ", completed: "مكتمل",
     };
 
-    options.tableData.forEach((row, rowIndex) => {
+    const rowsOnFirstPage = Math.min(totalDataRows, maxRowsFirstPage);
+    
+    for (let rowIndex = 0; rowIndex < rowsOnFirstPage; rowIndex++) {
+      const row = options.tableData[rowIndex];
       const rowY = tableTop + (rowIndex + 1) * rowHeight;
       const bgColor = rowIndex % 2 === 0 ? "#ffffff" : "#fdfdfd";
       doc.rect(tableRight - tableWidth, rowY, tableWidth, rowHeight).fill(bgColor);
 
-      x = tableRight - tableWidth;
+      let x = tableRight - tableWidth;
       doc.font(fontRegular).fontSize(9);
       row.forEach((cell, i) => {
         let text = String(cell);
@@ -142,35 +171,93 @@ export async function generateFormalReportPDF(options: FormalReportOptions): Pro
         doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center" });
         x += colWidths[i];
       });
-    });
+    }
 
-    // Table border
-    doc.rect(tableRight - tableWidth, tableTop, tableWidth, (options.tableData.length + 1) * rowHeight).stroke("#d4af37");
+    // Table border for page 1
+    doc.rect(tableRight - tableWidth, tableTop, tableWidth, (rowsOnFirstPage + 1) * rowHeight).stroke("#d4af37");
 
-    // Signatures
-    const sigY = pageHeight - 100;
-    doc.fill("#0a0a0c").font(fontBold).fontSize(12);
-    doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
+    // If all data fits on page 1, draw signatures
+    if (totalDataRows <= maxRowsFirstPage) {
+      const sigY = pageHeight - 100;
+      doc.fill("#0a0a0c").font(fontBold).fontSize(12);
+      doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
+      const sigWidth = 180;
+      const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
+      signatures.forEach((sig, i) => {
+        const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
+        doc.font(fontRegular).fontSize(10);
+        doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
+        doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
+      });
+    }
 
-    const sigWidth = 180;
-    const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
-    signatures.forEach((sig, i) => {
-      const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
-      doc.font(fontRegular).fontSize(10);
-      doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
-      doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
-    });
+    drawFooter(1, totalPages);
 
-    // Footer
-    doc.rect(0, pageHeight - 30, pageWidth, 30).fill("#1a365d");
-    doc.fill("#ffffff").font(fontRegular).fontSize(8);
-    doc.text(
-      ar(`تم إنشاء هذا التقرير بواسطة نظام إدارة الموارد البشرية - ${options.companyName} | ${new Date().toLocaleString("ar-EG")}`),
-      margin,
-      pageHeight - 22,
-      { align: "center", width: contentWidth }
-    );
+    // ===== ADDITIONAL PAGES =====
+    let remainingIndex = rowsOnFirstPage;
+    let currentPage = 2;
+
+    while (remainingIndex < totalDataRows) {
+      doc.addPage();
+      doc.rect(0, 0, pageWidth, pageHeight).fill("#ffffff");
+
+      // Mini header
+      doc.rect(0, 0, pageWidth, 50).fill("#0a0a0c");
+      doc.fill("#d4af37").font(fontBold).fontSize(14);
+      doc.text(ar(options.reportTitle + " (تابع)"), margin, 15, { align: "right", width: contentWidth });
+      doc.rect(0, 50, pageWidth, 3).fill("#d4af37");
+
+      const contTableTop = 70;
+      drawTableHeader(contTableTop);
+
+      const rowsThisPage = Math.min(maxRowsPerPage, totalDataRows - remainingIndex);
+
+      for (let ri = 0; ri < rowsThisPage; ri++) {
+        const row = options.tableData[remainingIndex + ri];
+        const rowY = contTableTop + (ri + 1) * rowHeight;
+        const bgColor = ri % 2 === 0 ? "#ffffff" : "#fdfdfd";
+        doc.rect(tableRight - tableWidth, rowY, tableWidth, rowHeight).fill(bgColor);
+
+        let x = tableRight - tableWidth;
+        doc.font(fontRegular).fontSize(9);
+        row.forEach((cell, i) => {
+          let text = String(cell);
+          if (options.statusColumnIndex === i && statusLabels) {
+            text = statusLabels[text] || text;
+          }
+          doc.fill("#2d3748");
+          doc.text(ar(text), x + 5, rowY + 8, { width: colWidths[i] - 10, align: "center" });
+          x += colWidths[i];
+        });
+      }
+
+      doc.rect(tableRight - tableWidth, contTableTop, tableWidth, (rowsThisPage + 1) * rowHeight).stroke("#d4af37");
+
+      remainingIndex += rowsThisPage;
+
+      // If this is the last page, draw signatures
+      if (remainingIndex >= totalDataRows) {
+        const lastRowBottom = contTableTop + (rowsThisPage + 1) * rowHeight;
+        if (lastRowBottom + 100 < pageHeight - 30) {
+          const sigY = lastRowBottom + 30;
+          doc.fill("#0a0a0c").font(fontBold).fontSize(12);
+          doc.text(ar("التوقيعات"), margin, sigY, { align: "right", width: 100 });
+          const sigWidth = 180;
+          const signatures = options.signatures || ["مدير الموارد البشرية", "المدير المالي", "المدير العام"];
+          signatures.forEach((sig, i) => {
+            const sigX = pageWidth - margin - (i + 1) * (sigWidth + 30) + 30;
+            doc.font(fontRegular).fontSize(10);
+            doc.text(ar(sig), sigX, sigY + 25, { align: "center", width: sigWidth });
+            doc.moveTo(sigX + 20, sigY + 50).lineTo(sigX + sigWidth - 20, sigY + 50).stroke("#1a365d");
+          });
+        }
+      }
+
+      drawFooter(currentPage, totalPages);
+      currentPage++;
+    }
 
     doc.end();
   });
 }
+

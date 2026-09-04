@@ -173,6 +173,25 @@ function FinanceContent() {
     setSavedEmp(prev => ({ ...prev, [empId]: false }));
   };
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Unauthorized");
+      const blob = await res.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error(err);
+      alert("غير مصرح لك بتنزيل هذا الملف أو حدث خطأ");
+    }
+  };
+
   const fetchPayrolls = async () => {
     setLoading(true);
     try {
@@ -301,10 +320,10 @@ function FinanceContent() {
               style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)" }}
             />
           </div>
-          <button className="btn btn-ghost" onClick={() => window.open(`/api/reports/payroll?period=${selectedPeriod}&export=pdf`, '_blank')} title="تصدير تقرير PDF" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}>
+          <button className="btn btn-ghost" onClick={() => handleDownload(`/api/reports/payroll?period=${selectedPeriod}&export=pdf`, `payroll_${selectedPeriod}.pdf`)} title="تصدير تقرير PDF" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}>
             <FileText size={18} /> تقرير PDF
           </button>
-          <button className="btn btn-ghost" onClick={() => window.open(`/api/reports/payroll?period=${selectedPeriod}&export=excel`, '_blank')} title="تصدير تقرير Excel" style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}>
+          <button className="btn btn-ghost" onClick={() => handleDownload(`/api/reports/payroll?period=${selectedPeriod}&export=excel`, `payroll_${selectedPeriod}.csv`)} title="تصدير تقرير Excel" style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}>
             <FileSpreadsheet size={18} /> تقرير Excel
           </button>
           {activeTab === 'payroll' && (
