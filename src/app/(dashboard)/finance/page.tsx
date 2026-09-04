@@ -348,7 +348,7 @@ function FinanceContent() {
               style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)" }}
             />
           </div>
-          <button className="btn btn-ghost" onClick={() => handleDownload(`/api/reports/payroll?period=${selectedPeriod}&export=pdf`, `payroll_${selectedPeriod}.pdf`)} title="تصدير تقرير PDF" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}>
+          <button className="btn btn-ghost" onClick={() => window.open(`/finance/print?period=${selectedPeriod}`, '_blank')} title="تصدير تقرير PDF" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--danger)', whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.05)' }}>
             <FileText size={18} /> تقرير PDF
           </button>
           <button className="btn btn-ghost" onClick={() => handleDownload(`/api/reports/payroll?period=${selectedPeriod}&export=excel`, `payroll_${selectedPeriod}.csv`)} title="تصدير تقرير Excel" style={{ border: '1px solid rgba(16, 185, 129, 0.2)', color: 'var(--success)', whiteSpace: 'nowrap', background: 'rgba(16, 185, 129, 0.05)' }}>
