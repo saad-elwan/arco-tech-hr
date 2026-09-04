@@ -122,22 +122,38 @@ export async function POST(request: NextRequest) {
       where: { employeeId: emp.id, date: { startsWith: period } },
     });
 
-    const presentDays = records.filter(r => r.status === "present" || r.checkIn).length;
+    let presentDays = 0;
+    let absentDays = 0;
+    let lateDays = 0;
     
-    // Implicitly absent if there is no record at all for the day
-    const missingDays = Math.max(0, elapsedDays - records.length);
-    const explicitAbsentDays = records.filter(r => r.status === "absent").length;
-    const absentDays = missingDays + explicitAbsentDays;
-
-    // Calculate total late minutes, early checkout unfulfilled hours, and 2x penalty
     let totalLateMinutes = 0;
     let totalPenalizedMinutes = 0;
     let totalUnfulfilledMinutes = 0;
     let totalWorkedMinutes = 0;
-    let lateDays = 0;
 
-    for (const r of records) {
+    for (let day = 1; day <= elapsedDays; day++) {
+      const dateStr = `${period}-${String(day).padStart(2, '0')}`;
+      const r = records.find(record => record.date === dateStr);
+
+      if (!r) {
+        // No record at all = absent
+        absentDays++;
+        continue;
+      }
+
+      if (r.status === "leave" || r.status === "holiday") {
+        // Paid leave or holiday
+        presentDays++;
+        continue;
+      }
+
+      if (r.status === "absent") {
+        absentDays++;
+        continue;
+      }
+
       if (r.checkIn) {
+        presentDays++;
         const [ch, cm] = r.checkIn.split(":").map(Number);
         const checkInMin = ch * 60 + cm;
         
@@ -145,7 +161,7 @@ export async function POST(request: NextRequest) {
         if (checkInMin > graceEndMinutes) {
           lateDays++;
           const delay = checkInMin - graceEndMinutes;
-          const penalized = delay * 2; // خصم الدقيقة بـ 2 دقيقة
+          const penalized = delay * 2; // 1 min late = 2 min deduction
           totalLateMinutes += delay;
           totalPenalizedMinutes += penalized;
         }
@@ -164,12 +180,13 @@ export async function POST(request: NextRequest) {
             totalUnfulfilledMinutes += (expectedMins - workedMins);
           }
         } else {
-          // If no checkout, assume they didn't fulfill the rest of the day after check-in
+          // No checkout = didn't fulfill the rest of the day after check-in
           const expectedMins = dailyWorkHours * 60;
-          // Optionally deduct full day, but for now just add half day penalty or similar.
-          // Let's add 4 hours unfulfilled penalty for missing checkout.
           totalUnfulfilledMinutes += (expectedMins / 2);
         }
+      } else {
+        // Record exists (maybe default status="present"), but NO checkIn = ABSENT
+        absentDays++;
       }
     }
 
