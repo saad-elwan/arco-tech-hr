@@ -126,8 +126,25 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
           }
         }
       } else {
-        // Record exists but NO checkIn → absent
-        absentDays++;
+        // Record exists but NO checkIn
+        if (r.status === "present" || r.status === "late") {
+          // Manual attendance entry without times
+          presentDays++;
+          const expectedMins = dailyWorkHours * 60;
+          totalWorkedMinutes += expectedMins;
+          
+          if (r.status === "late") {
+            lateDays++;
+            // If marked 'late' manually without specific time, we can't calculate exact minutes.
+            // We'll just assume a standard late deduction, or just count the day.
+            // But usually 'late' without checkIn means manual flag. Let's add standard 15 mins delay.
+            totalLateMinutes += 15;
+            totalPenalizedMinutes += 30; // 15 mins * 2
+          }
+        } else {
+          // Unknown status or empty → absent
+          absentDays++;
+        }
       }
     }
 
