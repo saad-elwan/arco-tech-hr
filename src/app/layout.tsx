@@ -38,6 +38,23 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              try {
+                if (!localStorage.getItem('arco_cache_cleared_v2')) {
+                  if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                      names.forEach(function(name) { caches.delete(name); });
+                    });
+                  }
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                      registrations.forEach(function(registration) { registration.unregister(); });
+                    });
+                  }
+                  localStorage.setItem('arco_cache_cleared_v2', 'true');
+                  window.location.reload();
+                }
+              } catch (e) {}
+
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').catch(function(err) {
