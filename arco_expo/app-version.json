@@ -1,0 +1,18 @@
+{
+  "latestVersion": "1.2.0",
+  "versionCode": 3,
+  "iosBuildNumber": 1,
+  "minRequiredVersion": "1.2.0",
+  "appStoreUrl": "https://apps.apple.com/app/arco-hr/id6400000000",
+  "apkUrl": "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk",
+  "directDownloadUrl": "https://hr-amr.vercel.app/api/download",
+  "releaseDate": "2026-08-31",
+  "forceUpdate": true,
+  "title": "تحديث إجباري للنظام",
+  "message": "يتوفر إصدار جديد وهام من تطبيق ARCO HR (1.2.0). يرجى تحديث التطبيق الآن للمتابعة والاستمرار في استخدام النظام.",
+  "features": [
+    "تحسينات عامة في الأداء وسرعة الاستجابة",
+    "تحسين دقة تسجيل الحضور والانصراف",
+    "تحديثات أمان واستقرار للنظام"
+  ]
+}

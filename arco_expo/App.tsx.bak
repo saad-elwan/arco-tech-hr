@@ -1,0 +1,543 @@
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Linking,
+  BackHandler,
+  Alert,
+  Platform,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
+import Constants from 'expo-constants';
+import { WebView, WebViewNavigation } from 'react-native-webview';
+
+// --- Ø§Ù„Ø«ÙˆØ§Ø¨Øª ÙˆØ§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª ---
+const APP_URL = 'https://hr-amr.vercel.app/';
+const ARCO_LOGO = require('./assets/arco-logo.png');
+const VERSION_CHECK_URL = 'https://hr-amr.vercel.app/app-version.json';
+const BACKGROUND_LOCATION_TASK = 'ARCO_BACKGROUND_LOCATION_TASK';
+
+// Ø§Ù„Ø¥ØµØ¯Ø§Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ Ù„Ù„ØªØ·Ø¨ÙŠÙ‚
+const CURRENT_APP_VERSION = Constants.expoConfig?.version || '1.1.0';
+const CURRENT_VERSION_CODE = (Constants.expoConfig?.android as { versionCode?: number } | undefined)?.versionCode || 2;
+
+// Ø³ÙƒØ±ÙŠØ¨Øª ÙŠØªÙ… Ø­Ù‚Ù†Ù‡ Ù‚Ø¨Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØµÙØ­Ø© Ù„Ø¶Ù…Ø§Ù† Ø¹Ø²Ù„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ÙˆØ¹Ø¯Ù… Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø£Ø¯Ù…Ù†
+const INJECTED_SESSION_HANDLER = `
+  (function() {
+    try {
+      // Ø¹Ø²Ù„ Ø§Ù„Ø¬Ù„Ø³Ø© ÙˆØ¶Ù…Ø§Ù† Ø¹Ø¯Ù… ÙˆØ¬ÙˆØ¯ Ø¬Ù„Ø³Ø© Ù…Ø¹Ù„Ù‚Ø© Ù‚Ø¯ÙŠÙ…Ø©
+      if (!localStorage.getItem('hr_user_authenticated')) {
+        // Ø¬Ù„Ø³Ø© Ù†Ø¸ÙŠÙØ© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø¬Ø¯ÙŠØ¯
+      }
+    } catch (e) {}
+  })();
+  true;
+`;
+
+// Ø¶Ø¨Ø· Ù…Ø¹Ø§Ù„Ø¬ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    priority: Notifications.AndroidNotificationPriority.HIGH,
+  }),
+});
+
+// ØªØ³Ø¬ÙŠÙ„ Ù…Ù‡Ù…Ø© Ø§Ù„Ø¹Ù…Ù„ ÙÙŠ Ø§Ù„Ø®Ù„ÙÙŠØ© ÙˆØªØªØ¨Ø¹ Ø§Ù„Ù…ÙˆÙ‚Ø¹
+TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+  if (error) {
+    console.error('ARCO Background Task Error:', error);
+    return;
+  }
+  if (data) {
+    const { locations } = data as { locations: Location.LocationObject[] };
+    if (locations && locations.length > 0) {
+      console.log('ARCO Background location:', locations[0]?.coords);
+    }
+  }
+});
+
+interface VersionInfo {
+  latestVersion: string;
+  versionCode: number;
+  minRequiredVersion: string;
+  apkUrl: string;
+  releaseDate?: string;
+  forceUpdate: boolean;
+  title?: string;
+  message?: string;
+  features?: string[];
+}
+
+export default function App() {
+  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied'>('pending');
+  const [notificationStatus, setNotificationStatus] = useState<'pending' | 'granted' | 'denied'>('pending');
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(true);
+  const [updateRequired, setUpdateRequired] = useState(false);
+  const [versionData, setVersionData] = useState<VersionInfo | null>(null);
+
+  const webViewRef = useRef<WebView>(null);
+
+  // Ø¥Ø¯Ø§Ø±Ø© Ø²Ø± Ø§Ù„Ø±Ø¬ÙˆØ¹ ÙÙŠ Ù‡ÙˆØ§ØªÙ Ø£Ù†Ø¯Ø±ÙˆÙŠØ¯ Ù„Ù„ØªÙ†Ù‚Ù„ Ø¯Ø§Ø®Ù„ ØµÙØ­Ø§Øª Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø¨Ø³Ù„Ø§Ø³Ø©
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (webViewRef.current && canGoBack) {
+        webViewRef.current.goBack();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => backHandler.remove();
+  }, [canGoBack]);
+
+  // ØªÙ‡ÙŠØ¦Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚: ÙØ­Øµ Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§ØªØŒ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§ØªØŒ ÙˆØªØ´ØºÙŠÙ„ Ø®Ø¯Ù…Ø© Ø§Ù„Ø®Ù„ÙÙŠØ©
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    // 1. ÙØ­Øµ Ø§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¥Ø¬Ø¨Ø§Ø±ÙŠ
+    await checkForUpdates();
+
+    // 2. Ø·Ù„Ø¨ Ø¥Ø°Ù† Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+    await requestNotificationPermission();
+
+    // 3. Ø·Ù„Ø¨ Ø¥Ø°Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙˆØ¨Ø¯Ø¡ Ø®Ø¯Ù…Ø© Ø§Ù„Ø®Ù„ÙÙŠØ©
+    await requestLocationAndBackground();
+  };
+
+  // Ù…Ù‚Ø§Ø±Ù†Ø© Ø£Ø±Ù‚Ø§Ù… Ø§Ù„Ø¥ØµØ¯Ø§Ø±Ø§Øª
+  const isVersionOutdated = (current: string, target: string): boolean => {
+    const cParts = current.split('.').map((p) => parseInt(p, 10) || 0);
+    const tParts = target.split('.').map((p) => parseInt(p, 10) || 0);
+    for (let i = 0; i < Math.max(cParts.length, tParts.length); i++) {
+      const c = cParts[i] || 0;
+      const t = tParts[i] || 0;
+      if (c < t) return true;
+      if (c > t) return false;
+    }
+    return false;
+  };
+
+  // ÙØ­Øµ Ø§Ù„Ø¥ØµØ¯Ø§Ø± ÙˆØ§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¥Ø¬Ø¨Ø§Ø±ÙŠ
+  const checkForUpdates = async () => {
+    try {
+      setCheckingUpdate(true);
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${VERSION_CHECK_URL}?t=${timestamp}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+
+      if (response.ok) {
+        const data: VersionInfo = await response.json();
+        setVersionData(data);
+
+        const isOutdated = isVersionOutdated(CURRENT_APP_VERSION, data.minRequiredVersion);
+        const isCodeOutdated = data.versionCode && data.versionCode > CURRENT_VERSION_CODE;
+
+        if ((isOutdated || isCodeOutdated) && data.forceUpdate) {
+          setUpdateRequired(true);
+          sendUpdateNotification(data);
+        } else {
+          setUpdateRequired(false);
+        }
+      }
+    } catch (err) {
+      console.log('Update check fallback:', err);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  // Ø¥Ø±Ø³Ø§Ù„ Ø¥Ø´Ø¹Ø§Ø± ÙÙˆØ±ÙŠ Ø¹Ù†Ø¯ ÙˆØ¬ÙˆØ¯ ØªØ­Ø¯ÙŠØ« Ø¬Ø¯ÙŠØ¯
+  const sendUpdateNotification = async (data: VersionInfo) => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'âš ï¸ ØªØ­Ø¯ÙŠØ« Ø¬Ø¯ÙŠØ¯ Ø¥Ø¬Ø¨Ø§Ø±ÙŠ - ARCO HR',
+          body: `ÙŠØªÙˆÙØ± Ø§Ù„Ø¥ØµØ¯Ø§Ø± (${data.latestVersion}). ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¢Ù† Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù†Ø¸Ø§Ù….`,
+          data: { apkUrl: data.apkUrl },
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.MAX,
+        },
+        trigger: null,
+      });
+    } catch (e) {
+      console.log('Failed to send notification:', e);
+    }
+  };
+
+  // Ø·Ù„Ø¨ ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+  const requestNotificationPermission = async () => {
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: { allowAlert: true, allowBadge: true, allowSound: true },
+        });
+        finalStatus = status;
+      }
+
+      setNotificationStatus(finalStatus === 'granted' ? 'granted' : 'denied');
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'ARCO HR Notifications',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#0284c7',
+        });
+      }
+    } catch (error) {
+      console.error('Notification permission error:', error);
+      setNotificationStatus('denied');
+    }
+  };
+
+  // Ø·Ù„Ø¨ ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙˆØ§Ù„Ø¹Ù…Ù„ ÙÙŠ Ø§Ù„Ø®Ù„ÙÙŠØ©
+  const requestLocationAndBackground = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationStatus(status === 'granted' ? 'granted' : 'denied');
+
+      if (status === 'granted') {
+        startBackgroundService();
+      }
+    } catch (error) {
+      console.error('Location permission error:', error);
+      setLocationStatus('denied');
+    }
+  };
+
+  // ØªÙØ¹ÙŠÙ„ Ø®Ø¯Ù…Ø© Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙÙŠ Ø§Ù„Ø®Ù„ÙÙŠØ©
+  const startBackgroundService = async () => {
+    try {
+      const isTaskRegistered = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+      if (!isTaskRegistered) {
+        await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 60000,
+          distanceInterval: 50,
+          showsBackgroundLocationIndicator: true,
+          foregroundService: {
+            notificationTitle: 'Ù†Ø¸Ø§Ù… ARCO HR Ù‚ÙŠØ¯ Ø§Ù„Ø¹Ù…Ù„',
+            notificationBody: 'Ø¬Ø§Ø±ÙŠ Ù…ØªØ§Ø¨Ø¹Ø© Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù ÙÙŠ Ø§Ù„Ø®Ù„ÙÙŠØ©',
+            notificationColor: '#0284c7',
+          },
+        });
+      }
+    } catch (e) {
+      console.log('Background task registration warning:', e);
+    }
+  };
+
+  // ÙØªØ­ Ø±Ø§Ø¨Ø· ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù€ APK Ø§Ù„Ù…Ø¨Ø§Ø´Ø±
+  const handleDownloadApk = async () => {
+    const url = versionData?.apkUrl || 'https://hr-amr.vercel.app/download/arco-latest.apk';
+    try {
+      await Linking.openURL(url);
+    } catch (err) {
+      Alert.alert('Ø®Ø·Ø£', 'ØªØ¹Ø°Ø± ÙØªØ­ Ø±Ø§Ø¨Ø· Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø±. ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª.');
+    }
+  };
+
+  // Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù‚Ø§Ø¯Ù…Ø© Ù…Ù† ØµÙØ­Ø© Ø§Ù„ÙˆÙŠØ¨
+  const handleMessageFromWeb = async (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'GET_LOCATION') {
+        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        webViewRef.current?.injectJavaScript(`
+          if (window.onNativeLocation) {
+            window.onNativeLocation(${JSON.stringify(location.coords)});
+          }
+        `);
+      } else if (data.type === 'SHOW_NOTIFICATION') {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: data.title || 'Ø¥Ø´Ø¹Ø§Ø± Ù…Ù† ARCO HR',
+            body: data.message || '',
+            sound: true,
+          },
+          trigger: null,
+        });
+      }
+    } catch (e) {
+      console.log('Message parse error:', e);
+    }
+  };
+
+  // --- 1. Ø´Ø§Ø´Ø© Ø§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¥Ø¬Ø¨Ø§Ø±ÙŠ (Force Update Screen) ---
+  if (updateRequired && versionData) {
+    return (
+      <View style={styles.updateContainer}>
+        <StatusBar style="dark" />
+        <ScrollView contentContainerStyle={styles.updateContent} bounces={false}>
+          <View style={styles.updateCard}>
+            <View style={styles.updateIconCircle}>
+              <Text style={styles.updateEmoji}>ðŸš€</Text>
+            </View>
+
+            <Text style={styles.updateTitle}>{versionData.title || 'ØªØ­Ø¯ÙŠØ« Ø¬Ø¯ÙŠØ¯ Ù…ØªÙˆÙØ± Ù„Ù„Ù†Ø¸Ø§Ù…'}</Text>
+            <View style={styles.versionBadge}>
+              <Text style={styles.versionBadgeText}>Ø§Ù„Ø¥ØµØ¯Ø§Ø± Ø§Ù„Ø¬Ø¯ÙŠØ¯: {versionData.latestVersion}</Text>
+            </View>
+
+            <Text style={styles.updateDescription}>
+              {versionData.message ||
+                'ÙŠØªÙˆÙØ± ØªØ­Ø¯ÙŠØ« Ø¥Ø¬Ø¨Ø§Ø±ÙŠ Ø¬Ø¯ÙŠØ¯ Ù„ØªØ·Ø¨ÙŠÙ‚ ARCO HR. ÙŠØªØ¶Ù…Ù† Ù…ÙŠØ²Ø§Øª Ø§Ù„Ø¹Ù…Ù„ ÙÙŠ Ø§Ù„Ø®Ù„ÙÙŠØ©ØŒ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„ÙÙˆØ±ÙŠØ©ØŒ ÙˆØªØ­Ø³ÙŠÙ†Ø§Øª ÙÙŠ Ø§Ù„Ø£Ø¯Ø§Ø¡. ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªØ­Ø¯ÙŠØ« Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©.'}
+            </Text>
+
+            {versionData.features && versionData.features.length > 0 && (
+              <View style={styles.featuresList}>
+                <Text style={styles.featuresHeader}>âœ¨ Ø£Ø¨Ø±Ø² Ù…Ø§ ÙÙŠ Ø§Ù„ØªØ­Ø¯ÙŠØ«:</Text>
+                {versionData.features.map((feature, idx) => (
+                  <View key={idx} style={styles.featureItem}>
+                    <Text style={styles.featureBullet}>âœ“</Text>
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.downloadButton} activeOpacity={0.85} onPress={handleDownloadApk}>
+              <Text style={styles.downloadButtonIcon}>â¬‡ï¸</Text>
+              <Text style={styles.downloadButtonText}>ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø¨Ø§Ø´Ø± (APK)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.retryButton} activeOpacity={0.7} onPress={checkForUpdates}>
+              <Text style={styles.retryButtonText}>ðŸ”„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„ØªØ­Ø¯ÙŠØ« Ù…Ø±Ø© Ø£Ø®Ø±Ù‰</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // --- 2. Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø© Ù„Ù„ØªØ·Ø¨ÙŠÙ‚ (Ø¯Ø®ÙˆÙ„ ÙÙˆØ±ÙŠ ÙˆÙ…Ø¨Ø§Ø´Ø± Ø¯ÙˆÙ† ØµÙØ­Ø© Ø¨Ø¯Ø§ÙŠØ©) ---
+  return (
+    <View style={styles.container}>
+      <StatusBar style="dark" />
+      <WebView
+        ref={webViewRef}
+        source={{ uri: APP_URL }}
+        style={styles.webView}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        sharedCookiesEnabled={false}
+        thirdPartyCookiesEnabled={false}
+        incognito={false}
+        originWhitelist={['*']}
+        injectedJavaScriptBeforeContentLoaded={INJECTED_SESSION_HANDLER}
+        onNavigationStateChange={(navState: WebViewNavigation) => setCanGoBack(navState.canGoBack)}
+        onMessage={handleMessageFromWeb}
+        startInLoadingState={true}
+        renderLoading={() => (
+          <View style={styles.webLoadingContainer}>
+            <ActivityIndicator size="large" color="#0284c7" />
+            <Text style={styles.webLoadingText}>Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...</Text>
+          </View>
+        )}
+        renderError={() => (
+          <View style={styles.webLoadingContainer}>
+            <Text style={styles.webErrorTitle}>ØªØ¹Ø°Ø± Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø®Ø§Ø¯Ù…</Text>
+            <Text style={styles.webLoadingText}>ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§ØªØµØ§Ù„Ùƒ Ø¨Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª ÙˆØ§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹</Text>
+            <TouchableOpacity style={styles.retryWebButton} onPress={() => webViewRef.current?.reload()}>
+              <Text style={styles.retryWebButtonText}>Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  webView: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  webLoadingContainer: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    padding: 20,
+    zIndex: 5,
+  },
+  webLoadingText: {
+    color: '#475569',
+    fontSize: 15,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  webErrorTitle: {
+    color: '#e11d48',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  retryWebButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: '#0284c7',
+    borderRadius: 8,
+  },
+  retryWebButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  // Ø´Ø§Ø´Ø© Ø§Ù„ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¥Ø¬Ø¨Ø§Ø±ÙŠ
+  updateContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  updateContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  updateCard: {
+    width: '100%',
+    maxWidth: 440,
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  updateIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  updateEmoji: {
+    fontSize: 34,
+  },
+  updateTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  versionBadge: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  versionBadgeText: {
+    color: '#0284c7',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  updateDescription: {
+    fontSize: 15,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  featuresList: {
+    width: '100%',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  featuresHeader: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 10,
+    textAlign: 'right',
+  },
+  featureItem: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  featureBullet: {
+    color: '#10b981',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  featureText: {
+    fontSize: 13,
+    color: '#334155',
+    flex: 1,
+    textAlign: 'right',
+  },
+  downloadButton: {
+    width: '100%',
+    backgroundColor: '#0284c7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    shadowColor: '#0284c7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  downloadButtonIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  downloadButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  retryButton: {
+    marginTop: 14,
+    paddingVertical: 8,
+  },
+  retryButtonText: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
+
