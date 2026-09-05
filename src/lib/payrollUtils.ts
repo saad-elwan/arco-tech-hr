@@ -55,6 +55,18 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
     let totalUnfulfilledMinutes = 0;
     let totalWorkedMinutes = 0;
 
+    // Get current time in Cairo for "today" calculation
+    const now = new Date();
+    const cairoTimeFormatter = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    const parts = cairoTimeFormatter.formatToParts(now);
+    let y="", m="", d="", h="0", min="0";
+    for(const p of parts) {
+      if(p.type==="year") y=p.value; if(p.type==="month") m=p.value; if(p.type==="day") d=p.value;
+      if(p.type==="hour") h=p.value; if(p.type==="minute") min=p.value;
+    }
+    const todayStr = `${y}-${m}-${d}`;
+    const currentMins = parseInt(h)*60 + parseInt(min);
+
     for (let day = 1; day <= elapsedDays; day++) {
       const dateStr = `${period}-${String(day).padStart(2, "0")}`;
       const r = records.find((record) => record.date === dateStr);
@@ -101,9 +113,17 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
             totalUnfulfilledMinutes += expectedMins - workedMins;
           }
         } else {
-          // No checkout yet – penalize half the day
           const expectedMins = dailyWorkHours * 60;
-          totalUnfulfilledMinutes += expectedMins / 2;
+          if (dateStr === todayStr) {
+            // Still at work today: calculate from check-in up to current time
+            const workedMins = Math.max(0, currentMins - checkInMin);
+            totalWorkedMinutes += workedMins;
+            // Don't penalize unfulfilled yet since the day isn't over!
+          } else {
+            // Past day, forgot to checkout: penalize half the day, and credit half the day
+            totalUnfulfilledMinutes += expectedMins / 2;
+            totalWorkedMinutes += expectedMins / 2;
+          }
         }
       } else {
         // Record exists but NO checkIn → absent
