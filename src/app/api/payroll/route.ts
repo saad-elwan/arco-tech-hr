@@ -25,53 +25,7 @@ export async function GET(request: NextRequest) {
     orderBy: { employeeId: "asc" },
   });
 
-  // Calculate attended hours and late hours dynamically
-  const attendances = await prisma.attendance.findMany({
-    where: { date: { startsWith: period } }
-  });
-
-  const company = await prisma.company.findFirst();
-  const defaultStartTime = company?.workStartTime || "08:00";
-  const defaultEndTime = company?.workEndTime || "17:00";
-  const lateThreshold = company?.lateThresholdMin || 15;
-  
-  const payrollsWithHours = payrolls.map(pr => {
-    const empRecords = attendances.filter(a => a.employeeId === pr.employeeId);
-    let totalWorkedMinutes = 0;
-    let totalLateMinutes = 0;
-    
-    // Fallback to default if no shift
-    const startStr = defaultStartTime; // Should ideally come from pr.employee.shift if included
-    const [sh, sm] = startStr.split(':').map(Number);
-    const graceEndMinutes = (sh * 60 + sm) + lateThreshold;
-    
-    empRecords.forEach(r => {
-      let checkInMin = 0;
-      if (r.checkIn) {
-        const [h, m] = r.checkIn.split(':').map(Number);
-        checkInMin = h * 60 + m;
-        if (checkInMin > graceEndMinutes) {
-          totalLateMinutes += (checkInMin - graceEndMinutes);
-        }
-      }
-      
-      if (r.checkIn && r.checkOut) {
-        const [outH, outM] = r.checkOut.split(':').map(Number);
-        const outMin = outH * 60 + outM;
-        if (outMin > checkInMin) {
-          totalWorkedMinutes += (outMin - checkInMin);
-        }
-      }
-    });
-
-    return {
-      ...pr,
-      attendedHours: (totalWorkedMinutes / 60).toFixed(1),
-      lateHours: (totalLateMinutes / 60).toFixed(1),
-    };
-  });
-
-  return NextResponse.json(payrollsWithHours);
+  return NextResponse.json(payrolls);
 }
 
 // Generate or update payroll for all active non-admin employees for a given month

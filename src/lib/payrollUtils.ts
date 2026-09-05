@@ -37,10 +37,9 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
     const graceEndMinutes = workStartMinutes + lateThreshold;
     const minuteWage = dayWage / (dailyWorkHours * 60);
 
-    // Figure out how many days to loop over
+    // Figure out how many days to loop over (up to 31)
     const currentMonth = new Date().toISOString().substring(0, 7);
     const today = new Date().getDate();
-    const elapsedDays = period === currentMonth ? Math.min(30, today) : 30;
 
     // Fetch all attendance records for this employee in this period
     const records = await prisma.attendance.findMany({
@@ -67,12 +66,22 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
     const todayStr = `${y}-${m}-${d}`;
     const currentMins = parseInt(h)*60 + parseInt(min);
 
-    for (let day = 1; day <= elapsedDays; day++) {
+    for (let day = 1; day <= 31; day++) {
       const dateStr = `${period}-${String(day).padStart(2, "0")}`;
+      
+      // Basic validity check for date (e.g., Feb 30)
+      const dObj = new Date(dateStr);
+      if (isNaN(dObj.getTime()) || dObj.getDate() !== day) continue;
+
       const r = records.find((record) => record.date === dateStr);
 
       if (!r) {
-        absentDays++;
+        // Only count as absent if it's a past day or today (and day is over)
+        const isPastMonth = period < currentMonth;
+        const isPastDayInCurrentMonth = period === currentMonth && day < today;
+        if (isPastMonth || isPastDayInCurrentMonth) {
+          absentDays++;
+        }
         continue;
       }
 
@@ -156,7 +165,8 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
       (absentDeduction + lateDeduction + unfulfilledDeduction).toFixed(2)
     );
 
-    const proRataBasic = (basicSalary / 30) * elapsedDays;
+    // Provide the full basic salary rather than pro-rata so payslip makes sense
+    const earnedBasic = basicSalary;
 
     // Preserve existing manual values if payroll already exists
     let prevBonus = 0;
@@ -182,12 +192,13 @@ export async function syncEmployeePayroll(employeeId: number, period: string) {
     const netSalary = Math.max(
       0,
       parseFloat(
-        (proRataBasic - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)
+        (earnedBasic - autoDeduction + prevBonus - prevManualDeduction).toFixed(2)
       )
     );
 
     const attendedHours = parseFloat((totalWorkedMinutes / 60).toFixed(2));
     const lateHours = parseFloat((totalLateMinutes / 60).toFixed(2));
+    const hourlyRate = parseFloat((minuteWage * 60).toFixed(2));
 
     const payroll = await prisma.payroll.upsert({
       where: { employeeId_period: { employeeId: emp.id, period } },

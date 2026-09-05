@@ -890,6 +890,12 @@ function FinanceContent() {
                     <span style={{ color: '#4b5563', fontSize: '14px' }}>المكافآت</span>
                     <span style={{ fontWeight: 'bold' }}>{selectedPayslip.bonus} ج.م</span>
                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ color: '#4b5563', fontSize: '14px' }}>سعر الساعة الواحدة</span>
+                    <span style={{ fontWeight: 'bold', color: '#0369a1' }}>
+                      {(((selectedPayslip.employee?.basicSalary || selectedPayslip.basicSalary) / 30) / 9).toFixed(2)} ج.م
+                    </span>
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
                     <span style={{ fontWeight: 'bold' }}>إجمالي الاستحقاقات</span>
                     <span style={{ fontWeight: 'bold', color: '#10b981' }}>{((selectedPayslip.employee?.basicSalary || selectedPayslip.basicSalary) + (selectedPayslip.bonus || 0)).toFixed(2)} ج.م</span>
