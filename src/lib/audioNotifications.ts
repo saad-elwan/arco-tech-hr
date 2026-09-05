@@ -14,7 +14,7 @@ export function unlockAudio() {
       audioCtx = new AudioContextClass();
     }
 
-    if (audioCtx.state === "suspended") {
+    if (audioCtx && audioCtx.state === "suspended") {
       audioCtx.resume().then(() => {
         isAudioUnlocked = true;
       });
@@ -52,7 +52,10 @@ export function playNotificationSound() {
       audioCtx.resume();
     }
 
-    const now = audioCtx.currentTime;
+    const ctx = audioCtx;
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
 
     // Harmonic luxury bell chime: E5 (659.25Hz) -> G#5 (830.61Hz) -> B5 (987.77Hz) -> E6 (1318.51Hz)
     const notes = [
@@ -63,8 +66,8 @@ export function playNotificationSound() {
     ];
 
     notes.forEach(({ freq, start, duration }) => {
-      const osc = audioCtx!.createOscillator();
-      const gain = audioCtx!.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, now + start);
@@ -74,7 +77,7 @@ export function playNotificationSound() {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
 
       osc.connect(gain);
-      gain.connect(audioCtx!.destination);
+      gain.connect(ctx.destination);
 
       osc.start(now + start);
       osc.stop(now + start + duration);

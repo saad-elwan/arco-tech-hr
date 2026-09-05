@@ -5,7 +5,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Users, Clock, AlertTriangle, UserCheck, CheckCircle, AlertCircle, FileText, ChevronLeft, TrendingUp, TrendingDown, Activity, Award, Briefcase, PieChart as PieChartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import type { DashboardData, Evaluation, Attendance } from "@/types";
 
 const fetcher = async (url: string) => {
@@ -21,7 +21,7 @@ const fetcher = async (url: string) => {
   }
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -29,12 +29,12 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { type: "spring", stiffness: 100, damping: 15 }
+    transition: { type: "spring" as const, stiffness: 100, damping: 15 }
   }
 };
 

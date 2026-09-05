@@ -34,7 +34,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const [user, setUser] = useState<{ role?: string } | null>(null);
+  const [user, setUser] = useState<{ id?: number; role?: string; name?: string } | null>(null);
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("ar-EG", {
@@ -151,7 +151,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   // Overtime Prompts Polling (Admin Only)
   const [overtimePrompts, setOvertimePrompts] = useState<any[]>([]);
-  const isAdminUser = user && ["admin", "superadmin", "hr"].includes(user.role?.toLowerCase());
+  const isAdminUser = user && ["admin", "superadmin", "hr"].includes(user.role?.toLowerCase() || "");
   
   useEffect(() => {
     if (!isAdminUser) return;

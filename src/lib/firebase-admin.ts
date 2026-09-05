@@ -1,6 +1,8 @@
 import * as admin from 'firebase-admin';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
     const projectId = process.env.FIREBASE_PROJECT_ID || 'dummy-project-id';
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || 'dummy@dummy.com';
@@ -8,8 +10,8 @@ if (!admin.apps.length) {
 
     // Only initialize if we have at least a hint of real config, or just initialize with dummy
     if (process.env.FIREBASE_PROJECT_ID) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+      initializeApp({
+        credential: cert({
           projectId,
           clientEmail,
           privateKey,
@@ -21,4 +23,4 @@ if (!admin.apps.length) {
   }
 }
 
-export const messaging = admin.apps.length ? admin.messaging() : null;
+export const messaging = getApps().length ? getMessaging() : null;

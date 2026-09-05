@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
-import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   // Extract token to verify superadmin
   const token = request.cookies.get("hr_token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,7 +24,6 @@ export async function GET(request: Request) {
       treasury: await prisma.treasury.findMany(),
       treasuryTransactions: await prisma.treasuryTransaction.findMany(),
       adminDeviceSessions: await prisma.adminDeviceSession.findMany(),
-      settings: await prisma.setting.findMany(),
     };
 
     return new NextResponse(JSON.stringify(backup, null, 2), {
@@ -40,7 +38,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const token = request.cookies.get("hr_token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const user = verifyToken(token);

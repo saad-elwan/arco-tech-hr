@@ -10,10 +10,11 @@ export async function POST(request: NextRequest) {
     try {
       await prisma.notification.create({
         data: {
-          userId: null,
+          employeeId: 1, // Notify superadmin (assumed ID 1)
           title: "🚪 تسجيل خروج موظف",
-          message: `الموظف ${auth.name} قام بتسجيل الخروج من النظام`,
-          type: "logout",
+          body: `الموظف ${auth.name} قام بتسجيل الخروج من النظام`,
+          type: "info",
+          category: "attendance",
           isRead: false,
         }
       });
