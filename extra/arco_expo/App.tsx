@@ -218,6 +218,7 @@ export default function App() {
             sound: 'default',
             priority: Notifications.AndroidNotificationPriority.MAX,
             vibrate: [0, 250, 250, 250],
+            // @ts-ignore
             channelId: NOTIFICATION_CHANNEL_ID,
             color: '#D4AF37',
           },
@@ -229,6 +230,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* @ts-ignore */}
       <StatusBar style="light" backgroundColor="#050505" translucent={false} />
 
       <View style={styles.container}>
@@ -236,6 +238,7 @@ export default function App() {
         <WebView
           ref={webViewRef}
           source={{ uri: APP_URL }}
+          // @ts-ignore
           style={styles.webView}
           containerStyle={styles.webViewContainer}
           javaScriptEnabled={true}
