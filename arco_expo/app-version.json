@@ -5,7 +5,7 @@
   "minRequiredVersion": "1.2.0",
   "appStoreUrl": "https://apps.apple.com/app/arco-hr/id6400000000",
   "apkUrl": "https://expo.dev/artifacts/eas/TtovW06xVgkrcqt08YBBddeZMGu0ww3bgIRTw9sDKnA.apk",
-  "directDownloadUrl": "https://hr-amr.vercel.app/api/download",
+  "directDownloadUrl": "https://arcotech-hr.top/api/download",
   "releaseDate": "2026-08-31",
   "forceUpdate": true,
   "title": "تحديث إجباري للنظام",

@@ -18,7 +18,7 @@ import Constants from 'expo-constants';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 
 // --- الثوابت والإعدادات ---
-const APP_URL = 'https://hr-amr.vercel.app/';
+const APP_URL = 'https://arcotech-hr.top/';
 const BACKGROUND_LOCATION_TASK = 'ARCO_BACKGROUND_LOCATION_TASK';
 const NOTIFICATION_CHANNEL_ID = 'arco-alerts-channel';
 const EXPO_PROJECT_ID = '4f5511c4-01de-467c-99fa-60fc77fd5017';
@@ -270,7 +270,7 @@ export default function App() {
           >
             <View style={styles.logoWrapper}>
               <Image
-                source={{ uri: 'https://hr-amr.vercel.app/arco-logo.png' }}
+                source={{ uri: 'https://arcotech-hr.top/arco-logo.png' }}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
