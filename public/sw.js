@@ -49,7 +49,7 @@ function runBackgroundNotificationChecker() {
         }
       }
     } catch {}
-  }, 4000);
+  }, 180000); // Poll every 3 minutes instead of 4 seconds to prevent bandwidth drain
 }
 
 self.addEventListener('activate', (event) => {

@@ -2,19 +2,71 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromRequest } from "@/lib/middleware";
 
+import { unstable_cache } from "next/cache";
+
+const getDashboardStats = unstable_cache(
+  async (thisMonth: string, today: string) => {
+    const employeeFilter = { status: "active", role: { notIn: ["admin", "superadmin"] } };
+    return await Promise.all([
+      prisma.employee.count({ where: employeeFilter }),
+      prisma.employee.count({ where: employeeFilter }),
+      prisma.attendance.count({
+        where: { 
+          date: today, 
+          status: { in: ["present", "late"] },
+          employee: { role: { notIn: ["admin", "superadmin"] } }
+        },
+      }),
+      prisma.attendance.count({ 
+        where: { 
+          date: today, 
+          status: "late",
+          employee: { role: { notIn: ["admin", "superadmin"] } }
+        } 
+      }),
+      prisma.attendance.groupBy({
+        by: ["date"],
+        where: { 
+          date: { startsWith: thisMonth },
+          employee: { role: { notIn: ["admin", "superadmin"] } }
+        },
+        _count: { id: true },
+      }),
+      prisma.task.groupBy({
+        by: ["status"],
+        _count: { id: true },
+      }),
+      prisma.evaluation.findMany({
+        where: { employee: { role: { notIn: ["admin", "superadmin"] } } },
+        orderBy: { totalScore: "desc" },
+        take: 5,
+        include: { employee: { select: { name: true, department: { select: { name: true } } } } },
+      }),
+      prisma.attendance.findMany({
+        where: { 
+          date: today,
+          employee: { role: { notIn: ["admin", "superadmin"] } }
+        },
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: { employee: { select: { name: true } } },
+      }),
+    ]);
+  },
+  ['dashboard-stats'],
+  { revalidate: 60 } // Cache for 60 seconds
+);
+
 export async function GET(request: NextRequest) {
   const auth = getAuthFromRequest(request);
   if (!auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
-  // Employee role: redirect signal only
   if (auth.role === "employee") {
     return NextResponse.json({ role: "employee" });
   }
 
   const today = new Date().toISOString().split("T")[0];
   const thisMonth = today.substring(0, 7);
-
-  const employeeFilter = { status: "active", role: { notIn: ["admin", "superadmin"] } };
 
   const [
     totalEmployees,
@@ -25,51 +77,7 @@ export async function GET(request: NextRequest) {
     tasksStats,
     topEmployees,
     recentActivity,
-  ] = await Promise.all([
-    prisma.employee.count({ where: employeeFilter }),
-    prisma.employee.count({ where: employeeFilter }),
-    prisma.attendance.count({
-      where: { 
-        date: today, 
-        status: { in: ["present", "late"] },
-        employee: { role: { notIn: ["admin", "superadmin"] } }
-      },
-    }),
-    prisma.attendance.count({ 
-      where: { 
-        date: today, 
-        status: "late",
-        employee: { role: { notIn: ["admin", "superadmin"] } }
-      } 
-    }),
-    prisma.attendance.groupBy({
-      by: ["date"],
-      where: { 
-        date: { startsWith: thisMonth },
-        employee: { role: { notIn: ["admin", "superadmin"] } }
-      },
-      _count: { id: true },
-    }),
-    prisma.task.groupBy({
-      by: ["status"],
-      _count: { id: true },
-    }),
-    prisma.evaluation.findMany({
-      where: { employee: { role: { notIn: ["admin", "superadmin"] } } },
-      orderBy: { totalScore: "desc" },
-      take: 5,
-      include: { employee: { select: { name: true, department: { select: { name: true } } } } },
-    }),
-    prisma.attendance.findMany({
-      where: { 
-        date: today,
-        employee: { role: { notIn: ["admin", "superadmin"] } }
-      },
-      take: 10,
-      orderBy: { createdAt: "desc" },
-      include: { employee: { select: { name: true } } },
-    }),
-  ]);
+  ] = await getDashboardStats(thisMonth, today);
 
   const absentToday = activeEmployees - todayAttendance;
 

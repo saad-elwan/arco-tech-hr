@@ -31,7 +31,7 @@ export default function TrackingPage() {
   const [routeMsg, setRouteMsg] = useState({ error: "", success: "" });
 
   const { data, error, isLoading: loading } = useSWR(`/api/location?date=${selectedDate}`, fetcher, {
-    refreshInterval: 30000,
+    refreshInterval: 60000,
     revalidateOnFocus: true
   });
 

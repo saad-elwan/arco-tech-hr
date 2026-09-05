@@ -49,7 +49,7 @@ export default function Dashboard() {
 function DashboardContent() {
   const router = useRouter();
   const { data, error, isLoading } = useSWR<DashboardData>("/api/dashboard", fetcher, { 
-    refreshInterval: 15000, 
+
     revalidateOnFocus: true,
     keepPreviousData: true
   });

@@ -144,8 +144,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     reportPresence();
-    // Reduce presence reporting to every 60 seconds to save Vercel bandwidth
-    const presenceInterval = setInterval(reportPresence, 60000);
+    // Report presence every 5 minutes to save bandwidth
+    const presenceInterval = setInterval(reportPresence, 300000);
     return () => clearInterval(presenceInterval);
   }, [user]);
 
@@ -170,7 +170,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       } catch {}
     };
     checkOvertimePrompts();
-    const otInterval = setInterval(checkOvertimePrompts, 60000); // Check every minute
+    const otInterval = setInterval(checkOvertimePrompts, 300000); // Check every 5 minutes
     return () => clearInterval(otInterval);
   }, [isAdminUser]);
 
@@ -229,9 +229,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     checkNotifs();
-    // Reduce notifications polling to every 30 seconds to save Vercel bandwidth (Fast Origin Transfer limit)
-    // 30 seconds is a good balance between "real-time" and saving server costs.
-    const interval = setInterval(checkNotifs, 30000);
+    // Poll notifications every 3 minutes to prevent bandwidth drain
+    const interval = setInterval(checkNotifs, 180000);
     return () => clearInterval(interval);
   }, []);
 

@@ -117,17 +117,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Get the latest location log for each employee today
-    const startOfDay = new Date(date + "T00:00:00.000Z");
-    const endOfDay = new Date(date + "T23:59:59.999Z");
+    // Get the latest location log for each employee within the last 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
     const latestLocations = await prisma.locationLog.findMany({
       where: {
-        timestamp: { gte: startOfDay, lte: endOfDay },
+        timestamp: { gte: fifteenMinutesAgo },
         ...(roleFilter
           ? { employee: { role: roleFilter } }
           : {}),
       },
+      take: 1000,
       orderBy: { timestamp: "desc" },
       include: {
         employee: {
