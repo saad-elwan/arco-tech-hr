@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromRequest } from "@/lib/middleware";
 import { createAdminNotification } from "@/lib/notifications";
+import { syncEmployeePayroll } from "@/lib/payrollUtils";
 
 function getCairoTime(): { dateStr: string; timeStr: string; totalMinutes: number; hour: number; minute: number } {
   const now = new Date();
@@ -149,6 +150,10 @@ export async function POST(request: NextRequest) {
     // Notify admins about check-in (device type only visible to superadmin)
     const emp = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true, department: { select: { name: true } } } });
     const statusLabel = status === "late" ? "⚠️ متأخر" : "✅ في الوقت";
+     // Sync payroll in real-time after check-in
+    const currentPeriod = today.substring(0, 7); // "YYYY-MM"
+    syncEmployeePayroll(auth.id, currentPeriod).catch(err => console.error("Payroll sync error:", err));
+
     await createAdminNotification({
       type: status === "late" ? "warning" : "success",
       category: "attendance",
@@ -190,6 +195,10 @@ export async function POST(request: NextRequest) {
     else if (/android/i.test(userAgent)) deviceName = "هاتف Android";
     else if (/macintosh|mac os x/i.test(userAgent)) deviceName = "كمبيوتر Mac";
     else if (/windows/i.test(userAgent)) deviceName = "كمبيوتر Windows";
+
+    // Sync payroll in real-time after check-out
+    const currentPeriod = today.substring(0, 7); // "YYYY-MM"
+    syncEmployeePayroll(auth.id, currentPeriod).catch(err => console.error("Payroll sync error:", err));
 
     // Notify admins about check-out (device type only visible to superadmin)
     const emp = await prisma.employee.findUnique({ where: { id: auth.id }, select: { name: true, department: { select: { name: true } } } });
