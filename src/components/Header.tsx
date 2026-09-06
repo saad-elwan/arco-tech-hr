@@ -69,12 +69,11 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
   const [toastNotif, setToastNotif] = useState<any>(null);
 
-  // Auto-register Expo Push Token for background & closed app notifications
+  // Auto-register Capacitor Push Token for background & closed app notifications
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !user?.id) return;
 
     const registerToken = (pushToken: string) => {
-      if (!pushToken || !user?.id) return;
       fetch("/api/notifications/register-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,17 +81,65 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       }).catch(() => {});
     };
 
-    // 1. Check if token was saved in localStorage
-    const savedToken = localStorage.getItem("arco_expo_push_token");
-    if (savedToken) registerToken(savedToken);
+    import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+      import('@capacitor/core').then(({ Capacitor }) => {
+        if (Capacitor.isNativePlatform()) {
+          PushNotifications.requestPermissions().then(result => {
+            if (result.receive === 'granted') {
+              PushNotifications.register();
+            }
+          });
 
-    // 2. Listen for native bridge push token callback
-    (window as any).onNativePushToken = (newToken: string) => {
-      if (newToken) {
-        localStorage.setItem("arco_expo_push_token", newToken);
-        registerToken(newToken);
+          PushNotifications.addListener('registration', (token) => {
+            registerToken(token.value);
+            localStorage.setItem("arco_cap_push_token", token.value);
+          });
+        }
+      });
+    }).catch(() => console.log('Capacitor Push Notifications not available'));
+  }, [user]);
+
+  // VERCEL-FRIENDLY Background Location (Native OS tracking with distanceFilter 50m)
+  useEffect(() => {
+    if (typeof window === "undefined" || !user?.id) return;
+
+    import('@capacitor/core').then(({ Capacitor, registerPlugin }) => {
+      if (Capacitor.isNativePlatform()) {
+        const BackgroundGeolocation = registerPlugin<any>('BackgroundGeolocation');
+        
+        BackgroundGeolocation.addWatcher(
+          {
+            backgroundMessage: "يتم تتبع الموقع في الخلفية لضمان تسجيل الحضور بشكل صحيح.",
+            backgroundTitle: "نظام الموارد البشرية",
+            requestPermissions: true,
+            stale: false,
+            distanceFilter: 50 // CRITICAL: Only wakes up server API when moving 50m
+          },
+          function callback(location: any, error: any) {
+            if (error) {
+              if (error.code === 'NOT_AUTHORIZED') {
+                if (window.confirm("التطبيق يحتاج إلى صلاحية الموقع في الخلفية للعمل بشكل صحيح.")) {
+                  BackgroundGeolocation.openSettings();
+                }
+              }
+              return console.error(error);
+            }
+            if (location) {
+              fetch("/api/location", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  latitude: location.latitude,
+                  longitude: location.longitude
+                })
+              }).catch(() => {});
+            }
+          }
+        ).then((watcherId: string) => {
+          console.log("Background location watcher started:", watcherId);
+        });
       }
-    };
+    }).catch(() => console.log('Background Geolocation not available'));
   }, [user]);
 
   // Auto-request Notification & Location permissions immediately on load
