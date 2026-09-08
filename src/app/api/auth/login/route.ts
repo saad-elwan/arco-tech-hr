@@ -202,20 +202,21 @@ export async function POST(request: Request) {
     }, { headers });
 
     // 1 Year Persistent Session Cookie (365 Days)
+    // SameSite=None + Secure required for iOS WebKit ITP in WebViews/PWAs
     response.cookies.set("hr_token", token, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 60 * 60 * 24 * 365,
       path: "/",
-      sameSite: "lax",
+      sameSite: "none",
     });
 
     response.cookies.set("hr_user", JSON.stringify(employeePayload), {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 60 * 60 * 24 * 365,
       path: "/",
-      sameSite: "lax",
+      sameSite: "none",
     });
 
     return response;
