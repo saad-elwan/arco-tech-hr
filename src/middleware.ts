@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "hr-system-secret-key-2024";
 const protectedPaths = ["/dashboard", "/employees", "/attendance", "/tasks", "/evaluations", "/finance", "/tracking", "/shifts", "/departments", "/reports", "/settings", "/me", "/requests", "/profile", "/super-admin"];
 
 // Pages for guests only (redirect to dashboard if already logged in)
-const guestOnlyPaths = ["/"];
+const guestOnlyPaths = ["/", "/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   // If on a protected page and not logged in → redirect to login
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
   if (isProtected && !isValid) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Role-based authorization for employees
@@ -49,6 +49,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|login|manifest.json|sw.js|arco-logo.png).*)",
   ],
 };
