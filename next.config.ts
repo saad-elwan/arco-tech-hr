@@ -17,11 +17,17 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Allow WebView/iframe embedding for all pages
+        // Allow WebView/iframe/PWA embedding for ALL pages
         source: "/:path*",
         headers: [
-          { key: "X-Frame-Options", value: "ALLOWALL" },
+          // Remove X-Frame-Options entirely to allow WebView embedding
+          // Use CSP frame-ancestors * instead (modern replacement)
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
           { key: "X-Content-Type-Options", value: "nosniff" },
+          // Permissive referrer for WebView compatibility
+          { key: "Referrer-Policy", value: "no-referrer-when-downgrade" },
+          // Allow all permissions for embedded contexts
+          { key: "Permissions-Policy", value: "geolocation=(*), camera=(*), microphone=(*)" },
         ],
       },
     ];
