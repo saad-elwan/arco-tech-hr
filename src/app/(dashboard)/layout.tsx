@@ -25,13 +25,11 @@ export default function DashboardLayout({
     } catch {}
   }, [pathname, router]);
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pullY, setPullY] = useState(0);
-
-  // Touch Pull-To-Refresh Gesture Handler
+  // Silent Pull-To-Refresh (no loading indicator)
   useEffect(() => {
     let startY = 0;
     let isAtTop = false;
+    let pulling = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (window.scrollY <= 5) {
@@ -43,24 +41,19 @@ export default function DashboardLayout({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isAtTop || isRefreshing) return;
-      const currentY = e.touches[0].clientY;
-      const distance = currentY - startY;
-      if (distance > 0 && distance < 140) {
-        setPullY(distance);
+      if (!isAtTop) return;
+      const distance = e.touches[0].clientY - startY;
+      if (distance > 80) {
+        pulling = true;
       }
     };
 
     const handleTouchEnd = () => {
       if (!isAtTop) return;
-      if (pullY > 70 && !isRefreshing) {
-        setIsRefreshing(true);
-        setPullY(60);
-        setTimeout(() => {
-          window.location.reload();
-        }, 600);
-      } else {
-        setPullY(0);
+      if (pulling) {
+        // Silent refresh - no visible indicator
+        router.refresh();
+        pulling = false;
       }
       isAtTop = false;
     };
@@ -74,44 +67,10 @@ export default function DashboardLayout({
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [pullY, isRefreshing]);
+  }, [router]);
 
   return (
     <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      {/* Pull To Refresh Indicator */}
-      {pullY > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            top: `${Math.min(pullY - 10, 70)}px`,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 9999,
-            background: "rgba(18, 18, 18, 0.95)",
-            border: "1px solid var(--gold-primary)",
-            borderRadius: "50%",
-            width: "36px",
-            height: "36px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(var(--black-rgb),0.8), 0 0 12px rgba(212,175,55,0.3)",
-            transition: isRefreshing ? "all 0.3s ease" : "none",
-          }}
-        >
-          <div
-            style={{
-              width: "18px",
-              height: "18px",
-              border: "2px solid rgba(212,175,55,0.2)",
-              borderTopColor: "var(--gold-primary)",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-        </div>
-      )}
-
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {sidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>

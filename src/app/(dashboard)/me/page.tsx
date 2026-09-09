@@ -162,52 +162,78 @@ export default function EmployeePortal() {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-
-        // Check if within allowed distance of company
-        if (company?.geofenceLat && company?.geofenceLng) {
-          const dist = getDistance(latitude, longitude, company.geofenceLat, company.geofenceLng);
-          const baseRadius = Math.max(company.geofenceRadius || 20, 20);
-          const accuracyBonus = Math.min(accuracy || 0, 15);
-          const allowedDist = baseRadius + accuracyBonus;
-
-          if (dist > allowedDist) {
-            setLocationError(`أنت على بُعد ${Math.round(dist)} متر من مقر الشركة. يجب أن تكون داخل نطاق المقر لتسجيل الحضور/الانصراف.`);
-            setCheckingIn(false);
-            return;
-          }
-        }
-
-        const today = data?.todayAttendance;
-        const isCheckIn = !today?.checkIn;
-
-        const res = await fetch("/api/attendance/checkin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            latitude, 
-            longitude, 
-            accuracy, 
-            type: isCheckIn ? "in" : "out" 
-          })
+    // Helper: get position with a promise
+    const getPosition = (highAccuracy: boolean, timeout: number): Promise<GeolocationPosition> => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: highAccuracy,
+          timeout,
+          maximumAge: 0
         });
+      });
+    };
 
-        if (res.ok) {
-          await refreshData();
+    let pos: GeolocationPosition;
+    try {
+      // Try high accuracy first (GPS)
+      pos = await getPosition(true, 20000);
+    } catch (highAccErr: any) {
+      try {
+        // Fallback to low accuracy (network/cell tower)
+        pos = await getPosition(false, 15000);
+      } catch (lowAccErr: any) {
+        const code = lowAccErr?.code || highAccErr?.code;
+        if (code === 1) {
+          setLocationError("تم رفض إذن الموقع. يرجى السماح بالوصول للموقع من إعدادات المتصفح.");
+        } else if (code === 2) {
+          setLocationError("تعذّر تحديد الموقع. تأكد من تشغيل الـ GPS أو اتصال الإنترنت.");
+        } else if (code === 3) {
+          setLocationError("انتهت مهلة تحديد الموقع. حاول مرة أخرى في مكان مفتوح.");
         } else {
-          const d = await res.json();
-          setLocationError(d.error || "حدث خطأ أثناء تسجيل الحضور/الانصراف");
+          setLocationError("تعذّر الحصول على إحداثيات موقعك. يرجى تفعيل الـ GPS والسماح بالوصول للموقع.");
         }
         setCheckingIn(false);
-      },
-      (err) => {
-        setLocationError("تعذّر الحصول على إحداثيات موقعك بدقة. يرجى تفعيل الـ GPS والسماح بالوصول للموقع.");
+        return;
+      }
+    }
+
+    const { latitude, longitude, accuracy } = pos.coords;
+
+    // Check if within allowed distance of company
+    if (company?.geofenceLat && company?.geofenceLng) {
+      const dist = getDistance(latitude, longitude, company.geofenceLat, company.geofenceLng);
+      const baseRadius = Math.max(company.geofenceRadius || 20, 20);
+      const accuracyBonus = Math.min(accuracy || 0, 15);
+      const allowedDist = baseRadius + accuracyBonus;
+
+      if (dist > allowedDist) {
+        setLocationError(`أنت على بُعد ${Math.round(dist)} متر من مقر الشركة. يجب أن تكون داخل نطاق المقر لتسجيل الحضور/الانصراف.`);
         setCheckingIn(false);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
+        return;
+      }
+    }
+
+    const today = data?.todayAttendance;
+    const isCheckIn = !today?.checkIn;
+
+    const res = await fetch("/api/attendance/checkin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        latitude, 
+        longitude, 
+        accuracy, 
+        type: isCheckIn ? "in" : "out" 
+      })
+    });
+
+    if (res.ok) {
+      await refreshData();
+    } else {
+      const d = await res.json();
+      setLocationError(d.error || "حدث خطأ أثناء تسجيل الحضور/الانصراف");
+    }
+    setCheckingIn(false);
   }
 
   async function submitAdvance() {

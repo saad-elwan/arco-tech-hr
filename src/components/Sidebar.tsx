@@ -57,37 +57,68 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
   const [user, setUser] = useState<{ name: string; role: string; email: string; permissions?: string[] } | null>(null);
   const [companyName, setCompanyName] = useState("Arco Tech");
   const [empNav, setEmpNav] = useState(employeeNavItems);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let userFromStorage: any = null;
     try {
       const userData = localStorage.getItem("hr_user");
       if (userData) {
-        const parsedUser = JSON.parse(userData);
-        // Defer setState to avoid synchronous setState in effect
-        setTimeout(() => setUser(parsedUser), 0);
-        
-        if (parsedUser.role === "employee") {
-          fetch("/api/me")
-            .then(r => r.json())
-            .then(d => {
-              if (d.employee?.permissions) {
-                const perms = typeof d.employee.permissions === 'string' ? JSON.parse(d.employee.permissions) : d.employee.permissions;
-                const allPossibleItems = [
-                  { href: "/me", label: "حسابي", icon: LayoutGrid },
-                  { href: "/finance", label: "الماليات والرواتب", icon: Banknote },
-                  { href: "/tasks", label: "المهام", icon: CheckSquare },
-                  { href: "/attendance", label: "الحضور", icon: Clock },
-                  { href: "/tracking", label: "تتبع المواقع", icon: MapPin },
-                  { href: "/evaluations", label: "التقييمات", icon: Star },
-                  { href: "/requests", label: "الطلبات", icon: ClipboardList }
-                ];
-                const allowedItems = allPossibleItems.filter(item => perms.includes(item.href));
-                setEmpNav([{ section: "بوابة الموظف", items: allowedItems }]);
-              }
-            }).catch(() => {});
-        }
+        userFromStorage = JSON.parse(userData);
+        setUser(userFromStorage);
       }
     } catch (e) {}
+
+    // Always verify role from API to prevent spoofing/stale localStorage
+    fetch("/api/me")
+      .then(r => r.json())
+      .then(d => {
+        if (d.employee || d.admin || d.user) {
+          const apiRole = d.employee?.role || d.admin?.role || d.user?.role || d.role;
+          const apiName = d.employee?.name || d.admin?.name || d.user?.name || d.name;
+          const apiEmail = d.employee?.email || d.admin?.email || d.user?.email || d.email;
+          
+          const verifiedUser = {
+            name: apiName || userFromStorage?.name || "",
+            role: apiRole || userFromStorage?.role || "employee",
+            email: apiEmail || userFromStorage?.email || "",
+            permissions: d.employee?.permissions ? 
+              (typeof d.employee.permissions === 'string' ? JSON.parse(d.employee.permissions) : d.employee.permissions) 
+              : userFromStorage?.permissions
+          };
+          
+          setUser(verifiedUser);
+
+          // Update localStorage with verified data
+          try { localStorage.setItem("hr_user", JSON.stringify(verifiedUser)); } catch(e) {}
+
+          // Build employee nav based on permissions
+          if (verifiedUser.role === "employee" && verifiedUser.permissions) {
+            const allPossibleItems = [
+              { href: "/me", label: "حسابي", icon: LayoutGrid },
+              { href: "/finance", label: "الماليات والرواتب", icon: Banknote },
+              { href: "/tasks", label: "المهام", icon: CheckSquare },
+              { href: "/attendance", label: "الحضور", icon: Clock },
+              { href: "/tracking", label: "تتبع المواقع", icon: MapPin },
+              { href: "/evaluations", label: "التقييمات", icon: Star },
+              { href: "/requests", label: "الطلبات", icon: ClipboardList }
+            ];
+            const allowedItems = allPossibleItems.filter(item => verifiedUser.permissions!.includes(item.href));
+            setEmpNav([{ section: "بوابة الموظف", items: allowedItems }]);
+          }
+        } else if (!userFromStorage) {
+          // No user from API or localStorage - default to employee to hide admin pages
+          setUser({ name: "", role: "employee", email: "" });
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        // On API failure, fall back to localStorage data or default to employee
+        if (!userFromStorage) {
+          setUser({ name: "", role: "employee", email: "" });
+        }
+        setLoading(false);
+      });
 
     fetch("/api/settings")
       .then((r) => r.json())
@@ -121,7 +152,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
   };
 
   const isDelegate = user?.role === "delegate";
-  const isEmployee = user?.role === "employee";
+  const isEmployee = user?.role === "employee" || loading || !user;
 
   const delegateNavSections = [
     {
@@ -132,7 +163,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     }
   ];
 
-  // If delegate -> strictly only /me. If employee -> permissions. If admin/superadmin -> adminNav
+  // If delegate -> strictly only /me. If employee/loading -> permissions. If admin/superadmin -> adminNav
   const navSections = isDelegate
     ? delegateNavSections
     : isEmployee
