@@ -46,8 +46,10 @@ export default function LoginPage() {
         setError(data.error || "حدث خطأ في تسجيل الدخول");
         return;
       }
-      localStorage.setItem("hr_token", data.token);
-      localStorage.setItem("hr_user", JSON.stringify(data.employee));
+      try {
+        localStorage.setItem("hr_token", data.token);
+        localStorage.setItem("hr_user", JSON.stringify(data.employee));
+      } catch (e) {}
       
       if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {
         (window as any).ReactNativeWebView.postMessage(

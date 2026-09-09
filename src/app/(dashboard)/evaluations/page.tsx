@@ -25,10 +25,11 @@ export default function EvaluationsPage() {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem("hr_user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      setUser(parsed);
+    try {
+      const userData = localStorage.getItem("hr_user");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUser(parsed);
       // Check if user is a supervisor
       fetch(`/api/departments`)
         .then(r => r.json())
@@ -40,6 +41,7 @@ export default function EvaluationsPage() {
         })
         .catch(() => {});
     }
+    } catch (e) {}
     fetchEvaluations();
     fetchEmployees();
     fetchSettings();

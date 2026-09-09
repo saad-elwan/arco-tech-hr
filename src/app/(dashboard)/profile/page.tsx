@@ -13,13 +13,15 @@ export default function AdminProfilePage() {
   const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
-    const userData = localStorage.getItem("hr_user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      setUser(parsed);
-      setName(parsed.name || "");
-      setEmail(parsed.email || "");
-    }
+    try {
+      const userData = localStorage.getItem("hr_user");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUser(parsed);
+        setName(parsed.name || "");
+        setEmail(parsed.email || "");
+      }
+    } catch (e) {}
   }, []);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -36,7 +38,7 @@ export default function AdminProfilePage() {
       const data = await res.json();
       if (res.ok) {
         const updatedUser = { ...user, name, email };
-        localStorage.setItem("hr_user", JSON.stringify(updatedUser));
+        try { localStorage.setItem("hr_user", JSON.stringify(updatedUser)); } catch (e) {}
         setUser(updatedUser);
         setMessage({ type: "success", text: "تم تحديث البيانات بنجاح" });
       } else {

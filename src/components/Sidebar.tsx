@@ -59,33 +59,35 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
   const [empNav, setEmpNav] = useState(employeeNavItems);
 
   useEffect(() => {
-    const userData = localStorage.getItem("hr_user");
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      // Defer setState to avoid synchronous setState in effect
-      setTimeout(() => setUser(parsedUser), 0);
-      
-      if (parsedUser.role === "employee") {
-        fetch("/api/me")
-          .then(r => r.json())
-          .then(d => {
-            if (d.employee?.permissions) {
-              const perms = typeof d.employee.permissions === 'string' ? JSON.parse(d.employee.permissions) : d.employee.permissions;
-              const allPossibleItems = [
-                { href: "/me", label: "حسابي", icon: LayoutGrid },
-                { href: "/finance", label: "الماليات والرواتب", icon: Banknote },
-                { href: "/tasks", label: "المهام", icon: CheckSquare },
-                { href: "/attendance", label: "الحضور", icon: Clock },
-                { href: "/tracking", label: "تتبع المواقع", icon: MapPin },
-                { href: "/evaluations", label: "التقييمات", icon: Star },
-                { href: "/requests", label: "الطلبات", icon: ClipboardList }
-              ];
-              const allowedItems = allPossibleItems.filter(item => perms.includes(item.href));
-              setEmpNav([{ section: "بوابة الموظف", items: allowedItems }]);
-            }
-          }).catch(() => {});
+    try {
+      const userData = localStorage.getItem("hr_user");
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        // Defer setState to avoid synchronous setState in effect
+        setTimeout(() => setUser(parsedUser), 0);
+        
+        if (parsedUser.role === "employee") {
+          fetch("/api/me")
+            .then(r => r.json())
+            .then(d => {
+              if (d.employee?.permissions) {
+                const perms = typeof d.employee.permissions === 'string' ? JSON.parse(d.employee.permissions) : d.employee.permissions;
+                const allPossibleItems = [
+                  { href: "/me", label: "حسابي", icon: LayoutGrid },
+                  { href: "/finance", label: "الماليات والرواتب", icon: Banknote },
+                  { href: "/tasks", label: "المهام", icon: CheckSquare },
+                  { href: "/attendance", label: "الحضور", icon: Clock },
+                  { href: "/tracking", label: "تتبع المواقع", icon: MapPin },
+                  { href: "/evaluations", label: "التقييمات", icon: Star },
+                  { href: "/requests", label: "الطلبات", icon: ClipboardList }
+                ];
+                const allowedItems = allPossibleItems.filter(item => perms.includes(item.href));
+                setEmpNav([{ section: "بوابة الموظف", items: allowedItems }]);
+              }
+            }).catch(() => {});
+        }
       }
-    }
+    } catch (e) {}
 
     fetch("/api/settings")
       .then((r) => r.json())
@@ -95,8 +97,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    localStorage.removeItem("hr_token");
-    localStorage.removeItem("hr_user");
+    try {
+      localStorage.removeItem("hr_token");
+      localStorage.removeItem("hr_user");
+    } catch (e) {}
     
     // Notify React Native WebView if it exists
     if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {

@@ -45,12 +45,12 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem("hr_user");
-    if (userData) {
-      try {
+    try {
+      const userData = localStorage.getItem("hr_user");
+      if (userData) {
         setUser(JSON.parse(userData));
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
   }, []);
 
   // Handle outside clicks
