@@ -2,6 +2,8 @@
   "name": "hr-amr",
   "version": "0.1.0",
   "private": true,
+  "allowScripts": ["prisma", "@prisma/engines", "sharp", "core-js", "@firebase/util", "protobufjs", "unrs-resolver"],
+
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && prisma db push --accept-data-loss && next build",
