@@ -44,7 +44,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Force-remove X-Frame-Options and inject iOS-friendly headers
+  // This overrides Vercel's default SAMEORIGIN header
+  response.headers.delete("X-Frame-Options");
+  response.headers.set("Content-Security-Policy", "frame-ancestors *; upgrade-insecure-requests");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "no-referrer-when-downgrade");
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+
+  return response;
 }
 
 export const config = {
