@@ -9,7 +9,7 @@ const protectedPaths = ["/dashboard", "/employees", "/attendance", "/tasks", "/e
 // Pages for guests only (redirect to dashboard if already logged in)
 const guestOnlyPaths = ["/", "/login"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const token = request.cookies.get("hr_token")?.value;
