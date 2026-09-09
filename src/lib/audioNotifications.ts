@@ -229,24 +229,26 @@ export async function showBrowserNotification(title: string, options?: { body?: 
         }
       }
 
-      // 2. Fallback to Window Notification API
-      const notif = new Notification(smsTitle, {
-        body: notifBody,
-        icon: "/arco-logo.png",
-        badge: "/arco-logo.png",
-        dir: "rtl",
-        lang: "ar",
-        tag: "sms-" + Date.now(),
-        requireInteraction: true,
-      });
+      // 2. Fallback to Window Notification API with feature detection
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const notif = new Notification(smsTitle, {
+          body: notifBody,
+          icon: "/arco-logo.png",
+          badge: "/arco-logo.png",
+          dir: "rtl",
+          lang: "ar",
+          tag: "sms-" + Date.now(),
+          requireInteraction: true,
+        });
 
-      notif.onclick = function () {
-        window.focus();
-        if (options?.link) {
-          window.location.href = options.link;
-        }
-        notif.close();
-      };
+        notif.onclick = function () {
+          window.focus();
+          if (options?.link) {
+            window.location.href = options.link;
+          }
+          notif.close();
+        };
+      }
     }
   } catch (err) {
     console.warn("Browser notification popup error:", err);
