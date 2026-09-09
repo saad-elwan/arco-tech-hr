@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
   // Force-remove X-Frame-Options and inject iOS-friendly headers
   // This overrides Vercel's default SAMEORIGIN header
   response.headers.delete("X-Frame-Options");
-  response.headers.set("Content-Security-Policy", "frame-ancestors *; upgrade-insecure-requests; script-src 'self' https://cdn.jsdelivr.net");
+  response.headers.set("Content-Security-Policy", "frame-ancestors *; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "no-referrer-when-downgrade");
   response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
